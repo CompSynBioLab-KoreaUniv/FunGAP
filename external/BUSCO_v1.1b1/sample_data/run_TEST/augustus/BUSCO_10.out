@@ -1,0 +1,5 @@
+# (none)
+# Predicted genes for sequence number 1 on both strands
+# namgene(none)
+# command line:
+# augustus --proteinprofile=./example/prfl/BUSCO_10.prfl --predictionStart=334451 --predictionEnd=344636 --species=TEST sampleTEST_.temp

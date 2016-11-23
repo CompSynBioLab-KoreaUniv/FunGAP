@@ -1,0 +1,11 @@
+sample	AUGUSTUS	gene	30224	31703	0.08	-	.	g2
+sample	AUGUSTUS	transcript	30224	31703	0.08	-	.	g2.t1
+sample	AUGUSTUS	stop_codon	30224	30226	.	-	0	transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	intron	30487	30542	0.5	-	.	transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	intron	30725	31521	0.16	-	.	transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	CDS	30224	30486	0.96	-	2	transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	CDS	30543	30724	0.47	-	1	transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	CDS	31522	31703	0.15	-	0	transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	start_codon	31701	31703	.	-	0	transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	protein_match	30482	30486	2.3	-	2	target "unknown_A[16..17]"; target_start 106; transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	protein_match	30543	30588	8.96	-	0	target "unknown_A[1..16]"; target_start 106; transcript_id "g2.t1"; gene_id "g2";

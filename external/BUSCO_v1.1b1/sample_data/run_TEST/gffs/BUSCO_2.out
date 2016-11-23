@@ -1,0 +1,15 @@
+sample	AUGUSTUS	gene	45155	46428	0.01	+	.	g5
+sample	AUGUSTUS	transcript	45155	46428	0.01	+	.	g5.t1
+sample	AUGUSTUS	start_codon	45155	45157	.	+	0	transcript_id "g5.t1"; gene_id "g5";
+sample	AUGUSTUS	intron	45197	45269	0.01	+	.	transcript_id "g5.t1"; gene_id "g5";
+sample	AUGUSTUS	intron	45402	45549	0.01	+	.	transcript_id "g5.t1"; gene_id "g5";
+sample	AUGUSTUS	intron	45745	46206	0.71	+	.	transcript_id "g5.t1"; gene_id "g5";
+sample	AUGUSTUS	CDS	45155	45196	0.01	+	0	transcript_id "g5.t1"; gene_id "g5";
+sample	AUGUSTUS	CDS	45270	45401	0.01	+	0	transcript_id "g5.t1"; gene_id "g5";
+sample	AUGUSTUS	CDS	45550	45744	0.64	+	0	transcript_id "g5.t1"; gene_id "g5";
+sample	AUGUSTUS	CDS	46207	46428	0.15	+	0	transcript_id "g5.t1"; gene_id "g5";
+sample	AUGUSTUS	stop_codon	46426	46428	.	+	0	transcript_id "g5.t1"; gene_id "g5";
+sample	AUGUSTUS	protein_match	45270	45401	10.4	+	0	target "unknown_A[1..44]"; target_start 14; transcript_id "g5.t1"; gene_id "g5";
+sample	AUGUSTUS	protein_match	45550	45657	8.91	+	0	target "unknown_B[1..36]"; target_start 58; transcript_id "g5.t1"; gene_id "g5";
+sample	AUGUSTUS	protein_match	45694	45741	11.9	+	0	target "unknown_C[1..16]"; target_start 106; transcript_id "g5.t1"; gene_id "g5";
+sample	AUGUSTUS	protein_match	46207	46425	9.82	+	0	target "unknown_D[1..73]"; target_start 123; transcript_id "g5.t1"; gene_id "g5";

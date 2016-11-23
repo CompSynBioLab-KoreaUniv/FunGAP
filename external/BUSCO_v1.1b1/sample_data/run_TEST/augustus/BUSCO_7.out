@@ -1,0 +1,28 @@
+# (none)
+# Predicted genes for sequence number 1 on both strands
+# start gene g1
+sample	AUGUSTUS	gene	164621	165031	0.98	-	.	g1
+sample	AUGUSTUS	transcript	164621	165031	0.98	-	.	g1.t1
+sample	AUGUSTUS	stop_codon	164621	164623	.	-	0	transcript_id "g1.t1"; gene_id "g1";
+sample	AUGUSTUS	CDS	164621	165031	0.98	-	0	transcript_id "g1.t1"; gene_id "g1";
+sample	AUGUSTUS	start_codon	165029	165031	.	-	0	transcript_id "g1.t1"; gene_id "g1";
+# protein sequence = [MAVASAANSGRDYLPRPQARAYVYGTPPPSTMAQLRRIIQGHLERFQQAEQTHFSRRANVQLGKSELPAERKPLAMQL
+# WVVRTPAVSGAASDNVLDYALPPNTPTPKDYAHKFLPEGKDVVPGSSYIPLRLVVIKR]
+# end gene g1
+###
+# start gene g2
+sample	AUGUSTUS	gene	168394	169158	1	+	.	g2
+sample	AUGUSTUS	transcript	168394	169158	1	+	.	g2.t1
+sample	AUGUSTUS	start_codon	168394	168396	.	+	0	transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	CDS	168394	169158	1	+	0	transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	stop_codon	169156	169158	.	+	0	transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	protein_match	168463	168942	2.96	+	0	target "unknown_A[1..160]"; target_start 23; transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	protein_match	168952	169029	3.34	+	0	target "unknown_B[1..26]"; target_start 186; transcript_id "g2.t1"; gene_id "g2";
+sample	AUGUSTUS	protein_match	169093	169134	2	+	0	target "unknown_C[1..14]"; target_start 233; transcript_id "g2.t1"; gene_id "g2";
+# protein sequence = [MARLYDSRTTIFSPEGRLYQVEYAMEAASQSNTCLGILAKNGVILATERSVDKLLDSSIPAPRICRLNEDAACCATGN
+# KADGNVLTTELRLIAQQYVSTYGEMIPCEQLVTNLCDIKQAYTQYGGKRPFGVSFLYMGWDCRFGFQLYQSDPSGNYSGWKATCIGRKSGAAMEMLQK
+# ELFSKGYASPSLEEAKDVAIKVMGMTLDRDSLTPAKLEMAVLQRFYNTTIFHILEKIEVHNLIQKHNILQFQIARRKY]
+# end gene g2
+###
+# command line:
+# augustus --proteinprofile=./example/prfl/BUSCO_7.prfl --predictionStart=163394 --predictionEnd=174110 --species=generic sampleTEST_.temp

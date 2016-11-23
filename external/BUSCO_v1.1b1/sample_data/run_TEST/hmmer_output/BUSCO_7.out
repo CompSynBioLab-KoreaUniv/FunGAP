@@ -1,0 +1,14 @@
+#                                                                                --- full sequence --- -------------- this domain -------------   hmm coord   ali coord   env coord
+# target name            accession   tlen query name           accession   qlen   E-value  score  bias   #  of  c-Evalue  i-Evalue  score  bias  from    to  from    to  from    to  acc description of target
+#    ------------------- ---------- ----- -------------------- ---------- ----- --------- ------ ----- --- --- --------- --------- ------ ----- ----- ----- ----- ----- ----- ----- ---- ---------------------
+g2[sample:168394-169158] -            254 BUSCO_7              -            473  7.9e-126  423.6   0.2   1   1  9.1e-131  9.3e-126  423.3   0.2   212   455     1   246     1   253 0.97 -
+#
+# Program:         hmmsearch
+# Version:         3.1b1 (May 2013)
+# Pipeline mode:   SEARCH
+# Query file:      example/hmms/BUSCO_7.hmm
+# Target file:     ./run_TEST//augustus_proteins/BUSCO_7.fas
+# Option settings: hmmsearch -o temp --domtblout ./run_TEST/hmmer_output/BUSCO_7.out -Z 102785 --cpu 1 example/hmms/BUSCO_7.hmm ./run_TEST//augustus_proteins/BUSCO_7.fas 
+# Current dir:     /mnt/scratch/workarea/work/2015/buscos/build_web_0316/sample_data
+# Date:            Mon Mar 16 15:29:19 2015
+# [ok]

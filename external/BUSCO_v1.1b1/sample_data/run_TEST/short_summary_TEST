@@ -1,0 +1,12 @@
+#Summarized BUSCOs benchmarking for file: target_sequence.fa
+#BUSCOs was run in mode: all
+
+Summarized benchmarks in BUSCO notation:
+	C:80%[D:0.0%],F:0.0%,M:20%,n:10
+
+Representing:
+	8	Complete Single-Copy BUSCOs
+	0	Complete Duplicated BUSCOs
+	0	Fragmented BUSCOs
+	2	Missing BUSCOs
+	10	Total BUSCOs groups searched

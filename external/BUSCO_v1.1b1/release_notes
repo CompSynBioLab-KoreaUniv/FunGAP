@@ -1,0 +1,14 @@
+#BUSCO v1,1 release notes
+
+http://busco.ezlab.org
+Wed May 20 10:49:32 2015
+-------------------------------------------------
+
+Version 1.1b includes the following changes:
+
+- Lineage sets may now be specified using the full path (e.g. -l /path/to/lineage)
+
+Version 1.1 includes the following changes:
+
+- Threading support for gene prediction, yielding significant speed gains on genome mode.
+- Added checks to make sure the necessary software is set-up correctly

@@ -1,0 +1,11 @@
+#BUSCO_group	Status	Scaffold	Start	End	Bitscore	Length
+BUSCO_5	Complete	sample	66078	76647	475.7	287
+BUSCO_7	Complete	sample	163394	174110	423.6	244
+BUSCO_8	Complete	sample	228045	238915	238.1	189
+BUSCO_1	Complete	sample	25227	35708	281.1	147
+BUSCO_4	Complete	sample	64425	74970	420.3	419
+BUSCO_6	Complete	sample	77357	91985	1259.1	688
+BUSCO_2	Complete	sample	27021	51425	436.0	183
+BUSCO_3	Complete	sample	62338	73243	237.5	144
+BUSCO_9	Missing
+BUSCO_10	Missing

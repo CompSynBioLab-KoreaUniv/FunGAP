@@ -1,0 +1,274 @@
+<h2>Site Map</h2>
+<div class="box">
+ <ul>
+   <li><a href="index.shtml">Home</a></li>
+   <li><a href="manual.shtml">Manual</a></li>
+   <li><a href="faq.shtml">FAQ</a></li>
+ </ul>
+</div>
+
+<h2>News and Updates</h2>
+<div class="box">
+ <ul>
+   <table width="100%">
+	 <tbody><tr><td>New releases and related tools will be announced through the Bowtie
+     <a href="https://lists.sourceforge.net/lists/listinfo/bowtie-bio-announce"><b>mailing list</b></a>.</td></tr>
+   </tbody></table>
+ </ul>
+</div>
+
+<h2>Getting Help</h2>
+<div class="box">
+ <ul>
+   <table width="100%">
+     <tbody><tr><td>
+	   <!-- 
+		Questions and comments about HISAT2 can be posted on the 
+		<a href="https://groups.google.com/forum/#!forum/hisat-tools-users"><b>HISAT Tools Users Google Group</b></a>. 
+		Please use <a href="mailto:hisat@gmail.com">hisat@gmail.com</a> for 
+		private communications only. Please do not email technical questions to HISAT contributors directly.</td></tr>
+	     -->
+	   Please email <a href="mailto:infphilo@gmail.com">Daehwan Kim</a> for questions.
+   </tbody></table>
+ </ul>
+</div>
+
+<a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads"><h2><u>Releases</u></h2></a>
+<div class="box">
+ <ul>
+   <table width="100%"><tbody><tr><td>version 2.0.2-beta</td> <td align="right">2/XX/2016</td></tr>
+       <tr>
+	 <td><a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.0.2-beta-source.zip" onclick="javascript: pageTracker._trackPageview('/downloads/hisat'); ">&nbsp;&nbsp;&nbsp;Source code</a></td>
+       </tr>
+       <tr>
+	 <td><a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.0.2-beta-Linux_x86_64.zip" onclick="javascript: pageTracker._trackPageview('/downloads/hisat'); ">&nbsp;&nbsp;&nbsp;Linux x86_64 binary</a></td>
+       </tr>
+       <tr>
+	 <td><a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.0.2-beta-OSX_x86_64.zip" onclick="javascript: pageTracker._trackPageview('/downloads/hisat'); ">&nbsp;&nbsp;&nbsp;Mac OS X x86_64 binary</a></td>
+       </tr>
+   </tbody></table>
+ </ul>
+<font size="-1">Please cite: <p>Kim D, Langmead B and Salzberg SL. <a href="http://www.nature.com/nmeth/journal/vaop/ncurrent/full/nmeth.3317.html"><b>HISAT: a fast spliced aligner with low memory requirements</b></a>. <i><a href="http://www.nature.com/nmeth">Nature Methods</a></i></font> 2015</p>
+</div>
+
+<a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data"><h2><u>Indexes</u></h2></a>
+  <div class="box">
+    <table width="100%">
+      <tr>
+        <td colspan="2">
+         <i>H. sapiens</i>, Ensembl GRCh37
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch37.tar.gz"><i>genome</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>3.9 GB</b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch37_snp.tar.gz"><i>genome_snp</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>4.5 GB</b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch37_tran.tar.gz"><i>genome_tran</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>4.0 GB</b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch37_snp_tran.tar.gz"><i>genome_snp_tran</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>4.5 GB</b>
+        </td>
+      </tr>
+      <tr>
+	<td colspan="2">
+          <i>H. sapiens</i>, UCSC hg19
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/hg19.tar.gz"><i>genome</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>3.9 GB</b>
+        </td>
+      </tr>
+
+      <tr>
+      <td colspan="2">
+         <i>H. sapiens</i>, Ensembl GRCh38
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38.tar.gz"><i>genome</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>3.9 GB</b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38_snp.tar.gz"><i>genome_snp</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>4.6 GB</b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38_tran.tar.gz"><i>genome_tran</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>4.1 GB</b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38_snp_tran.tar.gz"><i>genome_snp_tran</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>4.6 GB</b>
+        </td>
+      </tr>
+      <tr>
+	<td colspan="2">
+          <i>H. sapiens</i>, UCSC hg38
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/hg38.tar.gz"><i>genome</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>4.1 GB</b>
+        </td>
+      </tr>
+
+      <tr>
+      <td colspan="2">
+         <i>M. musculus</i>, Ensembl GRCm38
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grcm38.tar.gz"><i>genome</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>3.7 GB</b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grcm38_snp.tar.gz"><i>genome_snp</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>4.0 GB</b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grcm38_tran.tar.gz"><i>genome_tran</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>3.7 GB</b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grcm38_snp_tran.tar.gz"><i>genome_snp_tran</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>4.0 GB</b>
+        </td>
+      </tr>
+      <tr>
+	<td colspan="2">
+          <i>M. musculus</i>, UCSC mm10
+        </td>
+      </tr>
+      <tr>
+        <td>
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/mm10.tar.gz"><i>genome</i></a>
+        </td>
+	<td align="right" style="font-size: x-small">
+	  <b>3.5 GB</b>
+        </td>
+      </tr>
+
+      <tr>
+	<td colspan="2" style="font-size: x-small">
+	  <br/>
+	  * <i>genome</i>: HFM index for reference
+        </td>
+      </tr>
+      <tr>
+	<td colspan="2" style="font-size: x-small">
+	  * <i>genome_snp</i>: HGFM index for reference plus SNPs
+        </td>
+      </tr>
+      <tr>
+	<td colspan="2" style="font-size: x-small">
+	  * <i>genome_tran</i>: HGFM index for reference plus transcripts
+        </td>
+      </tr>
+      <tr>
+	<td colspan="2" style="font-size: x-small">
+	  * <i>genome_snp_tran</i>: HGFM index for reference plus SNPs and transcripts
+        </td>
+      </tr>
+      <tr>
+	<td colspan="2" style="font-size: x-small">
+	  <a href="ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data">more indexes</a>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+<h2>Related Tools</h2>
+<div class="box">
+ <ul>
+   <li><a href="http://www.ccb.jhu.edu/software/hisat">HISAT</a>: Fast and sensitive spliced alignment</li>
+   <li><a href="http://bowtie-bio.sourceforge.net/bowtie2">Bowtie2</a>: Ultrafast read alignment</li>
+   <li><a href="http://www.ccb.jhu.edu/software/tophat">TopHat2</a>: Spliced read mapper for RNA-Seq</li>
+   <li><a href="http://cufflinks.cbcb.umd.edu">Cufflinks</a>: Isoform assembly and quantitation for RNA-Seq</li>
+   <li><a href="http://www.ccb.jhu.edu/software/stringtie">StringTie</a>: Transcript assembly and quantification for RNA-Seq</li>
+ </ul>
+</div>
+
+<h2>Publications</h2>
+<div class="box">
+ <ul>
+   <li><p>Kim D, Langmead B and Salzberg SL. <a href="http://www.nature.com/nmeth/journal/vaop/ncurrent/full/nmeth.3317.html"><b>HISAT: a fast spliced aligner with low memory requirements</b></a>. <i><a href="http://www.nature.com/nmeth">Nature Methods</a></i> 2015</p></li>
+ </ul>
+</div>
+
+<h2>Contributors</h2>
+<div class="box">
+ <ul>
+   <li><a href="http://www.ccb.jhu.edu/people/infphilo">Daehwan Kim</a></li>
+   <li><a href="http://www.cs.jhu.edu/~langmea">Ben Langmead</a></li>
+   <li><a href="">Joe Paggi</a></li>
+   <li>Geo Pertea</li>
+   <li><a href="http://salzberg-lab.org/about-me/">Steven Salzberg</a></li>
+ </ul>
+</div>
+
+<h2>Links</h2>
+<div class="box">
+ <ul>
+   <li><a href="http://www.ccb.jhu.edu/">Center for Computational Biology at Johns Hopkins University </a></li>
+   <li><a href="http://www.cs.jhu.edu/">Computer Science Department at Johns Hopkins University </a></li>
+ </ul>
+</div>        

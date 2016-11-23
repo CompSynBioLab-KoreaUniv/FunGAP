@@ -1,0 +1,94 @@
+# TBLASTN 2.2.30+
+# Query: BUSCO_3
+# Database: TEST
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+# 2 hits found
+BUSCO_3	sample	59.32	59	21	1	16	74	67338	67505	7e-14	67.8
+BUSCO_3	sample	80.56	36	7	0	95	130	68136	68243	1e-12	63.9
+# TBLASTN 2.2.30+
+# Query: BUSCO_4
+# Database: TEST
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+# 1 hits found
+BUSCO_4	sample	73.08	182	49	0	1	182	69425	69970	3e-63	  219
+# TBLASTN 2.2.30+
+# Query: BUSCO_6
+# Database: TEST
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+# 13 hits found
+BUSCO_6	sample	66.41	259	85	2	286	543	85106	84333	0.0	  321
+BUSCO_6	sample	80.14	141	28	0	544	684	84267	83845	0.0	  248
+BUSCO_6	sample	76.99	113	26	0	680	792	83803	83465	0.0	  192
+BUSCO_6	sample	72.41	29	8	0	262	290	85254	85168	0.0	44.3
+BUSCO_6	sample	75.41	61	15	0	789	849	83058	82876	7e-18	83.6
+BUSCO_6	sample	50.00	62	23	2	836	897	82697	82536	5e-12	63.9
+BUSCO_6	sample	69.05	42	13	0	172	213	86380	86255	3e-11	61.6
+BUSCO_6	sample	70.37	54	16	0	211	264	85767	85606	3e-11	61.6
+BUSCO_6	sample	74.29	35	9	0	882	916	82461	82357	7e-09	53.9
+BUSCO_6	sample	79.17	24	5	0	54	77	86985	86914	5e-06	44.7
+BUSCO_6	sample	71.11	45	12	1	88	131	86706	86572	5e-04	37.7
+BUSCO_6	sample	90.00	10	1	0	22	31	89076	89047	6.5	24.3
+BUSCO_6	sample	32.00	50	27	1	644	693	184571	184699	10.0	23.9
+# TBLASTN 2.2.30+
+# Query: BUSCO_2
+# Database: TEST
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+# 11 hits found
+BUSCO_2	sample	85.00	80	12	0	365	444	46186	46425	3e-38	  145
+BUSCO_2	sample	81.08	74	14	0	298	371	45523	45744	5e-32	  125
+BUSCO_2	sample	93.75	48	3	0	262	309	45267	45410	4e-23	97.1
+BUSCO_2	sample	90.00	50	5	0	186	235	42013	42162	5e-23	97.1
+BUSCO_2	sample	89.13	46	5	0	140	185	41480	41617	5e-21	90.5
+BUSCO_2	sample	90.62	32	3	0	232	263	42697	42792	1e-11	61.2
+BUSCO_2	sample	56.10	82	28	1	1	82	32021	32242	2e-11	60.5
+BUSCO_2	sample	63.83	47	17	0	75	121	41044	41184	4e-04	36.6
+BUSCO_2	sample	27.59	58	39	2	255	312	129952	130116	0.61	26.6
+BUSCO_2	sample	37.50	32	20	0	354	385	121586	121681	2.0	24.6
+BUSCO_2	sample	39.29	28	14	1	217	244	375091	375165	2.6	24.6
+# TBLASTN 2.2.30+
+# Query: BUSCO_5
+# Database: TEST
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+# 3 hits found
+BUSCO_5	sample	61.05	190	55	1	23	193	71647	71078	7e-57	  196
+BUSCO_5	sample	44.00	25	14	0	106	130	313094	313020	0.21	27.3
+BUSCO_5	sample	40.91	22	12	1	140	160	271456	271521	2.5	23.9
+# TBLASTN 2.2.30+
+# Query: BUSCO_1
+# Database: TEST
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+# 2 hits found
+BUSCO_1	sample	70.33	91	27	0	104	194	30499	30227	3e-54	  123
+BUSCO_1	sample	78.95	57	12	0	53	109	30708	30538	3e-54	  100
+# TBLASTN 2.2.30+
+# Query: BUSCO_7
+# Database: TEST
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+# 5 hits found
+BUSCO_7	sample	62.08	240	87	2	212	448	168394	169110	1e-93	  310
+BUSCO_7	sample	29.79	47	33	0	21	67	239389	239529	0.78	26.2
+BUSCO_7	sample	45.45	22	12	0	275	296	407930	407995	1.2	25.8
+BUSCO_7	sample	31.43	35	22	1	309	341	357902	358006	1.5	25.4
+BUSCO_7	sample	47.06	17	9	0	271	287	400658	400708	8.3	23.1
+# TBLASTN 2.2.30+
+# Query: BUSCO_8
+# Database: TEST
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+# 2 hits found
+BUSCO_8	sample	58.65	104	43	0	80	183	233604	233915	2e-27	  105
+BUSCO_8	sample	61.11	36	10	1	1	32	233045	233152	4e-06	41.2
+# TBLASTN 2.2.30+
+# Query: BUSCO_9
+# Database: TEST
+# 0 hits found
+# TBLASTN 2.2.30+
+# Query: BUSCO_10
+# Database: TEST
+# Fields: query id, subject id, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
+# 5 hits found
+BUSCO_10	sample	30.16	63	39	2	3	61	339636	339451	0.64	24.6
+BUSCO_10	sample	24.07	54	35	1	4	51	422178	422017	3.3	22.3
+BUSCO_10	sample	33.33	30	18	1	113	142	194223	194306	3.3	22.3
+BUSCO_10	sample	61.54	13	5	0	104	116	318912	318950	4.1	21.9
+BUSCO_10	sample	35.00	20	13	0	9	28	222704	222645	8.8	21.2
+# BLAST processed 10 queries

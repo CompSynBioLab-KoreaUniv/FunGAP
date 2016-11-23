@@ -1,0 +1,41 @@
+# hmmsearch :: search profile(s) against a sequence database
+# HMMER 3.1b1 (May 2013); http://hmmer.org/
+# Copyright (C) 2013 Howard Hughes Medical Institute.
+# Freely distributed under the GNU General Public License (GPLv3).
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# query HMM file:                  /home/simao/2015/buscos/BUSCO_v1.1b/sample_data/eukaryota/hmms/44714.hmm
+# target sequence database:        ./run_SAMPLE_EU//augustus_proteins/44714.fas
+# output directed to file:         temp
+# per-dom hits tabular output:     ./run_SAMPLE_EU/hmmer_output/44714.out
+# sequence search space set to:    41317
+# number of worker threads:        1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Query:       44714  [M=493]
+Scores for complete sequences (score includes all domains):
+   --- full sequence ---   --- best 1 domain ---    -#dom-
+    E-value  score  bias    E-value  score  bias    exp  N  Sequence Description
+    ------- ------ -----    ------- ------ -----   ---- --  -------- -----------
+
+   [No hits detected that satisfy reporting thresholds]
+
+
+Domain annotation for each sequence (and alignments):
+
+   [No targets detected that satisfy reporting thresholds]
+
+
+Internal pipeline statistics summary:
+-------------------------------------
+Query model(s):                              1  (493 nodes)
+Target sequences:                            1  (424 residues searched)
+Passed MSV filter:                         0  (0); expected 0.0 (0.02)
+Passed bias filter:                        0  (0); expected 0.0 (0.02)
+Passed Vit filter:                         0  (0); expected 0.0 (0.001)
+Passed Fwd filter:                         0  (0); expected 0.0 (1e-05)
+Initial search space (Z):              41317  [as set by --Z on cmdline]
+Domain search space  (domZ):               0  [number of targets reported over threshold]
+# CPU time: 0.00u 0.00s 00:00:00.00 Elapsed: 00:00:00.00
+# Mc/sec: inf
+//
+[ok]

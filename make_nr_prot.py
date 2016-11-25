@@ -31,14 +31,12 @@ def main(argv):
         faa_files = [os.path.abspath(x) for x in args.faa_files]
     else:
         print '[ERROR] Please provide FAA FILES'
-        parser.print_help()
         sys.exit(2)
 
     if args.output_dir:
         output_dir = os.path.abspath(args.output_dir[0])
     else:
         print '[ERROR] Please provide OUTPUT DIRECTORY'
-        parser.print_help()
         sys.exit(2)
 
     # Run functions :)

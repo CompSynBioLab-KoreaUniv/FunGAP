@@ -48,21 +48,18 @@ def main(argv):
         gff3_files = [os.path.abspath(x) for x in args.gff3_files]
     else:
         print '[ERROR] Please provide GFF3 FILES'
-        parser.print_help()
         sys.exit(2)
 
     if args.fna_file:
         fna_file = os.path.abspath(args.fna_file[0])
     else:
         print '[ERROR] Please provide FNA FILE'
-        parser.print_help()
         sys.exit(2)
 
     if args.output_dir:
         output_dir = os.path.abspath(args.output_dir[0])
     else:
         print '[ERROR] Please provide OUTPUT PREFIX'
-        parser.print_help()
         sys.exit(2)
 
     # Run functions :) Slow is as good as Fast
@@ -161,6 +158,7 @@ def catch_middle_stop(gff3_files, fna_file, output_dir):
     outhandle_stats.write('short_intron\t%s\n' % ('\t'.join(intron_list)))
     D_bad_pickle = os.path.join(output_dir, 'D_bad.p')
     cPickle.dump(D_bad, open(D_bad_pickle, 'wb'))
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])

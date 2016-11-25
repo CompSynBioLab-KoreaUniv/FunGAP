@@ -38,21 +38,18 @@ def main(argv):
         ipr_file = os.path.abspath(args.ipr_file[0])
     else:
         print '[ERROR] Please provide IPR OUTPUT FILE'
-        parser.print_help()
         sys.exit(2)
 
     if args.nr_prot_mapping:
         nr_prot_mapping = os.path.abspath(args.nr_prot_mapping[0])
     else:
         print '[ERROR] Please provide NR PROT MAPPING FILE'
-        parser.print_help()
         sys.exit(2)
 
     if args.output_prefix:
         output_prefix = os.path.abspath(args.output_prefix[0])
     else:
         print '[ERROR] Please provide OUTPUT PREFIX'
-        parser.print_help()
         sys.exit(2)
 
     # Run fuctions :) Slow is as good as Fast

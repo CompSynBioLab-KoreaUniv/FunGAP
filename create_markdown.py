@@ -46,21 +46,18 @@ def main(argv):
         input_fasta = os.path.abspath(args.input_fasta[0])
     else:
         print '[ERROR] Please provide GENOME ASSEMBLY FILE'
-        parser.print_help()
         sys.exit(2)
 
     if args.input_gff3:
         input_gff3 = os.path.abspath(args.input_gff3[0])
     else:
         print '[ERROR] Please provide INPUT GFF3'
-        parser.print_help()
         sys.exit(2)
 
     if args.output_prefix:
         output_prefix = os.path.abspath(args.output_prefix[0])
     else:
         print '[ERROR] Please provide OUTPUT PREFIX'
-        parser.print_help()
         sys.exit(2)
 
     # Run functions :) Slow is as good as Fast

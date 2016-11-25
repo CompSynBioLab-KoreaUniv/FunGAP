@@ -1,0 +1,15 @@
+The RECON package includes three parts -- the C source code in the src
+directory, the Perl scripts in the scripts directory, and a Demos
+directory containing examplory data.
+
+To install the package, run "make" and then "make install" in the src
+directory.  You may have to modify the Makefile in the src directory
+to choose the proper C compliler (cc or gcc).
+
+Before you can use the package, you need one more modification in the
+script "recon.pl" in the scripts directory -- on the third line, add
+the path to the binaries (the bin directory here) between the double
+quotes.
+
+Now the package is up for running.  See 00README on how to use the
+package.

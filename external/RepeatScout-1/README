@@ -1,0 +1,115 @@
+INTRODUCTION
+============
+This directory contains source code related to RepeatScout, which is
+described in detail in the following paper:
+Price A.L., Jones N.C. and Pevzner P.A. 2005.  De novo identification of 
+repeat families in large genomes.  To appear in Proceedings of the
+13 Annual International conference on Intelligent Systems for
+Molecular Biology (ISMB-05).  Detroit, Michigan.
+
+The purpose of the RepeatScout software is to identify repeat family
+sequences from genomes where hand-curated repeat databases (a la
+RepBase update) are not available.  In fact, the output of this program
+can be used as input to RepeatMasker as a way of automatically masking
+newly-sequenced genomes.
+
+Included in this package is a more or less arbitrary 3 Mb of the human X 
+chromosome for your testing and debugging purposes.
+
+What's new
+==========
+1.0.5  Bug fix to filter-stage-1.prl reported by Eric Ganko.
+1.0.4  filter-stage-1.prl skipped the last sequence in the input file.  
+       Thanks to Gyorgy Abrusan for reporting this.
+1.0.3, Sequence boundaries are now honored in calculations.  The previous
+          version concatenates the sequences together and allowed seeds to 
+          extend across sequence boundaries. 
+          ( Submitted by Robert Hubley, Institute for Systems Biology
+            <rhubley@systemsbiology.org> )
+1.0.1 - 1.0.2, Bug fix to handle IUPAC codes in build_lmer_table
+
+1.0.0 - 1.0.1, Bug fix (parameter settings)
+
+INSTALLATION
+============
+To build the software, you need a standard flavor of "make" and a C
+compiler.  To filter your repeat library to remove low-complexity and tandem
+sequences, you will neeed to have perl 5.5 (or better; see http://www.perl.com), 
+nseg (Wooton and Federhen, 1993; see ftp://ftp.ncbi.nih.gov/pub/seg/nseg) and 
+trf (Benson, 1999; see http://tandem.bu.edu/trf/trf.html). To filter your 
+repeat library against segmental duplications, exons, or other features 
+you will need to have RepeatMasker-open3.0 (or better; see
+ http://www.repeatmasker.org) as well as the features of interest in 
+GFF format.
+
+We have verified that this source code compiles and runs correctly on
+Linux, FreeBSD, Mac OS X, and DEC Tru64.  It should work on any *nix
+system and might work on Windows computers if compiled with gcc (under
+Cygwin).  If you have any experience in compiling this software for
+Windows, please let us know.
+
+To build the RepeatScout software, follow these steps:
+  1) download the source code tarball RepeatScout-#.#.#.tar.gz 
+     from http://repeatscout.bioprojects.org
+  2) gunzip and untar it (e.g., tar -xvfz RepeatScout-#.#.#.tar.gz).  
+     A directory named RepeatScout-### will be created.
+  3) "cd RepeatScout-###"
+  4) "make"   The software should build with no errors or warnings.  
+     Two programs will be built: build_lmer_table and RepeatScout-###.   
+     You may leave these binaries where they are or copy them to any 
+     other location you deem appropriate; no external libraries 
+     are needed.
+
+RUNNING THE SOFTWARE
+====================
+Running RepeatScout proceeds in four phases.  First, build_lmer_table
+creates a file that tabulates the frequency of all l-mers in the
+sequence to be analyzed.  Second, RepeatScout takes this table and
+the sequence and produces a fasta file that contains all the repetitive
+elements that it could find.  Third, the "filter-stage-1.prl" script
+is run on the output of RepeatScout to remove low-complexity and
+tandem elements; RepeatMasker is run on the sequence of interest using
+this filtered RepeatScout library.  The program "filter-stage-2.prl"
+then filters out any repeat element that does not appear a certain number
+of times (by default, 10).  Finally, the locations of the repeats found
+by RepeatMasker are used, in conjuction with GFF files that describe
+segmental duplications or exons or other such "uninteresting" regions
+to remove sequences from the library that are likely to not be mobile
+elements; the program "compare-out-to-gff.prl" does exactly this.
+
+The RepeatScout program requires a substantial amount of memory
+and a fair amount of time.  On the human X chromosome, it requires
+approximately _ hours on a 3 Ghz PC while using _ Gb of memory.  We are
+currently working on a way to decrease the memory usage of the program so
+that it can run on much larger sequences (whole genomes) in a reasonable
+amount of time.
+
+You can see a list of command line parameters for each program by calling
+the program with the "--h" flag.
+
+Parameter Choices
+-----------------
+The repeat library, as constructed in the paper, was created with the
+parameter "-stopafter" set to 500.  ("-stopafter" is essentially how far
+RepeatScout will continue searching for an alignment when the alignment
+score is not improving.)  The current default value for this parameter
+is 100, which decreases running time significantly.
+
+The default value of l, which is the "length of l-mer to consider", is set
+to be ceil(log_4(L)+1) where:
+  ceil(x) = smallest integer greater than x
+  log_4(x) = log base 4 of x
+  L is the length of the input sequence
+This value can be adjusted by giving the "-l" parameter, but it is essential
+that the same value of -l be given to both build_lmer_table and RepeatScout.
+It is not clear that values of l other than the default are sensible, but
+the options are there if you need them.
+
+See the help file for the RepeatScout program (--h) for a list of other tunable
+parameters.
+
+References:
+Benson G. 1999.  Tandem repeats finder -- a program to analyze DNA sequences.
+Nucleic Acids Res. 27:573--80.
+Wootton, J. C. and S. Federhen (1993).  Statistics of local complexity in amino
+acid sequences and sequence databases.  Computers and Chemistry 17:149--63.

@@ -1,0 +1,281 @@
+#!/usr/bin/env perl
+#
+# Takes a .out or .cat file from RepeatMasker and checks to see what percentage
+# occurs in annotations from a GFF file.
+#
+
+use vars qw(
+	$opt_cat
+	@opt_gff
+	$::THRESHOLD
+	$opt_over
+	$opt_instances
+);
+
+use Getopt::Long;
+
+GetOptions(
+	'cat=s'   => \$opt_cat,
+	'gff=s'   => \@opt_gff,
+	'threshold=s' => \$::THRESHOLD,
+	'f=s'      => \$opt_fasta,
+	'over'     => \$opt_over,
+	'instances' => \$opt_instances,
+) or exec "perldoc $0";
+
+unless( $opt_cat && @opt_gff )  {
+	exec "perldoc $0";
+}
+
+$::THRESHOLD ||= .5;
+
+my @gff; 
+foreach (@opt_gff) {
+	print STDERR "Reading GFF file $_\n";
+	push @gff, @{ read_gff($_) };
+}
+print STDERR "Total of @{[ scalar @gff ]} features\n";
+print STDERR "Reading repeat masker output $opt_cat\n";
+my $repeats = ($opt_cat =~ /\.out$/) ? read_out($opt_cat) : read_cat($opt_cat);
+print STDERR "Total of @{[scalar keys %$repeats]} types of repeats\n";
+
+my $lib;
+if( $opt_fasta ) {
+	$lib = read_library($opt_fasta);
+} 
+
+my %counts;
+sub bystart { $a->[0] <=> $b->[0] || $a->[1] <=> $b->[1] }
+@gff     = sort bystart @gff;
+@repeats = sort bystart map { @$_ } values %$repeats;
+
+my $overlapping = {};
+my $totals      = {};
+my $jj = 0;
+foreach my $repeat (@repeats) {
+	my $rep_base = [];
+	my $offset = $repeat->[0];
+	my $delta  = $repeat->[1]  - $repeat->[0] + 1;
+	$totals->{$repeat->[2]} += $delta;
+	GFF:
+	foreach my $gff (@gff) {
+		next GFF if $gff->[0] > $repeat->[1] || $gff->[1] < $repeat->[0];
+
+		# We know that $gff overlaps with $repeat.
+		++$counts{$repeat->[2]};
+		for(my $ii = 0; $ii < $delta; ++$ii) {
+			if( $offset+$ii >= $gff->[0] && $offset+$ii <= $gff->[1] ) {
+				$rep_base->[$ii] = 1;
+			}
+		}
+	}
+	my $count = 0;
+	for(my $ii = 0; $ii < @$rep_base; ++$ii) {
+		$overlapping->{$repeat->[2]} += $rep_base->[$ii];
+	}
+
+	++$jj;
+	print STDERR "   $jj    \r" unless $jj%100;
+}
+
+
+foreach my $type (keys %$repeats) {
+	my $pct = sprintf("%.04f",
+	   $counts{$type}/(scalar(@{$repeats->{$type}}))
+	);
+
+	my $real_pct = sprintf("%.04f",
+	   $overlapping->{$type} / $totals->{$type}
+	);
+
+	if( $opt_instances ) {
+		if( ($opt_over && $pct >= $::THRESHOLD) || ($pct <= $::THRESHOLD && !$opt_over) ) {
+			unless( $opt_fasta ) {
+				print join("\t" => $type, $counts{$type}, scalar @{$repeats->{$type}}, $pct), "\n";
+			}
+
+			else {
+				print ">$type\n";
+				for(my $ii = 0; $ii < length($lib->{$type}); $ii += 80) {
+					print substr($lib->{$type}, $ii, 80), "\n";
+				}
+			}
+		}
+	}
+
+	else {
+		if( ($opt_over && $real_pct >= $::THRESHOLD) || ($real_pct <= $::THRESHOLD && !$opt_over) ) {
+			unless( $opt_fasta ) {
+				print join("\t" => $type, $overlapping->{$type}, $totals->{$type}, $real_pct), "\n";
+			}
+
+			else {
+				print ">$type\n";
+				for(my $ii = 0; $ii < length($lib->{$type}); $ii += 80) {
+					print substr($lib->{$type}, $ii, 80), "\n";
+				}
+			}
+		}
+	}
+}
+
+sub bystart {
+	return 
+		$a->[0] <=> $b->[0] ||
+		$a->[1] <=> $b->[1];
+}
+
+sub read_library {
+	my ($file) = @_;
+	local *F;
+
+	open(F, "<$file") or die("$0: could not open $file: $!\n");
+
+	my $lib = {};
+	my $header;
+	my $text;
+	while(<F>) {
+		next if /^#/;
+
+		if( />([^\s]+)/ ) {
+			$lib->{$header} = $text if $text;
+			$header = $1;
+			$text   = '';
+		}
+
+		else {
+			chomp;
+			$text .= $_;
+		}
+		
+		
+	}
+	$lib->{$header} = $text if $text;
+
+	return $lib;
+}
+
+sub read_out {
+	my ($file) = @_;
+	open(CAT, "<$file") or die;
+
+	my %res;
+	while(<CAT>) {
+		s/^\s*//g;
+		next unless /^\d/;
+		my @fields = split;
+	
+		$repeat_type = $fields[9];
+		my ($start, $stop) = @fields[5, 6]; 
+
+		push @{ $res{$repeat_type} }, [ MIN($start, $stop), MAX($stop, $start), $repeat_type ];
+	}
+	close(CAT);
+
+	return \%res;
+}
+
+sub read_cat {
+	my ($file) = @_;
+	open(CAT, "<$file") or die("$0: could not open $file: $!\n");;
+
+	my %res;
+	while(<CAT>) {
+		my @fields = split;
+		if( $fields[8] eq 'C' ) {
+			$fields[8] = $fields[9];
+		}
+	
+		$repeat_type = $fields[8];
+		my ($start, $stop) = @fields[5,6];
+
+		push @{ $res{$repeat_type} }, [ MIN($start, $stop), MAX($stop, $start), $repeat_type ];
+	}
+	close(CAT);
+
+	return \%res;
+}
+
+sub read_gff {
+	my ($file) = @_;
+	 
+	open(GFF, "<$file") or die("$0: could not open $file: $!\n");
+	while(<GFF>) {
+		next if /^#/;
+		my @fields = split;
+		push @gff, [ MIN(@fields[3,4]), MAX(@fields[3,4]) ];
+	}
+	close(GFF);
+
+	return \@gff;
+}
+
+sub MIN {
+	my ($a, $b) = @_;
+	return $a < $b ? $a : $b;
+}
+
+sub MAX {
+	my ($a, $b) = @_;
+	return $a > $b ? $a : $b;
+}
+
+__END__
+
+=head1  NAME
+
+compare-out-to-gff.prl --- Compares RepeatMasker output to a set of GFF feature files.
+
+=head1  SYNOPSIS
+
+compare-out-to-gff.prl --gff=file1.gff --gff=file2.gff --cat=repeatmasker.out --f=file.fa > lib.ref
+
+=head1  DESCRIPTION
+
+When discovering repeat families with a de novo method, it is sometimes useful to take the
+masked instances from RepeatMasker and deterine to what extent they overlap other features.
+For example, you might want to see if the repeat instances predominantly overlap exons, or
+segmental duplications.  Or, for that matter, instances of known repeats from human-curated
+libraries.  This program does that.
+
+=head1  OPTIONS
+
+There are two required options: --cat and one or more --gff.
+
+=head3  --cat 
+
+RepeatMasker instances in either .cat format or .out format (prefer .out)
+
+=head3  --gff
+
+A GFF-formatted file of features.  More than one file may be specified with
+        multiple --gff options.
+
+=head3  --f
+
+A fasta formatted file.  If this is given, then sequences that are under (over)
+the overlap threshold will be in the output.  This is a sequence filter.
+
+=head3  --threshold
+
+The maximum (minimum) amount of overlap tolerated by any one type of repeat.
+
+=head3  --over 
+
+Determines if the threshold is a minimum or a maximum (defaults to maximum; including --over makes it a minimum)
+
+=head3  --instances 
+
+Determines how the overlap calculation is done.  If this is not specified, the
+overlap is calculated by bases: if 40 bases of a repeat element overlaps a feature in one
+of the GFF files, it is counted as 40 bases.  The sum is taken over all features and 
+all repeats of a given type and divided by the total length of the repeat.  If --instances
+is specified,  the "overlap"  is considered to be the number of instances of a given type
+that overlap any feature, divided by the total number of instances of that type.
+
+=head2   BUGS
+
+None known.  This program is remarkably slow, though, and could be sped up significantly
+with a very easy fix.
+
+=cut

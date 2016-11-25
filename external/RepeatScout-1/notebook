@@ -1,0 +1,39 @@
+Tue Jun  3 12:52:42 PDT 2008
+============================
+
+  Fixed problem with filter-stage-1.prl reported by Gyorgy Abrusan.
+
+Fri Feb  8 15:13:12 PST 2008
+============================
+
+  RepeatScout Changes: Robert Hubley, Institute for Systems Biology
+
+     - Wrote new program to replace build_lmer_table ( called elmer ). 
+       This program can handle full genomes for lmers up to 16bp.
+     - Simplified forward/reverse lmer handling by removing the need
+       for 2 copies of the input sequence in memory.  This change makes
+       it easier to calculate and enforce sequence boundaries.
+     - Modified RepeatScout to honor sequence boundaries:
+           - Continues to load sequence(s) into single concatenated array.
+           - Created new data structure to hold start positions of 
+             each fasta header.
+           - Uses seq boundaries in extend_right/extend_left to make
+             sequences non-active if they run into a boundary.
+           - Uses seq boundaries in maskextend_right/maskextend_left to
+             prohibit reduction of frequency of lmers which span boundaries.
+
+
+  WISHLIST:
+     - Reduce the memory footprint:
+        - Sequence is in bytes  ( 1 byte/base could be reduced to 3 bits/base )
+        - build_all_pos() creates a linked list of all positions for all 
+          frequent lmers ( default > 3 ) in the input sequence at the start
+          of the program. This could/should be the function of
+          build_lmer_table() and for large genomes can be cached to disk.
+          This would require all RS functions to be able to read from a disk
+          based hash.
+        - master sequences ( consensus models ) are kept over the course
+          of the program.  ( not necessary -- flush to disk ).
+     - Support full custom matrices in addition to the Match/Mismatch based
+       scoring system.
+            

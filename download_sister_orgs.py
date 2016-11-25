@@ -50,28 +50,24 @@ def main(argv):
         download_dir = os.path.abspath(args.download_dir[0])
     else:
         print '[ERROR] Please provide DOWNLOAD DIRECTORY'
-        parser.print_help()
         sys.exit(2)
 
     if args.taxon:
         taxon = args.taxon[0]
     else:
         print '[ERROR] Please provide TAXON'
-        parser.print_help()
         sys.exit(2)
 
     if args.num_sisters:
         num_sisters = int(args.num_sisters[0])
     else:
         print '[ERROR] Please provide NUBER OF SISTERS'
-        parser.print_help()
         sys.exit(2)
 
     if args.email_address:
         email_address = args.email_address[0]
     else:
         print '[ERROR] Please provide E-MAIL ADDRESS'
-        parser.print_help()
         sys.exit(2)
 
     # Register E-mail address

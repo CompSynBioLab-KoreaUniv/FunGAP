@@ -1,0 +1,1359 @@
+.\" Exonerate man Page
+.TH exonerate 1 "November 2002" exonerate "sequence comparison tool"
+
+.SH NAME
+.\"
+exonerate \- a generic tool for sequence comparison
+.\"
+
+.SH SYNOPSIS
+.B exonerate [ options ] <query path> <target path>
+.\"
+
+.SH DESCRIPTION
+.BR exonerate
+is a general tool for sequence comparison.
+
+It uses the
+.B C4
+dynamic programming library.
+It is designed to be both general and fast.
+It can produce either gapped or ungapped alignments,
+according to a variety of different alignment models.
+The C4 library allows sequence alignment using a reduced
+space full dynamic programming implementation,
+but also allows automated generation of heuristics
+from the alignment models, using bounded sparse dynamic programming,
+so that these alignments may also be rapidly generated.
+Alignments generated using these heuristics will represent
+a valid path through the alignment model,
+yet (unlike the exhaustive alignments),
+the results are not guaranteed to be optimal.
+.\"
+
+.RE
+.SH CONVENTIONS
+.T
+A number of conventions (and idiosyncracies) are used within
+exonerate.  An understanding of them facilitates interpretation
+of the output.
+.\"
+.TP
+.B Coordinates
+An in-between coordinate system is used,
+where the positions are counted between the symbols,
+rather than on the symbols.
+This numbering scheme starts from zero.
+This numbering is shown below for the sequence "ACGT":
+.\"
+.SP
+.nf
+
+ A C G T
+0 1 2 3 4
+
+.SP
+.fi
+.\"
+Hence the subsequence "CG" would have start=1,
+end=3, and length=2.
+.\"
+This coordinate system is used internally in exonerate,
+and for all the output formats produced with
+the exception of the "human readable" alignment display
+and the GFF output where convention and standards dictate
+otherwise.
+.\"
+.TP
+.B Reverse Complements
+When an alignment is reported on the reverse complement
+of a sequence, the coordinates are simply given on
+the reverse complement copy of the sequence.
+Hence positions on the sequences are never negative.
+.\"
+Generally, the forward strand is indicated by '+',
+the reverse strand by '-', and an unknown or not-applicable
+strand (as in the case of a protein sequence) is indicated by '.'
+.\"
+.TP
+.B Alignment Scores
+Currently, only the raw alignment scores are displayed.
+This score just is the sum of transistion scores
+used in the dynamic programming.
+For example, in the case of a Smith-Waterman alignment,
+this will be the sum of the substitution matrix scores
+and the gap penalties.
+.\"
+
+.RE
+.SH GENERAL OPTIONS
+.T
+Most arguments have short and long forms.  The long forms
+are more likely to be stable over time, and hence should
+be used in scripts which call exonerate.
+.\"
+.TP
+.B "\-h | \--shorthelp" <boolean>
+Show help.
+This will display a concise summary of the available options,
+defaults and values currently set.
+.\"
+.TP
+.B "--help" <boolean>
+This shows all the help options including the defaults,
+the value currently set,
+and the environment variable which may be used to set each parameter.
+There will be an indication of which options are mandatory.
+Mandatory options have no default, and must have a value supplied
+for exonerate to run.  If mandatory options are used in order,
+their flags may be skipped from the command line (see examples below).
+Unlike this man page, the information from this option will always
+be up to date with the latest version of the program.
+.\"
+.TP
+.B "\-v | \--version" <boolean>
+Display the version number.  Also displays other information
+such as the build date and glib version used.
+.\"
+
+.RE
+.SH SEQUENCE INPUT OPTIONS
+Pairwise comparisons will be performed between all query sequences
+and all target sequences.
+.\"
+Generally, for the best performance, shorter sequences
+(eg. ESTs, shotgun reads, proteins) should be used as the
+query sequences, and longer sequences (eg. genomic sequences)
+should be used as the target sequences.
+.TP
+.B "-q | \--query " <paths>
+Specify the query sequences required.  These must be in a FASTA
+format file.  Single or muiltiple query sequences may be supplied.
+Additionally multiple copies of the fasta file may be supplied
+following a --query flag, or by using with multiple --query flags.
+.TP
+.B "-t | \--target" <paths>
+Specify the target sequences required.  Also, must be in a FASTA
+format file.  As with the query sequences, single or multiple target
+sequences and files may be supplied.
+.B NEW:
+the target filename may by replace by a server name and port number
+in the form of
+.B hostname:port
+when using
+.B exonerate-server.
+See the man page for
+.B exonerate-server
+for more information on running exonerate in client:server mode.
+
+.\"
+.TP
+.B "-Q | \--querytype" <dna | protein>
+Specify the query type to use.  If this is not supplied,
+the query type is assumed to be DNA when the first sequence in
+the file contains more than 85% [ACGTN] bases.
+Otherwise, it is assumed to be peptide.  This option forces the
+query type as some nucleotide and peptide sequences
+can fall either side of this threshold.
+.\"
+.TP
+.B "-T | \--targettype" <dna | protein>
+Specify the target type to use.  The same as
+.B --querytype
+(above), except that it applies to the target.
+.\"
+Specifying the sequence type will avoid the overhead
+of having to read the first sequence in the database twice
+(which may be significant with chromosome-sized sequences)
+.\"
+.TP
+.B "\--querychunkid" <id>
+.TP
+.B "\--querychunktotal" <total>
+.TP
+.B "\--targetchunkid" <id>
+.TP
+.B "\--targetchunktotal" <total>
+These options to facilitate running exonerate on compute
+farms, and avoid having to split up sequence databases
+into small chunks to run on different nodes.
+If, for example, you wished to split the target database
+into three parts, you would run three exonerate jobs
+on different nodes including the options:
+.PP
+.RS
+.PD 0
+.TP
+--targetchunkid 1 --targetchunktotal 3
+.TP
+--targetchunkid 2 --targetchunktotal 3
+.TP
+--targetchunkid 3 --targetchunktotal 3
+.PP
+
+NB. The granularity offered by this option only goes
+down to a single sequence, so when there are more chunks
+than sequences in the database, some processes will do nothing.
+.RE
+.\"
+
+.TP
+.B "\-V | \--verbose" <int>
+Be verbose - show information about what is going on during
+the analysis.  The default is 1 (little information), the higher
+the number given, the more information is printed.
+To silence all the default output from exonerate,
+use --verbose 0 --showalignment no --showvulgar no
+.\"
+
+.SH ANALYSIS OPTIONS
+.\"
+.TP
+.B "\-E | \--exhaustive" <boolean>
+Specify whether or not exhaustive alignment should be used.
+By default, this is FALSE, and alignment heuristics will be used.
+If it is set to TRUE, an exhaustive alignment will be calculated.
+This requires quadratic time, and will be much, much slower,
+but will provide the optimal result for the given model.
+.\"
+.TP
+.B "\-B | \--bigseq" <int>
+Perform alignment of large (multi-megabase) sequences.
+This is very memory efficient and fast when both sequences
+are chromosome-sized, but currently does not currently permit the use
+of a word neighbourhood (ie. exactly matching seeds only).
+.\"
+.TP
+.B "\--forcescan" <none | query | target>
+Force the FSM to scan the query sequence rather than the target.
+This option is useful, for example, if you have a single piece
+of genomic sequence and you with to compare it to the whole of
+dbEST.  By scanning the database, rather than the query,
+the analysis will be completed much more quickly, as the overheads
+of multiple query FSM construction, multiple target reading
+and splice site predictions will be removed.
+By default, exonerate will guess the optimal strategy based
+on database sequence sizes.
+.\"
+.TP
+.B "\--saturatethreshold" <number>
+When set to zero, this option does nothing.
+Otherwise, once more than this number of words
+(in addition to the expected number of words by chance)
+have matched a position on the query, the position
+on the query will be 'numbed' (ignore further matches)
+for the current pairwise comparison.
+.\"
+.TP
+.B "\--customserver" <command>
+.B NEW:
+When using exonerate in client:server mode with a non-standard
+server, this command allows you to send a custom command to the
+server.  This command is sent by the client (exonerate)
+before any other commands, and is provided as a way of passing
+parameters or other commands specific to the custom server.  See the
+.B exonerate-server
+man page for more information on running exonerate in client:server mode.
+.\"
+
+.RE
+.SH FASTA DATABASE OPTIONS
+.TP
+.B "\--fastasuffix" <extension>
+If any of the inputs given with
+.B --query
+or
+.B --target
+are directories, then exonerate will recursively
+descent these directories, reading all files
+ending with this suffix as fasta format input.
+.\"
+
+.SH GAPPED ALIGNMENT OPTIONS
+.TP
+.B "\-m | \--model" <alignment model>
+Specify the alignment model to use.
+The models currently supported are:
+.\"
+.PP
+.RS
+.PD 0
+.\"
+.TP
+.B ungapped
+The simplest type of model, used by default.
+An appropriate model with be selected automatically
+for the type of input sequences provided.
+.\"
+.TP
+.B ungapped:trans
+This ungapped model includes translation of all frames of both
+the query and target sequences.  This is similar to an ungapped
+tblastx type search.
+.\"
+.TP
+.B affine:global
+This performs gapped global alignment, similar
+to the Needleman-Wunsch algorithm, except with affine gaps.
+Global alignment requires that both the sequences in their entirety
+are included in the alignment.
+.\"
+.TP
+.B affine:bestfit
+This performs a best fit or best location alignment
+of the query onto the target sequence.  The entire query sequence
+will be included in the alignment, but only the best location
+for its alignment on the target sequence.
+.\"
+.TP
+.B affine:local
+This is local alignment with affine gaps,
+similar to the Smith-Waterman-Gotoh algorithm.
+A general-purpose alignment algorithm.
+As this is local alignment, any subsequence of the query
+and target sequence may appear in the alignment.
+.\"
+.TP
+.B affine:overlap
+This type of alignment finds the best overlap between the
+query and target.  The overlap alignment must include
+the start of the query or target
+and the end of the query or the target sequence,
+to align sequences which overlap at the ends,
+or in the mid-section of a longer sequence..
+This is the type of alignment frequently used in assembly
+algorithms.
+.\"
+.TP
+.B est2genome
+This model is similar to the affine:local model,
+but it also includes intron modelling on the target sequence
+to allow alignment of spliced to unspliced coding sequences
+for both forward and reversed genes.  This is similar to the
+alignment models used in programs such as EST_GENOME and sim4.
+.\"
+.TP
+.B ner
+NERs are non-equivalenced regions - large regions in both
+the query and target which are not aligned.  This model can be
+used for protein alignments where strongly conserved helix regions
+will be aligned, but weakly conserved loop regions are not.
+Similarly, this model could be used to look for co-linearly
+conserved regions in comparison of genomic sequences.
+.\"
+.TP
+.B protein2dna
+This model compares a protein sequence to a DNA sequence,
+incorporating all the appropriate gaps and frameshifts.
+.\"
+.TP
+.B protein2dna:bestfit
+.B NEW:
+This is a bestfit version of the protein2dna model,
+with which the entire protein is included in the alignment.
+It is currently only available when using exhaustive alignment.
+.\"
+.TP
+.B protein2genome
+This model allows alignment of a protein sequence to genomic
+DNA.   This is similar to the protein2dna model,
+with the addition of modelling of introns and intron phases.
+This model is simliar to those used by genewise.
+.\"
+.TP
+.B protein2genome:bestfit
+.B NEW:
+This is a bestfit version of the protein2genome model,
+with which the entire protein is included in the alignment.
+It is currently only available when using exhaustive alignment.
+.\"
+.TP
+.B coding2coding
+This model is similar to the ungapped:trans model, except
+that gaps and frameshifts are allowed.
+It is similar to a gapped tblastx search.
+.\"
+.TP
+.B coding2genome
+This is similar to the est2genome model, except that the
+query sequence is translated during comparison, allowing
+a more sensitive comparison.
+.\"
+.TP
+.B cdna2genome
+This combines properties of the est2genome and coding2genome
+models, to allow modeling of an whole cDNA where a central
+coding region can be flanked by non-coding UTRs.
+When the CDS start and end is known it may be specified
+using the --annotation option (see below)
+to permit only the correct coding region to appear in the alignemnt.
+.\"
+.TP
+.B genome2genome
+This model is similar to the coding2coding model, except
+introns are modelled on both sequences.
+(not working well yet)
+.\"
+
+.PD
+.RE
+.\"
+.TP
+.\"
+The short names u, u:t, a:g, a:b, a:l, a:o, e2g, ner,
+p2d, p2d:b p2g, p2g:b, c2c, c2g cd2g and g2g
+can also be used for specifying models.
+.TP
+.B "\-s | \--score" <threshold>
+This is the overall score threshold.
+Alignments will not be reported below this threshold.
+For heuristic alignments, the higher this threshold,
+the less time the analysis will take.
+.\"
+.TP
+.B "\--percent" <percentage>
+Report only alignments scoring at least this percentage
+of the maximal score for each query.
+eg. use
+.B --percent 90
+to report alignments with 90% of the maximal
+score optainable for that query.
+This option is useful not only because it reduces
+the spurious matches in the output,
+but because it generates query-specific thresholds (unlike
+.B --score
+) for a set of queries of differing lengths,
+and will also speed up the search considerably.
+.B NB.
+with this option, it is possible to have a cDNA
+match its corresponding gene exactly,
+yet still score less than 100%,
+due to the addition of the intron penalty scores,
+hence this option must be used with caution.
+.\"
+.TP
+.B "\--showalignment" <boolean>
+Show the alignments in an human readable form.
+.\"
+.TP
+.B "\--showsugar" <boolean>
+Display "sugar" output for ungapped alignments.
+Sugar is Simple UnGapped Alignment Report, which displays
+ungapped alignments one-per-line.  The sugar line starts with
+the string "sugar:" for easy extraction from the output,
+and is followed by the the following 9 fields in the order below:
+.\"
+.PP
+.RS
+.PD 0
+.\"
+.TP 16
+.B query_id
+Query identifier
+.\"
+.TP 16
+.B query_start
+Query position at alignment start
+.\"
+.TP 16
+.B query_end
+Query position alignment end
+.\"
+.TP 16
+.B query_strand
+Strand of query matched
+.\"
+.TP 16
+.B target_id
+|
+.\"
+.TP 16
+.B target_start
+| the same 4 fields
+.\"
+.TP 16
+.B target_end
+| for the target sequence
+.\"
+.TP 16
+.B target_strand
+|
+.\"
+.TP 16
+.B score
+The raw alignment score
+.\"
+.PD
+.RE
+.\"
+.TP
+.B "\--showcigar" <boolean>
+Show the alignments in "cigar" format.
+Cigar is a Compact Idiosyncratic Gapped Alignment Report,
+which displays gapped alignments one-per-line.
+The format starts with the same 9 fields as sugar output
+(see above), and is followed by a series of <operation, length>
+pairs where operation is one of match, insert or delete,
+and the length describes the number of times this operation
+is repeated.
+.\"
+.TP
+.B "\--showvulgar" <boolean>
+Shows the alignments in "vulgar" format.
+Vulgar is Verbose Useful Labelled Gapped Alignment Report,
+This format also starts with the same 9 fields as sugar output
+(see above), and is followed by a series of
+<label, query_length, target_length> triplets.
+The label may be one of the following:
+.\"
+.PP
+.RS
+.PD 0
+.\"
+.TP
+.B M
+Match
+.\"
+.TP
+.B C
+Codon
+.\"
+.TP
+.B G
+Gap
+.\"
+.TP
+.B N
+Non-equivalenced region
+.\"
+.TP
+.B 5
+5' splice site
+.\"
+.TP
+.B 3
+3' splice site
+.\"
+.TP
+.B I
+Intron
+.\"
+.TP
+.B S
+Split codon
+.\"
+.TP
+.B F
+Frameshift
+.\"
+.PD
+.RE
+.LP
+.\"
+.TP
+.B "\--showquerygff" <boolean>
+Report GFF output for features on the query sequence.
+See http://www.sanger.ac.uk/Software/formats/GFF for more information.
+.\"
+.TP
+.B "\--showtargetgff" <boolean>
+Report GFF output for features on the target sequence.
+.\"
+.TP
+.B "\--ryo" <format>
+Roll-your-own output format.
+This allows specification of a printf-esque format
+line which is used to specify which information to include
+in the output, and how it is to be shown.
+The format field may contain the following fields:
+.PP
+.RS
+.PD 0
+.TP
+.B %[qt][idlsSt]
+For either {query,target}, report the
+{id,definition,length,sequence,Strand,type}
+Sequences are reported in a fasta-format like block (no headers).
+.TP
+.B %[qt]a[bels]
+For either {query,target} region which occurs
+.B in the alignment,
+report the {begin,end,length,sequence}
+.TP
+.B %[qt]c[bels]
+For either {query,target} region which occurs
+in the
+.B coding sequence
+in the alignment,
+report the {begin,end,length,sequence}
+.TP
+.B %s
+The raw score
+.TP
+.B %r
+The rank (in results from a bestn search)
+.TP
+.B %m
+Model name
+.TP
+.B %e[tism]
+Equivalenced {total,id,similarity,mismatches}
+(ie. %em == (%et - %ei))
+.TP
+.B %p[is]
+Percent {id,similarity}
+over the equivalenced portions of the alignment.
+(ie. %pi == 100*(%ei / %et))
+.TP
+.B %g
+Gene orientation ('+' = forward, '-' = reverse, '.' = unknown)
+.TP
+.B %S
+Sugar block (the 9 fields used in sugar output (see above)
+.TP
+.B %C
+Cigar block (the fields of a cigar line after the sugar portion)
+.TP
+.B %V
+Vulgar block (the fields of a vulgar line after the sugar portion)
+.TP
+.B %%
+Expands to a percentage sign (%)
+.TP
+.B \en
+Newline
+.TP
+.B \et
+Tab
+.TP
+.B \e\e
+Expands to a backslash (\e)
+.TP
+.B \e{
+Open curly brace
+.TP
+.B \e}
+Close curly brace
+.TP
+.B {
+Begin per-transition output section
+.TP
+.B }
+End per-transition output section
+.TP
+.B %P[qt][sabe]
+Per-transition output for {query,target} {sequence,advance,begin,end}
+.TP
+.B %P[nsl]
+Per-transition output for {name,score,label}
+.PD
+.RE
+.PP
+This option is very useful and flexible.  For example,
+to report all the sections of query sequences which feature
+in alignments in fasta format, use:
+.PP
+--ryo \fB">%qi %qd\en%qas\en"\fP
+.P
+To output all the symbols and scores in an alignment,
+try something like:
+.PP
+--ryo \fB"%V{%Pqs %Pts %Ps\en}"\fP
+.LP
+.\"
+.TP
+.B "\-n | \--bestn" <number>
+Report the best N results for each query.
+(Only results scoring better than the score threshold
+ will be reported).
+The option reduces the amount of output generated,
+and also allows exonerate to speed up the search.
+.\"
+.TP
+.B "\-S | \--subopt" <boolean>
+This option allows for the reporting of (Waterman-Eggert style)
+suboptimal alignments.
+(It is on by default.)
+All suboptimal (ie. non-intersecting) alignments will
+be reported for each pair of sequences scoring
+at least the threshold provided by
+.B --score.
+
+When this option is used with exhaustive alignments,
+several full quadratic time passes will be required,
+so the running time will be considerably increased.
+.\"
+.TP
+.B "\-g | \--gappedextension" <boolean>
+Causes a gapped extension stage to be performed
+ie. dynamic programming is applied in arbitrarily shaped
+and dynamically sized regions surrounding HSP seeds.
+The extension threshold is controlled by the --extensionthreshold
+option.
+
+Although sometimes slower than BSDP,
+gapped extension improves sensitivity with weak,
+gap-rich alignments such as during cross-species comparison.
+
+.B NB. This option is now the default.  Set it to false
+to reverse to the old BSDP type alignments.
+This option may be slower than BSDP for some large scale analyses
+with simple alignment models.
+.\"
+.TP
+.B "\--refine" <strategy>
+Force exonerate to refine alignments generated
+by heuristics using dynamic programming over larger regions.
+This takes more time, but improves the quality of the final
+alignments.
+
+The strategies available for refinement are:
+.\"
+.PP
+.RS
+.PD 0
+.\"
+.TP
+.B none
+The default - no refinement is used.
+.\"
+.TP
+.B full
+An exhaustive alignment is calculated from the pair of sequences
+in their entirety.
+.\"
+.TP
+.B region
+DP is applied just to the region of the sequences covered
+by the heuristic alignment.
+.\"
+.PD
+.RE
+.LP
+.\"
+.TP
+.B "\--refineboundary" <size>
+Specify an extra boundary to be included in the region
+subject to alignment during refinement by region.
+.\"
+.RE
+
+.SH VITERBI ALGORITM OPTIONS
+.TP
+.B "\-D | \--dpmemory" <Mb>
+The exhaustive alignment traceback routines use a Hughey-style
+reduced memory technique.  This option specifies how much memory
+will be used for this.  Generally, the more memory is permitted
+here, the faster the alignments will be produced.
+.\"
+
+.SH CODE GENERATION OPTIONS
+.TP
+.B "\-C | \--compiled" <boolean>
+This option allows disabling of generated code for dynamic programming.
+It is mainly used during development of exonerate.
+When set to FALSE, an "interpreted" version of the dynamic programming
+implementation is used, which is much slower.
+.\"
+
+.SH HEURISTIC OPTIONS
+.\"
+.PD 0
+.P
+.B "\--terminalrangeint"
+.P
+.B "\--terminalrangeext"
+.P
+.B "\--joinrangeint"
+.P
+.B "\--joinrangeext"
+.P
+.B "\--spanrangeint"
+.P
+.TP
+.B "\--spanrangeext"
+These options are used to specify the size of the sub-alignment
+regions to which DP is applied around the ends of the HSPs.
+This can be at the HSP ends (terminal range), between HSPs
+(join range), or between HSPs which may be connected by a large
+region such as an intron or non-equivalenced region (span range).
+These ranges can be specified for a number of matches back
+onto the HSP (internal range) or out from the HSP (external range).
+.PD
+
+.SH SEEDED DYNAMIC PROGRAMMING OPTIONS
+.TP
+.B "\-x | \--extensionthreshold" <score>
+This is the amount by which the score will be allowed
+to degrade during SDP.
+This is the equivalent of the hspdropoff penalties,
+except it is applied during dynamic programming, not HSP extension.
+Decreasing this parameter will increase the speed of the SDP,
+and increasing it will increase the sensitivity.
+.\"
+.TP
+.B "\--singlepass " <boolean>
+By default the suboptimal SDP alignments are reported by
+a singlepass algorithm, but may miss some suboptimal
+alignments that are close together.
+This option can be used to force the use of a multipass
+suboptimal alignment algorithm for SDP,
+resulting in higher quality suboptimal alignments.
+.\"
+.SH BSDP OPTIONS
+.\"
+.TP
+.B "\--joinfilter" <limit>
+(experimental)
+
+Only allow consider this number of SARs for
+joining HSPs together.  The SARs with the highest potential
+for appearing in a high-scoring alignment are considered.
+This option useful for limiting time and memory usage
+when searching unmasked data with repetitive sequences,
+but should not be set too low, as valid matches may be ignored.
+Something like
+.B --joinfilter 32
+seems to work well.
+.\"
+.SH SEQUENCE OPTIONS
+.\"
+.TP
+.B "\--annotation" <path>
+Specify basic sequence annotation information.
+This is most useful with the cdna2genome model,
+but will work with other models.
+The annotation file contains four fields per line:
+.PP
+.RS
+.PD 0
+.TP
+<id> <strand> <cds_start> <cds_length>
+
+.TP
+Here is a simple example of such a file for 4 cDNAs:
+
+.PP
+.TP
+dhh.human.cdna + 308 1191
+.P
+dhh.mouse.cdna + 250 1191
+.P
+csn7a.human.cdna + 178 828
+.P
+csn7a.mouse.cdna + 126 828
+.PP
+.P
+
+These annotation lines will also work when only the first two fields are used.
+This can be used when specifying which strand of a specific sequence
+should be included in a comparison.
+.\"
+.RE
+
+.SH SYMBOL COMPARISON OPTIONS
+
+.TP
+.B "\--softmaskquery" <boolean>
+Indicate that the query is softmasked.  See description below for
+.B --softmasktarget
+.\"
+.TP
+.B "\--softmasktarget" <boolean>
+Indicate that the target is softmasked.
+In a softmasked sequence file, instead of masking regions
+by Ns or Xs they are masked by putting those regions in lower case
+(and with unmasked regions in upper case).
+This option allows the masking to be ignored by some parts
+of the program, combining the speed of searching masked data
+with sensitivity of searching unmasked data.
+The utility
+.B fastasoftmask
+supplied which is supplied with exonerate can be used
+for producing softmasked sequence from conventionally masked sequence.
+.\"
+.TP
+.B "\-d | \--dnasubmat" <name>
+Specify the the substitution matrix to be used for DNA comparison.
+This should be a path to a substitution matrix in same format
+as that which is used by blast.
+.\"
+.TP
+.B "\-p | \--proteinsubmat" <name>
+Specify the the substitution matrix to be used for protein comparison.
+(Both DNA and protein substitution matrices are required for some
+types of analysis).
+.\"
+The use of the special names,
+.B nucleic, blosum62, pam250, edit
+or
+.B identity
+will cause built-in substitution matrices to be used.
+.\"
+.RE
+.SH ALIGNMENT SEEDING OPTIONS
+.TP
+.B "\-M | \--fsmmemory" <Mb>
+Specify the amount of memory to use for the FSM in heuristic
+analyses.  exonerate multiplexes the query to accelerate
+large-throughput database queries.  This figure should always
+be less than the physical memory on the machine,
+but when searching large databases, generally,
+the more memory it is allowed to use, the faster it will go.
+.\"
+.TP
+.B "\--forcefsm" <none | normal | compact>
+Force the use of more compact finite state machines
+for analyses involving big sequences and large word neighbourhoods.
+By default, exonerate will pick a sensible strategy,
+so this option will rarely need to be set.
+.\"
+.TP
+.B "\--wordjump" <int>
+The jump between query words used to yield the word neighbourhood.
+If set to 1, every word is used, if set to 2, every other word is used,
+and if set to the wordlength, only non-overlapping words will be used.
+This option reduces the memory requirements when using very large
+query sequences, and makes the search run faster, but it also
+damages search sensitivity when high values are set.
+.\"
+.SH AFFINE MODEL OPTIONS
+.TP
+.B "\-o | \--gapopen" <penalty>
+This is the gap open penalty.
+.\"
+.TP
+.B "\-e | \--gapextend" <penalty>
+This is the gap extension penalty.
+.\"
+.TP
+.B "\--codongapopen" <penalty>
+This is the codon gap open penalty.
+.\"
+.TP
+.B "\--codongapextend" <penalty>
+This is the codon gap extension penalty.
+.\"
+.SH NER OPTIONS
+.TP
+.B "\--minner" <boolean>
+Minimum NER length allowed.
+.\"
+.TP
+.B "\--maxner" <length>
+Maximum NER length allowed.
+NB. this option only affects heuristic alignments.
+.\"
+.TP
+.B "\--neropen" <penalty>
+Penalty for opening a non-equivalenced region.
+.\"
+.SH INTRON MODELLING OPTIONS
+
+.TP
+.B "\--minintron" <length>
+Minimum intron length limit.
+NB. this option only affects heuristic alignments.
+This is not a hard limit - it only affects size of introns
+which are sought during heuristic alignment.
+.\"
+.TP
+.B "\--maxintron" <length>
+Maximum intron length limit.
+See notes above for
+.B --minintron
+.\"
+.TP
+.B "\-i | \--intronpenalty" <penalty>
+Penalty for introduction of an intron.
+.\"
+.SH FRAMESHIFT MODELLING OPTIONS
+.TP
+.B "\-f | \--frameshift" <penalty>
+The penalty for the inclusion of a frameshift in an alignment.
+.\"
+.SH ALPHABET OPTIONS
+.TP
+.B "\--useaatla" <boolean>
+Use three-letter abbreviations for AA names.
+ie. when displaying alignment "Met" is used instead of " M "
+.\"
+.SH TRANSLATION OPTIONS
+.TP
+.B "\--geneticcode" <code>
+.B NEW:
+Specify an alternative genetic code.  The default code (1) is the standard
+genetic code.  Other genetic codes may be specified by in shorthand or
+longhand form.
+
+In shorthand form, a number between 1 and 23 is used to specify one of 17
+built-in genetic code variants.  These are genetic code variants
+taken from:
+
+.B http://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi
+
+These are:
+.PP
+.RS
+.TP
+.B 1
+The Standard Code
+.TP
+.B 2
+The Vertebrate Mitochondrial Code
+.TP
+.B 3
+The Yeast Mitochondrial Code
+.TP
+.B 4
+The Mold, Protozoan, and Coelenterate Mitochondrial Code
+and the Mycoplasma/Spiroplasma Code
+.TP
+.B 5
+The Invertebrate Mitochondrial Code
+.TP
+.B 6
+The Ciliate, Dasycladacean and Hexamita Nuclear Code
+.TP
+.B 9
+The Echinoderm and Flatworm Mitochondrial Code
+.TP
+.B 10
+The Euplotid Nuclear Code
+.TP
+.B 11
+The Bacterial and Plant Plastid Code
+.TP
+.B 12
+The Alternative Yeast Nuclear Code
+.TP
+.B 13
+The Ascidian Mitochondrial Code
+.TP
+.B 14
+The Alternative Flatworm Mitochondrial Code
+.TP
+.B 15
+Blepharisma Nuclear Code
+.TP
+.B 16
+Chlorophycean Mitochondrial Code
+.TP
+.B 21
+Trematode Mitochondrial Code
+.TP
+.B 22
+Scenedesmus obliquus mitochondrial Code
+.TP
+.B 23
+Thraustochytrium Mitochondrial Code",
+.PP
+
+In longhand form, a genetic code variant may be provided
+as a 64 byte string in TCAG order, eg. the standard genetic code
+in this form would be:
+
+FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG
+
+
+.\"
+.SH HSP CREATION OPTIONS
+.TP
+.B "\--hspfilter" <threshold>
+Use aggressive HSP filtering to speed up heuristic searches.
+The threshold specifies the number of HSPs centred about
+a point in the query which will be stored.
+Any lower scoring HSPs will be discarded.
+.\"
+This is an experimental option to handle speed problems
+caused by some sequences.  A value of about 100 seems to work well.
+.\"
+.TP
+.B "\--useworddropoff" <boolean>
+When this is TRUE, the score threshold for admitting words
+into the word neighbourhood is set to be the initial word score
+minus the word threshold (see below).
+This strategy is designed to prevent restricting the word
+SSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG
+.\"
+When this is FALSE, the word threshold is taken
+to be an absolute value.
+.\"
+.TP
+.B "\--seedrepeat" <count>
+.B NEW:
+The seedrepeat parameter sets the number of seeds which must be found
+on the same diagonal or reading frame before HSP extension will occur.
+Increasing the value for
+.B --seedrepeat
+will speed up searches,
+and is usually a better option than using longer word lengths,
+particularly when using the
+.B exonerate-server
+where increasing word lengths requires recomputing the index,
+and greater increases memory requirements.
+.\"
+.TP
+.B "\-w \--dnawordlen" <bases>
+.TP
+.B "\-W \--proteinwordlen" <residues>
+.TP
+.B "\-W \--codonnwordlen" <bases>
+The word length used for DNA, protein or codon words.
+When performing DNA vs protein comparisons,
+a the DNA wordlength will always (automatically)
+be triple the protein wordlength.
+.\"
+.TP
+.B "\--dnahspdropoff" <score>
+.TP
+.B "\--proteinhspdropoff" <score>
+.TP
+.B "\--codonhspdropoff" <score>
+The amount by which an HSP score will be allowed to degrade
+during HSP extension.  Separate threshold can be set
+for dna or protein comparisons.
+.\"
+.TP
+.B "\--dnahspthreshold" <score>
+.TP
+.B "\--proteinhspthreshold" <score>
+.TP
+.B "\--codonhspthreshold" <score>
+The HSP score thresholds.  An HSP must score at least this much
+before it will be reported or be used in preparation of a heuristic
+alignment.
+.TP
+.B "\--dnawordlimit " <score>
+.TP
+.B "\--proteinwordlimit " <score>
+.TP
+.B "\--codonwordlimit " <score>
+The threshold for admitting DNA or protein words
+into the word neighbourhood.
+The behaviour of this option is altered by the
+.B --useworddropoff
+option (see above).
+
+.\"
+.TP
+.B "\--geneseed" <threshold>
+Exclude HSPs from gapped alignment computation
+which cannot feature in a alignment
+containing at least one HSP scoring at least this threshold.
+
+This option provides considerable speed up
+for gapped alignment computation,
+but may cause some very gap-rich alignments to be missed.
+
+It is useful when aligning similar sequences back onto genome quickly,
+eg. try --geneseed 250
+.\"
+.TP
+.B "\--geneseedrepeat" <count>
+.B NEW:
+The geneseedrepeat parameter is like the seedrepeat parameter,
+but is only applied when looking for the geneseed hsps.
+Using a larger value for
+.B --geneseedrepeat
+will speed up searches when the
+.B --geneseed
+parameter is also used.
+(experimental, implementation incomplete)
+.\"
+.SH ALIGNMENT OPTIONS
+.TP
+.B "\--alignmentwidth" <width>
+Width of alignment display.  The default is 80.
+.\"
+.TP
+.B "\--forwardcoordinates" <boolean>
+By default, all coordinates are reported on the forward strand.
+Setting this option to false reverts to the old behaviour (pre-0.8.3)
+whereby alignments on the reverse complement of a sequence are
+reported using coordinates on the reverse complement.
+.\"
+.SH SUB-ALIGNMENT REGION OPTIONS
+.TP
+.B "\--quality" <percent>
+This option excludes HSPs from BSDP when their components
+outside of the SARs fall below this quality threshold.
+.\"
+.SH SPLICE SITE PREDICTION OPTIONS
+.TP
+.B "\--splice3" <path>
+.TP
+.B "\--splice5" <path>
+.B NEW:
+Provide a file containing a custom PSSM (position specific score matrix)
+for prediction of the intron splice sites.
+
+The file format for splice data is simple: lines beginning with \'#\'
+are comments, a line containing just the word \'splice\' denotes
+the position of the splice site, and the other lines
+show the observed relative frequencies of the bases flanking
+the splice sites in the chosen organism (in ACGT order).
+
+.B Example 5' splice data file:
+.SP
+.nf
+
+ # start of example 5' splice data
+ # A C G T
+ 28 40  17  14
+ 59 14  13  14
+  8  5  81   6
+ splice
+  0  0 100   0
+  0  0   0 100
+ 54  2  42   2
+ 74  8  11   8
+  5  6  85   4
+ 16 18  21  45
+ # end of test 5' splice data
+.SP
+.fi
+
+.B Example 3' splice data file:
+.SP
+.nf
+
+ # start of example 3' splice data
+ # A C G T
+  10  31  14  44
+   8  36  14  43
+   6  34  12  48
+   6  34   8  52
+   9  37   9  45
+   9  38  10  44
+   8  44   9  40
+   9  41   8  41
+   6  44   6  45
+   6  40   6  48
+  23  28  26  23
+   2  79   1  18
+ 100   0   0   0
+   0   0 100   0
+ splice
+  28  14  47  11
+ # end of example 3' splice data
+.SP
+.fi
+
+.TP
+.B "\--forcegtag" <boolean>
+Only allow splice sites at gt....ag sites
+(or ct....ac sites when the gene is reversed)
+.\"
+With this restriction in place, the splice site prediction
+scores are still used and allow tie breaking when there
+is more than one possible splice site.
+.\"
+
+.SH STRATEGIES FOR SPEED
+
+Keep all data on local disks.
+
+Apply the highest acceptable score thresholds
+using a combination of --score, --percent and --bestn.
+
+Repeat mask and dust the genomic (target) sequence.
+(Softmask these sequences and use --softmasktarget).
+
+Increase the --fsmmemory option to allow more query multiplexing.
+
+Increase the value for --seedrepeat
+
+When using an alignment model containing introns, set --geneseed
+as high as possible.
+
+If you are compiling exonerate yourself,
+see the README file supplied with the source code
+for details of compile-time optimisations.
+.\"
+
+.SH STRATEGIES FOR SENSITIVITY
+Not documented yet.
+
+Increase the word neighbourhood.
+Decrease the HSP threshold.
+Increase the SAR ranges.
+Run exhaustively.
+.\"
+.\"
+
+.SH ENVIRONMENT
+Not documented yet.
+.\"
+
+.SH EXAMPLES
+.\"
+.B "exonerate cdna.fasta genomic.fasta"
+.RS
+This simplest way in which exonerate may be used.
+By default, an ungapped alignment model will be used.
+.RE
+
+.\"
+.B "exonerate --exhaustive y --model est2genome cdna.fasta genomic.masked.fasta"
+.RS
+Exhaustively align cdnas to genomic sequence.
+This will be much, much slower, but more accurate.
+This option causes exonerate to behave like EST_GENOME.
+.RE
+
+.\"
+.B "exonerate --exhaustive --model affine:local"
+.B "query.fasta target.fasta"
+.RS
+If the affine:local model is used with exhaustive alignment,
+you have the Smith-Waterman algorithm.
+.RE
+
+.\"
+.B "exonerate --exhaustive --model affine:global"
+.B "protein.fasta protein.fasta"
+.RS
+Switch to a global model, and you have Needleman-Wunsch.
+.RE
+
+.\"
+.B "exonerate --wordthreshold 1 --gapped no --showhsp yes protein.fasta genome.fasta"
+.RS
+Generate ungapped Protein:DNA alignments
+.RE
+
+.\"
+.B "exonerate --model coding2coding --score 1000 --bigseq yes --proteinhspthreshold 90 chr21.fa chr22.fa"
+.RS
+Perform quick-and-dirty translated pairwise alignment
+of two very large DNA sequences.
+.RE
+
+Many similar combinations should work.  Try them out.
+
+.\"
+.RE
+.SH VERSION
+This documentation accompanies version 2.2.0 of the exonerate package.
+.\"
+.SH AUTHOR
+Guy St.C. Slater.  <guy@ebi.ac.uk>.
+.L
+See the AUTHORS file accompanying the source code
+for a list of contributors.
+.SH AVAILABILITY
+This source code for the exonerate package is available
+under the terms of the GNU
+.I general
+public licence.
+
+Please see the file COPYING which was distrubuted with this package,
+or http://www.gnu.org/licenses/gpl.txt for details.
+
+This package has been developed as part of the ensembl project.
+Please see http://www.ensembl.org/ for more information.
+.SH "SEE ALSO"
+.BR exonerate-server (1),
+.BR ipcress (1),
+.BR blast (1L).

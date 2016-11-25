@@ -19,6 +19,9 @@ this_dir = os.path.dirname(this_path)
 sys.path.append(this_dir)
 from set_logging import set_logging
 
+# Parameters
+augustus_bin = os.path.join(this_dir, 'augustus-3.2.1/bin/augustus')
+
 
 def main(argv):
     optparse_usage = (
@@ -51,28 +54,24 @@ def main(argv):
         input_fasta = os.path.abspath(args.input_fasta[0])
     else:
         print '[ERROR] Please provide INPUT FASTA'
-        parser.print_help()
         sys.exit(2)
 
     if args.output_dir:
         output_dir = os.path.abspath(args.output_dir[0])
     else:
         print '[ERROR] Please provide OUTPUT DIRECTORY'
-        parser.print_help()
         sys.exit(2)
 
     if args.species:
         species = args.species[0]
     else:
         print '[ERROR] Please provide SPECIES'
-        parser.print_help()
         sys.exit(2)
 
     if args.log_dir:
         log_dir = os.path.abspath(args.log_dir[0])
     else:
         print '[ERROR] Please provide LOG DIRECTORY'
-        parser.print_help()
         sys.exit(2)
 
     # Create necessary dirs
@@ -121,11 +120,11 @@ def run_augustus(input_fasta, output_dir, species):
     logger_time.debug('START: Augustus')
     if not glob(augustus_output):
         command = (
-            'augustus --uniqueGeneId=true --gff3=on %s '
+            '%s --uniqueGeneId=true --gff3=on %s '
             '--species=%s --stopCodonExcludedFromCDS=false --softmasking=1 '
             '> %s'
         ) % (
-            input_fasta, species, augustus_output
+            augustus_bin, input_fasta, species, augustus_output
         )
         logger_txt.debug('[Run] %s' % (command))
         os.system(command)
@@ -205,6 +204,7 @@ def parse_augustus(output_dir):
             row_txt = '%s\n' % (prot_seq[i:i + 60])
             outhandle.write(row_txt)
             i += 60
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])

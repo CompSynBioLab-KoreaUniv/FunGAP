@@ -27,7 +27,6 @@ def main(argv):
         busco_dir = os.path.abspath(args.busco_dir[0])
     else:
         print '[ERROR] Please provide BUSCO DIRECTORY'
-        parser.print_help()
         sys.exit(2)
 
     # Run fuctions :) Slow is as good as Fast

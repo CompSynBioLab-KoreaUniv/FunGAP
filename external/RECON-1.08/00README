@@ -1,0 +1,126 @@
+RECON -- finding repeat families from biological sequences
+Version 1.08 (Jan 2014)
+Copyright (C) 2001 Washington University School of Medicine
+Copyright (C) 2011-2014 Institute for Systems Biology
+------------------------------------------------------------------
+
+
+About the package
+
+The RECON package implements a de novo algorithm for the
+indentification of repeat families from biological sequences.  For
+details about the algorithm, see
+
+Bao Z. and Eddy S.R. (2002) Automated de novo Identification of Repeat
+Sequence Families in Sequenced Genomes. Submitted.
+
+and
+
+http://www.genetics.wustl.edu/eddy/recon
+
+Source code of RECON is freely available under the GNU General Public
+License.  For details on the copyright and licensing, see the
+COPYRIGHT and LICENSE file.
+
+This distribution includes two Perl scripts and several C programs.
+Most users only need to run the scripts and the C programs should be
+transparent.
+
+
+What's new?
+
+RECON1.08: Wed Feb  5 14:04:25 PST 2014 - Robert Hubley ISB
+  - New checks in eleredef.c for failed memory allocation/file operations.
+  - A buffer overrun bug fix provided by Stephen Ficklin in eledef.c.
+
+RECON1.07: Wed Jun  8 10:00:55 PDT 2011 - Robert Hubley ISB
+  - Another problem with the eleredef program has appeared a couple
+    of times.  A divide by zero error in one of Zhirong's routines.
+    I have applied a workaround to the divide by zero but not a fix
+    to the real problem.  The program will now warn the user if
+    the workaround was exercised during a run.
+
+RECON1.06: Tue May 20 15:19:30 PDT 2008 - Robert Hubley ISB
+ - 64 bit compiler fixes:  Previous versions of RECON used the "long"
+   data type under the assumption that was 32bits.  This caused the 
+   program to crash or lock up during analysis.   
+
+Bug fix for RECON1.02 in the eleredef program.
+
+
+
+Programs and input
+
+The RECON algorithm defines repeat families on the basis of pairwise
+similarity between the input biological sequences.  We do not provide
+pairwise sequence comparison tools in the package.  However, we
+provide a tool (MSPCollect) which converts a BLAST output into an
+MSP file, which is used by the package as input.  In the MSP file,
+each MSP that BLAST reports is turned into a one-line summary in the
+following format:
+
+score %iden start end query_name start end subject_name \n
+
+The command line format for MSPCollect is 
+
+MSPCollect BLAST_output_file > name_of_your_MSP_file
+
+If you have multiple BLAST output files, you have to run MSPCollect
+multiple times and concatenate the result into one MSP file.
+
+
+The recon script drives the running of the package.  The command
+line format is as follows:
+
+recon.pl seq_name_list_file MSP_file integer
+
+The seq_name_list_file contains the names of the input sequences, one
+per line.  The lines can be just the names, or it may be in the FASTA
+format (starting with ">").  The names should be sorted in lexical
+order.  The very first line of file should be an integer which is the
+number of names listed in the file.  If the input sequences are stored
+in one FASTA file, one can construct the seq_name_list_file as follows:
+
+grep ">" FASTA_file | sort > name_of_your_seq_name_list_file
+
+One can then add the number of names to the top of the file.
+
+As one of the early steps, the script sort the MSPs.  If there are too
+many MSPs in the input, one may consider sorting a subsection at a
+time.  The third integer argument specifies how many sections you want
+to divide the sorting process into.  The default is 1.  (Notice, as
+the file size gets big, the sorting process becomes inefficient, and
+may even cause the process to crash.)
+
+If you know the RECON algorithm, then the names of C programs are self
+explanatory.
+
+
+
+Output of the package
+
+The package generates several directories along the way.  All of them,
+except for the summary directory, stores intermediate results.  The
+ele_def_res, ele_redef_res and edge_redef_res directories contain
+files for the elements defined at the corresponding step, one file per
+element.  Elements are indexed using integers and are named as e123,
+e987, etc..  If you are not interested in the details about the
+elements, you can remove all these directories.
+
+Two files in the summary directory are the "official" output of the
+package -- eles and families.  Each line in "eles" is a summary of an
+element defined in the following format:
+
+family_index element_index strand sequence_name start end
+
+Each line in "families" is a summary of a family defined in the
+following format:
+
+family_index copy_number_in_the_family
+
+
+
+The Demo
+
+To get examples of (the format of) the input and output files, see the
+README file in the Demos directory.

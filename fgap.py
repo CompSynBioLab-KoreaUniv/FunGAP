@@ -22,6 +22,7 @@ sys.path.append(this_dir)
 from set_logging import set_logging
 
 # File paths
+run_check_dependencies_path = os.path.join(this_dir, 'check_dependencies.py')
 run_hisat2_path = os.path.join(this_dir, 'run_hisat2.py')
 run_trinity_path = os.path.join(this_dir, 'run_trinity.py')
 run_repeat_modeler_path = os.path.join(this_dir, 'run_repeat_modeler.py')
@@ -54,8 +55,9 @@ def main(argv):
         help="Output directory"
     )
     parser.add_argument(
-        "-r", "--trans_read_files", dest="trans_read_files", nargs='+',
+        "-r", "--trans_read_files", dest="trans_read_files", nargs=2,
         help="Multiple transcriptome read files in FASTAQ"
+        " (two paired-end files)"
     )
     parser.add_argument(
         "-p", "--project_name", dest="project_name", nargs=1,
@@ -82,62 +84,118 @@ def main(argv):
         help="Number of cores to be used"
     )
 
+    parser.add_argument(
+        "-H", "--with_hisat2", dest="with_hisat2", nargs='?',
+        help="User-defined Hisat2 installation path (binary directory)"
+    )
+    parser.add_argument(
+        "-t", "--with_trinity", dest="with_trinity", nargs='?',
+        help="User-defined Trinity installation path (binary directory)"
+    )
+    parser.add_argument(
+        "-m", "--with_maker", dest="with_maker", nargs='?',
+        help="User-defined Maker installation path (binary directory)"
+    )
+    parser.add_argument(
+        "-R", "--with_repeat_modeler", dest="with_repeat_modeler", nargs='?',
+        help="User-defined Repeat Modeler installation path (binary directory)"
+    )
+    parser.add_argument(
+        "-b", "--with_braker1", dest="with_braker1", nargs='?',
+        help="User-defined Braker1 installation path (binary directory)"
+    )
+    parser.add_argument(
+        "-B", "--with_busco", dest="with_busco", nargs='?',
+        help="User-defined BUSCO installation path (binary directory)"
+    )
+    parser.add_argument(
+        "-i", "--with_interproscan", dest="with_interproscan", nargs='?',
+        help="User-defined InterproScan installation path (binary directory)"
+    )
+
     args = parser.parse_args()
     if args.output_dir:
         output_dir = os.path.abspath(args.output_dir[0])
     else:
         print '[ERROR] Please provide ROOT DIRECTORY'
-        parser.print_help()
         sys.exit(2)
 
     if args.trans_read_files:
         trans_read_files = [os.path.abspath(x) for x in args.trans_read_files]
     else:
         print '[ERROR] Please provide transcriptome read files'
-        parser.print_help()
         sys.exit(2)
 
     if args.project_name:
         project_name = args.project_name[0]
     else:
         print '[ERROR] Please provide PROJECTN NAME'
-        parser.print_help()
         sys.exit(2)
 
     if args.genome_assembly:
         genome_assembly = os.path.abspath(args.genome_assembly[0])
     else:
         print '[ERROR] Please provide transcriptome read files'
-        parser.print_help()
         sys.exit(2)
 
     if args.augustus_species:
         augustus_species = args.augustus_species[0]
     else:
         print '[ERROR] Please provide transcriptome AUGUSTUS SPECIES'
-        parser.print_help()
         sys.exit(2)
 
     if args.org_id:
         org_id = args.org_id[0]
     else:
         print '[ERROR] Please provide transcriptome ORGANISM ID'
-        parser.print_help()
         sys.exit(2)
 
     if args.sister_proteome:
         sister_proteome = os.path.abspath(args.sister_proteome[0])
     else:
         print '[ERROR] Please provide TRANSCRIPTOME READ FILES'
-        parser.print_help()
         sys.exit(2)
 
     if args.num_cores:
         num_cores = args.num_cores[0]
     else:
         print '[ERROR] Please provide NUMBER OF CORES'
-        parser.print_help()
         sys.exit(2)
+
+    if args.with_hisat2:
+        with_hisat2 = os.path.abspath(args.with_hisat2)
+    else:
+        with_hisat2 = ''
+
+    if args.with_trinity:
+        with_trinity = os.path.abspath(args.with_trinity)
+    else:
+        with_trinity = ''
+
+    if args.with_maker:
+        with_maker = os.path.abspath(args.maker)
+    else:
+        with_maker = ''
+
+    if args.with_repeat_modeler:
+        with_repeat_modeler = os.path.abspath(args.with_repeat_modeler)
+    else:
+        with_repeat_modeler = ''
+
+    if args.with_braker1:
+        with_braker1 = os.path.abspath(args.with_braker1)
+    else:
+        with_braker1 = ''
+
+    if args.with_busco:
+        with_busco = os.path.abspath(args.with_busco)
+    else:
+        with_busco = ''
+
+    if args.with_interproscan:
+        with_interproscan = os.path.abspath(args.with_interproscan)
+    else:
+        with_interproscan = ''
 
     # Create nessasary dirs
     create_dir(output_dir)
@@ -154,6 +212,10 @@ def main(argv):
     )
 
     # Run functions :) Slow is as good as Fast
+    config_file = run_check_dependencies(
+        output_dir, with_hisat2, with_trinity, with_maker,
+        with_repeat_modeler, with_braker1, with_busco, with_interproscan
+    )
     trans_bams = run_hisat2(
         genome_assembly, trans_read_files, output_dir, num_cores
     )
@@ -246,6 +308,26 @@ def create_dir(output_dir):
     log_pipeline_dir = os.path.join(output_dir, 'logs', 'pipeline')
     if not glob(log_pipeline_dir):
         os.mkdir(log_pipeline_dir)
+
+
+def run_check_dependencies(
+    output_dir, with_hisat2, with_trinity, with_maker,
+    with_repeat_modeler, with_braker1, with_busco, with_interproscan
+):
+    # check_dependencies.py -o <output_dir> -H <with_hisat2>
+    # -t <with_trinity> -m <with_maker> -r <with_repeat_modeler>
+    # -b <with_braker1>  -B <with_busco> -i <with_interproscan>
+    command = 'python %s -o %s -H %s -t %s -m %s -r %s -b %s -B %s -i %s' % (
+        run_check_dependencies_path, with_hisat2, with_trinity, with_maker,
+        with_repeat_modeler, with_braker1, with_busco, with_interproscan
+    )
+    logger_time.debug('START: check_dependencies')
+    logger_txt.debug('[Wrapper] %s' % (command))
+    command_args = shlex.split(command)
+    check_call(command_args)
+    logger_time.debug('DONE : wrapper_run_hisat2')
+
+    return os.path.joiin(output_dir, 'fgap_exe.config')
 
 
 def run_hisat2(genome_assembly, trans_read_files, output_dir, num_cores):

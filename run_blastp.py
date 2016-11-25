@@ -26,6 +26,8 @@ from set_logging import set_logging
 
 # Parameters
 evalue_cut = 0.00001
+makeblastdb_bin = os.path.join(this_dir, 'blast/makeblastdb')
+blastp_bin = os.path.join(this_dir, 'blast/blastp')
 
 
 def main(argv):
@@ -66,7 +68,6 @@ def main(argv):
         input_fasta = os.path.abspath(args.input_fasta[0])
     else:
         print '[ERROR] Please provide INPUT FASTA'
-        parser.print_help()
         sys.exit(2)
 
     if args.ref_fasta:
@@ -78,14 +79,12 @@ def main(argv):
         output_prefix = args.output_prefix[0]
     else:
         print '[ERROR] Please provide OUTPUT_PREFIX'
-        parser.print_help()
         sys.exit(2)
 
     if args.num_cores:
         num_cores = args.num_cores[0]
     else:
         print '[ERROR] Please provide NUMBER OF CORES'
-        parser.print_help()
         sys.exit(2)
 
     root_dir = os.path.abspath(args.root_dir[0])
@@ -155,15 +154,15 @@ def run_blastp_ref(filtered_fasta, ref, output_prefix, tmp_num, num_cores):
     # If blast-index was not generated, make one
     blast_index_file = '%s.*phr' % (ref)
     if not glob(blast_index_file):
-        command = 'makeblastdb -in %s -dbtype prot' % (ref)
+        command = '%s -in %s -dbtype prot' % (makeblastdb_bin, ref)
         logger_txt.debug('[Run] %s' % (command))
         os.system(command)
 
     # Run BLASTp
     tmp_output_blast = '%s.blast.%d' % (output_prefix, tmp_num)
     if not glob(tmp_output_blast) or os.stat(tmp_output_blast)[6] == 0:
-        command = 'blastp -query %s -db %s -out %s -num_threads %s' % (
-            filtered_fasta, ref, tmp_output_blast, num_cores
+        command = '%s -query %s -db %s -out %s -num_threads %s' % (
+            blastp_bin, filtered_fasta, ref, tmp_output_blast, num_cores
         )
         logger_txt.debug('[Run] %s' % (command))
         os.system(command)

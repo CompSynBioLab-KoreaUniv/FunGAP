@@ -83,14 +83,12 @@ def main(argv):
         input_gff3s = [os.path.abspath(x) for x in args.input_gff3s]
     else:
         print '[ERROR] Please provide INPUT GFF3'
-        parser.print_help()
         sys.exit(2)
 
     if args.mapping_file:
         mapping_file = os.path.abspath(args.mapping_file[0])
     else:
         print '[ERROR] Please provide MAPPING TXT FILE'
-        parser.print_help()
         sys.exit(2)
 
     if args.blast_dict:
@@ -98,7 +96,6 @@ def main(argv):
         blast_dict_evalue = os.path.abspath(args.blast_dict[1])
     else:
         print '[ERROR] Please provide BLAST DICT'
-        parser.print_help()
         sys.exit(2)
 
     if args.busco_dict:
@@ -106,7 +103,6 @@ def main(argv):
         busco_dict_list = os.path.abspath(args.busco_dict[1])
     else:
         print '[ERROR] Please provide BUSCO DICT'
-        parser.print_help()
         sys.exit(2)
 
     if args.ipr_dict:
@@ -114,7 +110,6 @@ def main(argv):
         ipr_dict_count = os.path.abspath(args.ipr_dict[1])
     else:
         print '[ERROR] Please provide IPR DICT PICKLE'
-        parser.print_help()
         sys.exit(2)
 
     if args.bad_dict:
@@ -128,21 +123,18 @@ def main(argv):
         nr_prot_file = os.path.abspath(args.nr_prot_file[0])
     else:
         print '[ERROR] Please provide "nr_prot.faa" FILE'
-        parser.print_help()
         sys.exit(2)
 
     if args.short_id:
         short_id = args.short_id[0]
     else:
         print '[ERROR] Please provide SHORT ID'
-        parser.print_help()
         sys.exit(2)
 
     if args.output_prefix:
         output_prefix = args.output_prefix[0]
     else:
         print '[ERROR] Please provide OUTPUT PREFIX'
-        parser.print_help()
         sys.exit(2)
 
     root_dir = os.path.abspath(args.root_dir[0])

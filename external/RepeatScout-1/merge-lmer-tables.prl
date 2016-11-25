@@ -1,0 +1,61 @@
+#!/usr/bin/env perl
+#
+# Takes two files as arguments, and merges them.
+# Author: Neil Jones
+# Date: 20050812
+
+my ($f1, $f2) = @ARGV;
+
+open(F1, "<$f1") or die "$0: opening $f1: $!\n";
+open(F2, "<$f2") or die "$0: opening $f2: $!\n";
+
+my ($lmer1, $lmer2, $lmer3) = ();
+my ($freq1, $freq2, $freq3);
+while(1) {
+	my $cmp;
+	unless( defined($lmer1) || eof(F1) ) {
+		my $line = <F1>;
+		($lmer1, $freq1) = (split /\t/ => $line)[0,1];
+	}
+
+	unless( defined($lmer2) || eof(F2) ) {
+		my $line = <F2>;
+		($lmer2, $freq2) = (split /\t/ => $line)[0,1];
+	}
+
+	last if eof(F1) && eof(F2);
+
+	if( eof(F1) ) {
+		$cmp = 1;
+	}
+
+	elsif( eof(F2) ) {
+		$cmp = 2;
+	}
+
+	else {
+		$cmp = $lmer1 cmp $lmer2;
+	}
+
+	if( 0 == $cmp ) {
+		$lmer3 = $lmer1;
+		$freq3 = $freq1+$freq2;
+	}
+
+	elsif( 0 < $cmp ) {
+		$lmer3 = $lmer2;
+		$freq3 = $freq2;
+		$lmer2 = undef;
+	}
+
+	else {
+		$lmer3 = $lmer1;
+		$freq3 = $freq1;
+		$lmer1 = undef;
+	}
+
+	print join("\t" => $lmer3, $freq3),"\n";
+}
+
+close(F1);
+close(F2);

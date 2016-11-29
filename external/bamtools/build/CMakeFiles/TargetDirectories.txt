@@ -1,8 +1,0 @@
-/home/mbnmbn00/downloads/bamtools/build/src/api/CMakeFiles/APIHeaders.dir
-/home/mbnmbn00/downloads/bamtools/build/src/api/CMakeFiles/AlgorithmsHeaders.dir
-/home/mbnmbn00/downloads/bamtools/build/src/api/CMakeFiles/BamTools.dir
-/home/mbnmbn00/downloads/bamtools/build/src/api/CMakeFiles/BamTools-static.dir
-/home/mbnmbn00/downloads/bamtools/build/src/utils/CMakeFiles/BamTools-utils.dir
-/home/mbnmbn00/downloads/bamtools/build/src/CMakeFiles/SharedHeaders.dir
-/home/mbnmbn00/downloads/bamtools/build/src/toolkit/CMakeFiles/bamtools_cmd.dir
-/home/mbnmbn00/downloads/bamtools/build/src/third_party/jsoncpp/CMakeFiles/jsoncpp.dir

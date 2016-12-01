@@ -16,6 +16,7 @@ from Bio.Seq import Seq
 from Bio.SeqUtils import GC
 from markdown2 import markdown
 from Bio.Alphabet import IUPAC
+import matplotlib.pyplot as plt
 from collections import defaultdict
 from argparse import ArgumentParser
 from Bio.Alphabet import generic_dna
@@ -63,8 +64,9 @@ def main(argv):
     # Run functions :) Slow is as good as Fast
     D_fasta = SeqIO.to_dict(SeqIO.parse(input_fasta, "fasta", generic_dna))
     D_gff3 = parse_gff3(input_gff3)
-    D_cds_coords, D_cds_len, D_stat = get_stats(D_fasta, D_gff3)
-    D_stat = get_stats2(D_fasta, D_cds_coords, D_cds_len, D_stat)
+    D_cds_coords, protein_lengths, D_stat = get_stats(D_fasta, D_gff3)
+    D_stat = get_stats2(D_fasta, D_cds_coords, D_stat)
+    prot_len_dist_jpg = draw_prot_len_dist(protein_lengths, output_prefix)
     create_markdown(D_stat, output_prefix)
 
 
@@ -134,7 +136,6 @@ def get_stats(D_fasta, D_gff3):
     total_genes = 0
     D_cds_seq = {}
     D_cds_coords = defaultdict(list)
-    D_cds_len = defaultdict(int)
 
     sorted_genes = sorted(
         D_gff3.items(), key=lambda x: (
@@ -167,7 +168,6 @@ def get_stats(D_fasta, D_gff3):
         if strand == '-':
             cds_seq = get_reverse_complement(cds_seq)
 
-        D_cds_len[scaffold] += len(cds_seq)
         D_cds_seq[prot_id] = cds_seq
         cds_length = tmp_prot_len
         cds_lengths.append(cds_length)
@@ -239,34 +239,12 @@ def get_stats(D_fasta, D_gff3):
     D_stat['Percent coding region'] = (len(full_cds_seq), coding_percent)
     D_stat['Coding region GC'] = round(cds_gc_percent, 2)
 
-    return D_cds_coords, D_cds_len, D_stat
+    return D_cds_coords, protein_lengths, D_stat
 
 
-def get_stats2(D_fasta, D_cds_coords, D_cds_len, D_stat):
+def get_stats2(D_fasta, D_cds_coords, D_stat):
     non_coding_seq = ''
     scaffolds_with_gene = []
-
-    sorted_cds = sorted(
-        D_cds_coords.items(), key=lambda x: (int(re.findall(r'\d+', x[0])[0]))
-    )
-
-    for scaffold, tup_list in sorted_cds:
-        if scaffold not in scaffolds_with_gene:
-            scaffolds_with_gene.append(scaffold)
-        end = 0  # Python index
-        sorted_tup_list = sorted(tup_list, key=lambda x: x[0])
-        for tup in sorted_tup_list:
-            start = tup[0]
-            if start > end:
-                non_coding_seq += str(D_fasta[scaffold][end:start - 1].seq)
-            else:
-                print 'Overlapped CDS: %s %s,%s' % (scaffold, tup[0], tup[1])
-            end = tup[1]
-
-            if tup == sorted_tup_list[-1]:
-                non_coding_seq += str(
-                    D_fasta[scaffold][end:len(D_fasta[scaffold])].seq
-                )
 
     # Handle scaffolds without genes
     for scaffold, seq in D_fasta.items():
@@ -288,13 +266,33 @@ def get_stats2(D_fasta, D_cds_coords, D_cds_len, D_stat):
     return D_stat
 
 
+def draw_prot_len_dist(protein_lengths, output_prefix):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    plt.hist(
+        protein_lengths, facecolor='#4b85c5', alpha=1,
+        bins=150
+    )
+    plt.title("Protein length distribution")
+    plt.xlabel("Amino acids (aa)")
+    plt.ylabel("Frequency")
+    ax.set_xlim(0, 2000)
+    outjpg = '%s_prot_len_dist.jpg' % (output_prefix)
+    plt.show()
+    plt.savefig(
+        outjpg, dpi=500, facecolor='w', edgecolor='w',
+        orientation='portrait', papertype=None, format=None,
+        transparent=False, bbox_inches=None, pad_inches=0.1
+    )
+
+
 def create_markdown(D_stat, output_prefix):
     # Header
     header_txt = '# fGAP report'
     md = markdown(header_txt)
 
     # Date
-    date_txt = '_created at %s_' % (datetime.date.today())
+    date_txt = '_Created at %s_' % (datetime.date.today())
     md += markdown(date_txt)
 
     # Number of genes
@@ -318,9 +316,9 @@ def create_markdown(D_stat, output_prefix):
 || Spliced genes || %s (%s%%) ||
 || Gene density (genes/Mb) || %s ||
 || Number of introns || %s ||
-|| Number of per gene (med) || %s ||
+|| Number of introns per gene (med) || %s ||
 || Number of exons || %s ||
-|| Number of per gene (med) || %s ||
+|| Number of exons per gene (med) || %s ||
     ''' % (
         "{:,}".format(D_stat['Total genes']),
         "{:,}".format(D_stat['Transcript length'][0]),
@@ -338,12 +336,38 @@ def create_markdown(D_stat, output_prefix):
         "{:,}".format(D_stat['Gene density']),
         "{:,}".format(D_stat['Num introns']),
         D_stat['Num introns per gene'],
-
+        "{:,}".format(D_stat['Num exons']),
+        D_stat['Num exons per gene'],
 
     )
     md += markdown(gene_structure_table, extras=["wiki-tables"])
-    print md
-    sys.exit()
+
+    # Protein length distribution
+    prot_len_txt = 
+
+    outfile = '%s.html' % (output_prefix)
+
+    # header including css
+    header_txt = '''
+<head>
+<style>
+body {font-family: sans-serif}
+td {
+    border-bottom: 1px solid #ddd;
+    padding: 8px;
+}
+</style>
+</head>
+<body>
+'''
+    outhandle = open(outfile, 'w')
+    outhandle.write(header_txt)
+    outhandle.write(md)
+
+    footer_txt = '''
+</body>'''
+    outhandle.write(footer_txt)
+    outhandle.close()
 
 
 if __name__ == "__main__":

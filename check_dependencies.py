@@ -176,7 +176,7 @@ def get_path(
             return fgap_external
         else:
             logger_txt.debug(
-                '[ERROR] No installation for %s. We expect %s to exist' % (
+                '\n[ERROR] No installation for %s. We expect %s to exist' % (
                     tool_name, fgap_external
                 )
             )
@@ -289,7 +289,7 @@ def check_working(
     home_dir = os.path.expanduser('~')
     if not os.path.exists(os.path.join(home_dir, '.gm_key')):
         logger_txt.debug(
-            '[ERROR] You do not have .gm_key in you home directory.\n'
+            '\n[ERROR] You do not have .gm_key in you home directory.\n'
             'Check https://wiki.gacrc.uga.edu/wiki/GeneMark'
         )
         sys.exit(2)

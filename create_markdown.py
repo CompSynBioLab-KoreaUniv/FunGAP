@@ -67,7 +67,7 @@ def main(argv):
     D_cds_coords, protein_lengths, D_stat = get_stats(D_fasta, D_gff3)
     D_stat = get_stats2(D_fasta, D_cds_coords, D_stat)
     prot_len_dist_jpg = draw_prot_len_dist(protein_lengths, output_prefix)
-    create_markdown(D_stat, output_prefix)
+    create_markdown(D_stat, prot_len_dist_jpg, output_prefix)
 
 
 def import_file(input_file):
@@ -278,15 +278,15 @@ def draw_prot_len_dist(protein_lengths, output_prefix):
     plt.ylabel("Frequency")
     ax.set_xlim(0, 2000)
     outjpg = '%s_prot_len_dist.jpg' % (output_prefix)
-    plt.show()
     plt.savefig(
         outjpg, dpi=500, facecolor='w', edgecolor='w',
         orientation='portrait', papertype=None, format=None,
         transparent=False, bbox_inches=None, pad_inches=0.1
     )
+    return outjpg
 
 
-def create_markdown(D_stat, output_prefix):
+def create_markdown(D_stat, prot_len_dist_jpg, output_prefix):
     # Header
     header_txt = '# fGAP report'
     md = markdown(header_txt)
@@ -343,7 +343,11 @@ def create_markdown(D_stat, output_prefix):
     md += markdown(gene_structure_table, extras=["wiki-tables"])
 
     # Protein length distribution
-    prot_len_txt = 
+    prot_len_txt = '### 4. Protein length distribution'
+    md += markdown(prot_len_txt)
+    md += markdown("![Protein length distribution](%s)" % (
+        os.path.basename(prot_len_dist_jpg))
+    )
 
     outfile = '%s.html' % (output_prefix)
 
@@ -352,6 +356,7 @@ def create_markdown(D_stat, output_prefix):
 <head>
 <style>
 body {font-family: sans-serif}
+img {width: 500;}
 td {
     border-bottom: 1px solid #ddd;
     padding: 8px;

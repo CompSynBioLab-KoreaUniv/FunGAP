@@ -221,7 +221,7 @@ def main(argv):
         )
         logger_time.debug('START training run3 & running maker run4')
         snap_hmm_file_run3 = train_snap(
-            root_dir, all_gff_file_run3, '3', est_prefix
+            root_dir, all_gff_file_run3, '3', est_prefix, maker_bin
         )
         run_flag_run4 = check_maker_finished(
             root_dir, input_fasta, '4', est_prefix
@@ -230,7 +230,7 @@ def main(argv):
             run_maker_trained(
                 input_fasta, root_dir, augustus_species, num_cores,
                 snap_hmm_file_run3, all_gff_file_run3, '4', est_prefix,
-                eukgmhmmfile, maker_bin
+                maker_bin, eukgmhmmfile
             )
         else:
             logger_txt.debug('Running Maker has already been finished')
@@ -281,7 +281,7 @@ def create_dir(root_dir):
 
 
 def parse_config(config_file):
-    config_txt = parse_config(config_file)
+    config_txt = import_file(config_file)
     for line in config_txt:
         if line.startswith('MAKER_PATH='):
             maker_bin = line.replace('MAKER_PATH=', '')
@@ -433,7 +433,7 @@ def run_maker_batch(
 
 def run_maker_trained(
     input_fasta, root_dir, augustus_species, num_cores, snap_hmm_file,
-    all_gff_file, version, prefix, eukgmhmmfile=None, maker_bin
+    all_gff_file, version, prefix, maker_bin, eukgmhmmfile=None
 ):
 
     # Create directory
@@ -574,7 +574,7 @@ def collect_result_final(input_fasta, root_dir, project_name, prefix):
 
 def train_snap(root_dir, all_gff_file, version, prefix, maker_bin):
     maker_run_dir = os.path.join(
-        root_dir, software, prefix, 'maker_run%s' % (version), maker_bin
+        root_dir, software, prefix, 'maker_run%s' % (version)
     )
     maker_dir = os.path.dirname(maker_bin)
     maker2zff_bin = os.path.join(maker_dir, 'maker2zff')
@@ -603,7 +603,7 @@ def train_snap(root_dir, all_gff_file, version, prefix, maker_bin):
         os.system(command2)
 
         # Export the genes
-        command3 = '%s -export 1000 -plus uni.ann uni.dna' % (fathom)
+        command3 = '%s -export 1000 -plus uni.ann uni.dna' % (fathom_bin)
         logger_txt.debug('[Run] %s' % (command3))
         os.system(command3)
 

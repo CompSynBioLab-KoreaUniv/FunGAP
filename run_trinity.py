@@ -26,7 +26,7 @@ max_memory = '10G'
 def main(argv):
     argparse_usage = (
         'run_trinity.py -b <bam_files> -o <output_dir> -l <log_dir> '
-        '-p <project_name> -c <num_cores> -C <configure_file>'
+        '-p <project_name> -c <num_cores> -C <config_file>'
     )
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
@@ -114,6 +114,13 @@ def main(argv):
 
 
 # Define functions
+def import_file(input_file):
+    with open(input_file) as f_in:
+        txt = (line.rstrip() for line in f_in)
+        txt = list(line for line in txt if line)
+    return txt
+
+
 def create_dir(output_dir, log_dir):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -132,7 +139,7 @@ def create_dir(output_dir, log_dir):
 
 
 def parse_config(config_file):
-    config_txt = parse_config(config_file)
+    config_txt = import_file(config_file)
     for line in config_txt:
         if line.startswith('TRINITY_PATH='):
             trinity_bin = line.replace('TRINITY_PATH=', '')

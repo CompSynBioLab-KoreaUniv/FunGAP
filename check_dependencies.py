@@ -145,6 +145,9 @@ def main(argv):
         genemark_path
     )
 
+    # Check BLAST installation
+    check_blast()
+
 
 def create_dir(output_dir):
     if not os.path.exists(output_dir):
@@ -332,6 +335,30 @@ def write_config(
     outhandle.write('INTERPROSCAN_PATH=%s\n' % (interproscan_path))
     outhandle.write('GENEMARK_PATH=%s\n' % (genemark_path))
     outhandle.close()
+
+
+def check_blast():
+    binary_paths = ['blastp', 'blastx', 'blastn', 'makeblastdb']
+    for binary_path in binary_paths:
+        try:
+            subprocess.call(
+                [binary_path, "-help"], stdout=open(os.devnull, 'wb')
+            )
+        except OSError as e:
+            if e.errno == os.errno.ENOENT:
+                logger_txt.debug(
+                    '%s -help is not working. Please check your installation'
+                )
+                sys.exit(2)
+            else:
+                logger_txt.debug(
+                    '%s -help is not working. Please check your installation'
+                )
+                sys.exit(2)
+                raise
+        logger_txt.debug(
+            '[%s] Running is OK' % (os.path.basename(binary_path))
+        )
 
 
 if __name__ == "__main__":

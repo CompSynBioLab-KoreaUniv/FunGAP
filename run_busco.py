@@ -9,6 +9,7 @@ Author Byoungnam Min on Nov 17, 2015
 import sys
 import os
 import re
+from glob import glob
 from argparse import ArgumentParser
 
 # Get Logging
@@ -21,6 +22,7 @@ from set_logging import set_logging
 lineage_path = os.path.join(this_dir, 'data/fungi')
 
 
+# Main function
 def main(argv):
     optparse_usage = (
         'run_busco.py -i <input_fasta> -o <output_dir> -l <log_dir> '
@@ -89,6 +91,18 @@ def main(argv):
     global logger_time, logger_txt
     logger_time, logger_txt = set_logging(log_file)
 
+    # Check BUSCO library
+    if not glob(os.path.join(lineage_path, 'hmms/*hmm')):
+        logger_txt.debug(
+            '\n[ERROR] You did not download BUSCO library\n'
+            'Go to FGAP_PATH/data/ and type\n'
+            'wget http://busco.ezlab.org/v1/files/fungi_buscos.tar.gz;'
+            'tar -zxvf fungi_buscos.tar.gz\n'
+            'You can resume fGAP without restarting '
+            '(run fGAP in the same directory)'
+        )
+        sys.exit(2)
+
     # Run functions :) Slow is always better than Fast
     busco_bin = parse_config(config_file)
     run_busco(input_fasta, output_dir, log_dir, num_cores, busco_bin)
@@ -124,7 +138,7 @@ def create_dir(output_dir, log_dir):
 
 
 def parse_config(config_file):
-    config_txt = parse_config(config_file)
+    config_txt = import_file(config_file)
     for line in config_txt:
         if line.startswith('BUSCO_PATH='):
             busco_bin = line.replace('BUSCO_PATH=', '')

@@ -13,7 +13,7 @@ import cPickle
 from glob import glob
 from collections import defaultdict
 from argparse import ArgumentParser
-from intervaltree import IntervalTree
+import networkx as nx
 
 # Get Logging
 this_path = os.path.realpath(__file__)
@@ -438,65 +438,26 @@ def filtering(
     # Filtering
     final_gene_set = []
     for model_chunk in model_chunks:
-        # Build interval tree
-        t = IntervalTree()
-        D_done = {}
-        for gene_name in model_chunk:
-            scaffold, start, end = D_cds[gene_name]
-            if (scaffold, start, end) in D_done:
-                continue
-            D_done[(scaffold, start, end)] = True
-            t[start:end] = gene_name
-
-        # Define function
-        def get_all_arrangements(new_t, begin, end, lst):
-            new_t.remove_overlap(begin)
-            new_t.remove_overlap(end)
-            new_t.remove_overlap(end - 0.1)
-            new_t.remove_envelop(begin - 0.1, end + 0.1)
-            new_t.remove_overlap(begin - 0.1, end + 0.1)
-
-            if len(new_t) == 0:
-                yield lst
-
-            if len(new_t) > 0:
-                end_list2 = [x.end for x in new_t]
-                first_end2 = min(end_list2)
-
-            for new_t_element in sorted(new_t):
-                begin = new_t_element.begin
-                if begin > first_end2:
+        # Build Graph
+        G = nx.Graph()
+        for gene_name1 in model_chunk:
+            for gene_name2 in model_chunk:
+                G.add_node(gene_name1)
+                scaffold1, start1, end1 = D_cds[gene_name1]
+                scaffold2, start2, end2 = D_cds[gene_name2]
+                if start1 == start2 and end1 == end2:
                     continue
-                end = new_t_element.end
-                lst2 = lst + [new_t_element.data]
-                new_t2 = IntervalTree(new_t[:])
-                for x in get_all_arrangements(new_t2, begin, end, lst2):
-                    yield x
-
-        all_combs = []
-        end_list = [x.end for x in t]
-        first_end = min(end_list)
-        for t_element in sorted(t):
-            new_t = IntervalTree(t[:])
-            begin = t_element.begin
-            end = t_element.end
-            gene_name = t_element.data
-            if begin > first_end:
-                continue
-            tmp_combs = get_all_arrangements(new_t, begin, end, [gene_name])
-            tmp_combs2 = list(tmp_combs)
-            all_combs += tmp_combs2
-
-        # Remove redundant set
-        all_combs2 = [sorted(x) for x in all_combs]
-        all_combs_unique = [
-            list(x) for x in set(tuple(x) for x in all_combs2)
-        ]
+                overlap = min(end1, end2) - max(start1, start2)
+                condition1 = overlap < (end1 - start1 + 1) * 0.1
+                condition2 = overlap < (end2 - start2 + 1) * 0.1
+                if overlap == 0 or condition1 and condition2:
+                    G.add_edge(gene_name1, gene_name2)
+        all_combs = list(nx.enumerate_all_cliques(G))
 
         # Get score and pick best one
         max_score = 0
         final_chunk = []
-        for comb in all_combs_unique:
+        for comb in all_combs:
             score = 0
             for element in comb:
                 blast_score = D_blast_score[element]

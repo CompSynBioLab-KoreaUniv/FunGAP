@@ -106,6 +106,13 @@ def main(argv):
 
 
 # Define functions
+def import_file(input_file):
+    with open(input_file) as f_in:
+        txt = (line.rstrip() for line in f_in)
+        txt = list(line for line in txt if line)
+    return txt
+
+
 def create_dir(output_dir, log_dir):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -123,7 +130,7 @@ def create_dir(output_dir, log_dir):
 
 
 def parse_config(config_file):
-    config_txt = parse_config(config_file)
+    config_txt = import_file(config_file)
     for line in config_txt:
         if line.startswith('HISAT2_PATH='):
             hisat2_bin = line.replace('HISAT2_PATH=', '')

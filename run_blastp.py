@@ -27,9 +27,9 @@ from set_logging import set_logging
 # Parameters
 evalue_cut = 0.00001
 makeblastdb_bin = os.path.join(this_dir, 'blast/makeblastdb')
-blastp_bin = os.path.join(this_dir, 'blast/blastp')
 
 
+# Main function
 def main(argv):
     optparse_usage = (
         'run_blast_reduce.py -i <input_fasta> -f <ref_fasta> '
@@ -161,8 +161,8 @@ def run_blastp_ref(filtered_fasta, ref, output_prefix, tmp_num, num_cores):
     # Run BLASTp
     tmp_output_blast = '%s.blast.%d' % (output_prefix, tmp_num)
     if not glob(tmp_output_blast) or os.stat(tmp_output_blast)[6] == 0:
-        command = '%s -query %s -db %s -out %s -num_threads %s' % (
-            blastp_bin, filtered_fasta, ref, tmp_output_blast, num_cores
+        command = 'blastp -query %s -db %s -out %s -num_threads %s' % (
+            filtered_fasta, ref, tmp_output_blast, num_cores
         )
         logger_txt.debug('[Run] %s' % (command))
         os.system(command)
@@ -225,6 +225,7 @@ def integrate(output_prefix, tmp_num):
     command = 'cat %s.blast.[0-9] > %s' % (output_prefix, final_output_file)
     logger_txt.debug('[Run] %s' % (command))
     os.system(command)
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -38,8 +38,11 @@ run_blastp_path = os.path.join(this_dir, 'run_blastp.py')
 import_blast_path = os.path.join(this_dir, 'import_blast.py')
 import_busco_path = os.path.join(this_dir, 'import_busco.py')
 import_pfam_path = os.path.join(this_dir, 'import_pfam.py')
-filter_gff3s_path = os.path.join(this_dir, 'filter_gff3s.py')
 catch_bad_genes_path = os.path.join(this_dir, 'catch_bad_genes.py')
+filter_gff3s_path = os.path.join(this_dir, 'filter_gff3s.py')
+
+copy_output_path = os.path.join(this_dir, 'copy_output.py')
+create_markdown_path = os.path.join(this_dir, 'create_markdown.py')
 
 
 # Main function
@@ -217,16 +220,18 @@ def main(argv):
         with_repeat_modeler, with_braker1, with_busco, with_interproscan
     )
     trans_bams = run_hisat2(
-        genome_assembly, trans_read_files, output_dir, num_cores
+        genome_assembly, trans_read_files, output_dir, num_cores, config_file
     )
-    trinity_asms = run_trinity(trans_bams, output_dir, project_name, num_cores)
+    trinity_asms = run_trinity(
+        trans_bams, output_dir, project_name, num_cores, config_file
+    )
     repeat_model_file = run_repeat_modeler(
-        genome_assembly, output_dir, project_name, num_cores
+        genome_assembly, output_dir, project_name, num_cores, config_file
     )
     maker_gff3s, maker_faas = run_maker(
         genome_assembly, output_dir, augustus_species,
         project_name, sister_proteome, num_cores, repeat_model_file,
-        trinity_asms
+        trinity_asms, config_file
     )
     # Get masked assembly
     masked_assembly = os.path.join(
@@ -240,7 +245,7 @@ def main(argv):
 
     # Run Braker1
     braker1_gff3s, braker1_faas = run_braker1(
-        masked_assembly, trans_bams, output_dir, num_cores
+        masked_assembly, trans_bams, output_dir, num_cores, config_file
     )
 
     # Run BUSCO on each gene models
@@ -250,16 +255,16 @@ def main(argv):
     for maker_faa in maker_faas:
         maker_prefix = os.path.basename(maker_faa).split('.')[0]
         maker_busco = os.path.join(output_dir, 'gpre_busco', maker_prefix)
-        run_busco(maker_faa, maker_busco, num_cores)
+        run_busco(maker_faa, maker_busco, num_cores, config_file)
 
     augustus_prefix = os.path.basename(augustus_faa).split('.')[0]
     augustus_busco = os.path.join(output_dir, 'gpre_busco', augustus_prefix)
-    run_busco(augustus_faa, augustus_busco, num_cores)
+    run_busco(augustus_faa, augustus_busco, num_cores, config_file)
 
     for braker1_faa in braker1_faas:
         braker1_prefix = os.path.basename(braker1_faa).split('.')[0]
         braker1_busco = os.path.join(output_dir, 'gpre_busco', braker1_prefix)
-        run_busco(braker1_faa, braker1_busco, num_cores)
+        run_busco(braker1_faa, braker1_busco, num_cores, config_file)
 
     busco_dir = os.path.join(output_dir, 'gpre_busco')
 
@@ -275,7 +280,7 @@ def main(argv):
     )
 
     # Run IPRscan with nr prot file
-    ipr_output = run_iprscan(nr_prot_file, output_dir)
+    ipr_output = run_iprscan(nr_prot_file, output_dir, config_file)
 
     # Import BLAST, BUSCO and Pfam score
     blast_dict_score, blast_dict_evalue = import_blast(
@@ -299,6 +304,12 @@ def main(argv):
         nr_prot_mapping_file, org_id, output_dir
     )
 
+    # Copy output files
+    copy_output(output_dir)
+
+    # Create markdown
+    create_markdown(genome_assembly, output_dir, trinity_asms)
+
 
 def create_dir(output_dir):
     log_dir = os.path.join(output_dir, 'logs')
@@ -318,8 +329,9 @@ def run_check_dependencies(
     # -t <with_trinity> -m <with_maker> -r <with_repeat_modeler>
     # -b <with_braker1>  -B <with_busco> -i <with_interproscan>
     command = 'python %s -o %s -H %s -t %s -m %s -r %s -b %s -B %s -i %s' % (
-        run_check_dependencies_path, with_hisat2, with_trinity, with_maker,
-        with_repeat_modeler, with_braker1, with_busco, with_interproscan
+        run_check_dependencies_path, output_dir, with_hisat2, with_trinity,
+        with_maker, with_repeat_modeler, with_braker1, with_busco,
+        with_interproscan
     )
     logger_time.debug('START: check_dependencies')
     logger_txt.debug('[Wrapper] %s' % (command))
@@ -327,18 +339,21 @@ def run_check_dependencies(
     check_call(command_args)
     logger_time.debug('DONE : wrapper_run_hisat2')
 
-    return os.path.joiin(output_dir, 'fgap_exe.config')
+    return os.path.join(output_dir, 'fgap_exe.config')
 
 
-def run_hisat2(genome_assembly, trans_read_files, output_dir, num_cores):
+def run_hisat2(
+    genome_assembly, trans_read_files, output_dir, num_cores, config_file
+):
     hisat2_output_dir = os.path.join(output_dir, 'trans_hisat2')
     log_dir = os.path.join(output_dir, 'logs')
 
     # run_hisat2.py -r <fastq1> <fastq2> <fastq3> ... \
     # -o <output_dir> -l <log_dir> -f <ref_fasta> -c <num_cores>
-    command = 'python %s -r %s -o %s -l %s -f %s -c %s' % (
+    # -C <config_file>
+    command = 'python %s -r %s -o %s -l %s -f %s -c %s -C %s' % (
         run_hisat2_path, ' '.join(trans_read_files), hisat2_output_dir,
-        log_dir, genome_assembly, num_cores
+        log_dir, genome_assembly, num_cores, config_file
     )
     logger_time.debug('START: wrapper_run_hisat2')
     logger_txt.debug('[Wrapper] %s' % (command))
@@ -359,14 +374,14 @@ def run_hisat2(genome_assembly, trans_read_files, output_dir, num_cores):
     return trans_bams2
 
 
-def run_trinity(trans_bams, output_dir, project_name, num_cores):
+def run_trinity(trans_bams, output_dir, project_name, num_cores, config_file):
     trinity_output_dir = os.path.join(output_dir, 'trans_trinity')
     log_dir = os.path.join(output_dir, 'logs')
     # run_trinity.py -b <bam_files> -o <output_dir> -l <log_dir>
-    # -p <project_name> -c <num_cores>'
-    command = 'python %s -b %s -o %s -l %s -p %s -c %s' % (
+    # -p <project_name> -c <num_cores> -C <config_file>
+    command = 'python %s -b %s -o %s -l %s -p %s -c %s -C %s' % (
         run_trinity_path, ' '.join(trans_bams), trinity_output_dir,
-        log_dir, project_name, num_cores
+        log_dir, project_name, num_cores, config_file
     )
     logger_time.debug('START: wrapper_run_trinity')
     logger_txt.debug('[Wrapper] %s' % (command))
@@ -381,14 +396,16 @@ def run_trinity(trans_bams, output_dir, project_name, num_cores):
     return trinity_asms
 
 
-def run_repeat_modeler(genome_assembly, output_dir, project_name, num_cores):
+def run_repeat_modeler(
+    genome_assembly, output_dir, project_name, num_cores, config_file
+):
     # run_repeat_modeler.py -g <genome_assembly> -r <root_dir>
     # -p <project_name>
     rm_output_dir = os.path.join(output_dir, 'repeat_modeler')
     log_dir = os.path.join(output_dir, 'logs')
-    command = 'python %s -g %s -o %s -l %s -p %s -c %s' % (
+    command = 'python %s -g %s -o %s -l %s -p %s -c %s -C %s' % (
         run_repeat_modeler_path, genome_assembly, rm_output_dir, log_dir,
-        project_name, num_cores
+        project_name, num_cores, config_file
     )
     logger_time.debug('START: wrapper_run_repeat_modeler')
     logger_txt.debug('[Wrapper] %s' % (command))
@@ -404,17 +421,18 @@ def run_repeat_modeler(genome_assembly, output_dir, project_name, num_cores):
 
 def run_maker(
     genome_assembly, output_dir, augustus_species, project_name,
-    sister_proteome, num_cores, repeat_model_file, trinity_asms
+    sister_proteome, num_cores, repeat_model_file, trinity_asms,
+    config_file
 ):
     # run_maker.py -i <input_fasta> -r <root_dir> \
     # -p <project_name> -P <protein_db_fastas> -c <num_cores> \
     # -R <repeat_model> -e <est_files>'
     command = (
-        'python %s -i %s -r %s -a %s -p %s -P %s -c %s -R %s -e %s'
+        'python %s -i %s -r %s -a %s -p %s -P %s -c %s -R %s -e %s -C %s'
     ) % (
         run_maker_path, genome_assembly, output_dir, augustus_species,
         project_name, sister_proteome, num_cores, repeat_model_file,
-        ' '.join(trinity_asms)
+        ' '.join(trinity_asms), config_file
     )
     logger_time.debug('START: wrapper_run_maker')
     logger_txt.debug('[Wrapper] %s' % (command))
@@ -448,15 +466,17 @@ def run_augustus(masked_assembly, output_dir, augustus_species):
     return augustus_gff3, augustus_faa
 
 
-def run_braker1(masked_assembly, trans_bams, output_dir, num_cores):
+def run_braker1(
+    masked_assembly, trans_bams, output_dir, num_cores, config_file
+):
     braker1_output_dir = os.path.join(output_dir, 'gpre_braker1')
     log_dir = os.path.join(output_dir, 'logs')
 
     # run_braker1.py -m <masked_assembly> -b <bam_files>
     # -o <output_dir> -l <log_dir> -p <project_name> -c <num_cores>
-    command = 'python %s -m %s -b %s -o %s -l %s -c %s' % (
+    command = 'python %s -m %s -b %s -o %s -l %s -c %s -C %s' % (
         run_braker1_path, masked_assembly, ' '.join(trans_bams),
-        braker1_output_dir, log_dir, num_cores
+        braker1_output_dir, log_dir, num_cores, config_file
     )
     logger_time.debug('START: wrapper_run_braker1')
     logger_txt.debug('[Wrapper] %s' % (command))
@@ -484,13 +504,13 @@ def run_braker1(masked_assembly, trans_bams, output_dir, num_cores):
     return braker1_gff3s, braker1_faas
 
 
-def run_busco(input_faa, output_prefix, num_cores):
+def run_busco(input_faa, output_prefix, num_cores, config_file):
     output_dir = os.path.dirname(output_prefix)
     log_dir = os.path.join(output_dir, 'logs')
     # run_busco.py -i <input_fasta> -o <output_dir>
     # -l <log_dir> -c <num_cores>
-    command = 'python %s -i %s -o %s -l %s -c %s' % (
-        run_busco_path, input_faa, output_dir, log_dir, num_cores
+    command = 'python %s -i %s -o %s -l %s -c %s -C %s' % (
+        run_busco_path, input_faa, output_dir, log_dir, num_cores, config_file
     )
     logger_time.debug('START: wrapper_run_busco')
     logger_txt.debug('[Wrapper] %s' % (command))
@@ -549,13 +569,14 @@ def run_blastp(nr_prot_file, output_dir, sister_proteome, num_cores):
     return blastp_output
 
 
-def run_iprscan(nr_prot_file, output_dir):
+def run_iprscan(nr_prot_file, output_dir, config_file):
     # run_interproscan_pfam.py -i <input_fasta> -o <output_dir> \
     # -l <log_dir> -c <num_cores>
     ipr_output_dir = os.path.join(output_dir, 'gpre_ipr')
     log_dir = os.path.join(output_dir, 'logs')
-    command = 'python %s -i %s -l %s -o %s' % (
-        run_iprscan_path, nr_prot_file, log_dir, ipr_output_dir
+    command = 'python %s -i %s -l %s -o %s -C %s' % (
+        run_iprscan_path, nr_prot_file, log_dir, ipr_output_dir,
+        config_file
     )
     logger_time.debug('START: wrapper_run_iprscan')
     logger_txt.debug('[Wapper] %s' % (command))
@@ -673,6 +694,41 @@ def filter_gff3s(
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_filter_gff3s')
+
+
+def copy_output(output_dir):
+    # copy_output.py -o <output_dir>
+
+    command = 'python %s -o %s' % (
+        copy_output_path, output_dir
+    )
+    logger_time.debug('START: wrapper_copy_output')
+    logger_txt.debug('[Wrapper] %s' % (command))
+    command_args = shlex.split(command)
+    check_call(command_args)
+    logger_time.debug('DONE: wrapper_copy_output')
+
+
+def create_markdown(genome_assembly, output_dir, trinity_asms):
+    # python create_markdown.py -f <input_fasta> -g <input_gff3>
+    # -t <trinity_assembly> -H <hisat2_log> -o <output_prefix>
+
+    fgap_gff3 = os.path.join(output_dir, 'gpre_filtered/gpre_filtered.gff3')
+    trinity_asm = trinity_asms[0]
+    hisat2_log = glob(
+        os.path.join(output_dir, 'logs/trans_hisat2/trans_hisat2_*.log')
+    )[0]
+    output_prefix = os.path.join(output_dir, 'fgap_out/fgap_out')
+
+    command = 'python %s -f %s -g %s -t %s -H %s -o %s' % (
+        create_markdown_path, genome_assembly, fgap_gff3, trinity_asm,
+        hisat2_log, output_prefix
+    )
+    logger_time.debug('START: wrapper_create_markdown')
+    logger_txt.debug('[Wrapper] %s' % (command))
+    command_args = shlex.split(command)
+    check_call(command_args)
+    logger_time.debug('DONE: wrapper_create_markdown')
 
 
 if __name__ == "__main__":

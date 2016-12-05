@@ -137,7 +137,7 @@ def create_dir(output_dir, log_dir):
 
 
 def parse_config(config_file):
-    config_txt = parse_config(config_file)
+    config_txt = import_file(config_file)
     for line in config_txt:
         if line.startswith('BRAKER1_PATH='):
             braker1_bin = line.replace('BRAKER1_PATH=', '')

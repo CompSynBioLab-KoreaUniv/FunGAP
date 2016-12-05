@@ -16,6 +16,8 @@ from Bio.Seq import Seq
 from Bio.SeqUtils import GC
 from markdown2 import markdown
 from Bio.Alphabet import IUPAC
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from argparse import ArgumentParser
@@ -26,7 +28,7 @@ from Bio.Alphabet import generic_dna
 def main(argv):
     argparse_usage = (
         'create_markdown.py -f <input_fasta> -g <input_gff3> '
-        '-o <output_prefix>'
+        '-t <trinity_assembly> -H <hisat2_log> -o <output_prefix>'
     )
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
@@ -36,6 +38,14 @@ def main(argv):
     parser.add_argument(
         "-g", "--input_gff3", dest="input_gff3", nargs=1,
         help="Input GFF3 file"
+    )
+    parser.add_argument(
+        "-t", "--trinity_assembly", dest="trinity_assembly", nargs=1,
+        help="Trinity assembly output (FASTA)"
+    )
+    parser.add_argument(
+        "-H", "--hisat2_log", dest="hisat2_log", nargs=1,
+        help="Hisat2 log"
     )
     parser.add_argument(
         "-o", "--output_prefix", dest="output_prefix", nargs=1,
@@ -55,6 +65,18 @@ def main(argv):
         print '[ERROR] Please provide INPUT GFF3'
         sys.exit(2)
 
+    if args.trinity_assembly:
+        trinity_assembly = os.path.abspath(args.trinity_assembly[0])
+    else:
+        print '[ERROR] Please provide TRINITY ASSEMBLY'
+        sys.exit(2)
+
+    if args.hisat2_log:
+        hisat2_log = os.path.abspath(args.hisat2_log[0])
+    else:
+        print '[ERROR] Please provide HISAT2 LOG'
+        sys.exit(2)
+
     if args.output_prefix:
         output_prefix = os.path.abspath(args.output_prefix[0])
     else:
@@ -66,8 +88,12 @@ def main(argv):
     D_gff3 = parse_gff3(input_gff3)
     D_cds_coords, protein_lengths, D_stat = get_stats(D_fasta, D_gff3)
     D_stat = get_stats2(D_fasta, D_cds_coords, D_stat)
+    D_trinity = get_stats_trinity(trinity_assembly, hisat2_log)
+    trans_len_dist_jpg = draw_trans_len_dist(D_trinity, output_prefix)
     prot_len_dist_jpg = draw_prot_len_dist(protein_lengths, output_prefix)
-    create_markdown(D_stat, prot_len_dist_jpg, output_prefix)
+    create_markdown(
+        D_stat, D_trinity, trans_len_dist_jpg, prot_len_dist_jpg, output_prefix
+    )
 
 
 def import_file(input_file):
@@ -266,6 +292,81 @@ def get_stats2(D_fasta, D_cds_coords, D_stat):
     return D_stat
 
 
+def get_stats_trinity(trinity_assembly, hisat2_log):
+    trinity_txt = import_file(trinity_assembly)
+    D_contig = defaultdict(int)
+    for line in trinity_txt:
+        if line.startswith('>'):
+            contig_name = line.split(' ')[0].replace('>', '')
+        else:
+            D_contig[contig_name] += len(line)
+
+    hisat2_log_txt = import_file(hisat2_log)
+    reg_reads = re.compile(r'(\d+) reads; of these:')
+    reg_nopairs = re.compile(
+        r'(\d+) pairs aligned 0 times concordantly or discordantly; of these:'
+    )
+    reg_aligned_one = re.compile(
+        r'        (\d+) \(\S+%\) aligned exactly 1 time'
+    )
+    reg_aligned_multi = re.compile(
+        r'        (\d+) \(\S+%\) aligned >1 times'
+    )
+    for line in hisat2_log_txt:
+        m_reads = reg_reads.search(line)
+        if m_reads:
+            num_reads = int(m_reads.group(1)) * 2
+        m_nopairs = reg_nopairs.search(line)
+        if m_nopairs:
+            num_nopairs = int(m_nopairs.group(1))
+        m_aligned_one = reg_aligned_one.search(line)
+        if m_aligned_one:
+            num_aligned_one = int(m_aligned_one.group(1))
+        m_aligned_multi = reg_aligned_multi.search(line)
+        if m_aligned_multi:
+            num_aligned_multi = int(m_aligned_multi.group(1))
+
+    num_contigs = len(D_contig)
+    total_size = sum(D_contig.values())
+    long_contigs = sum(1 for x in D_contig.values() if x > 1000)
+    num_mapped = (
+        num_reads - num_nopairs * 2 + num_aligned_one + num_aligned_multi
+    )
+    alignment_rate = round(float(num_mapped) / num_reads * 100, 1)
+
+    D_trinity = {}
+    D_trinity['Total contigs'] = num_contigs
+    D_trinity['Total size'] = total_size
+    D_trinity['Long contigs'] = long_contigs
+    D_trinity['Num reads'] = num_reads
+    D_trinity['Num mapped reads'] = num_mapped
+    D_trinity['Alignment rate'] = alignment_rate
+    D_trinity['Length dist'] = D_contig.values()
+    return D_trinity
+
+
+def draw_trans_len_dist(D_trinity, output_prefix):
+    trans_lengths = D_trinity['Length dist']
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    plt.hist(
+        trans_lengths, facecolor='#fdc50c', alpha=1,
+        bins=150
+    )
+    plt.title("Transcript length distribution")
+    plt.xlabel("Transcript length (nt)")
+    plt.ylabel("Frequency")
+    ax.set_xlim(0, 5000)
+    outjpg = '%s_trans_len_dist.jpg' % (output_prefix)
+    plt.savefig(
+        outjpg, dpi=500, facecolor='w', edgecolor='w',
+        orientation='portrait', papertype=None, format=None,
+        transparent=False, bbox_inches=None, pad_inches=0.1
+    )
+    return outjpg
+
+
 def draw_prot_len_dist(protein_lengths, output_prefix):
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -286,7 +387,9 @@ def draw_prot_len_dist(protein_lengths, output_prefix):
     return outjpg
 
 
-def create_markdown(D_stat, prot_len_dist_jpg, output_prefix):
+def create_markdown(
+    D_stat, D_trinity, trans_len_dist_jpg, prot_len_dist_jpg, output_prefix
+):
     # Header
     header_txt = '# fGAP report'
     md = markdown(header_txt)
@@ -302,7 +405,7 @@ def create_markdown(D_stat, prot_len_dist_jpg, output_prefix):
     md += markdown(num_genes_txt)
 
     # Gene structure summary
-    gene_structure_txt = '### 1. Gene structure summary'
+    gene_structure_txt = '### 1. Gene structure'
     md += markdown(gene_structure_txt)
 
     gene_structure_table = '''
@@ -328,8 +431,8 @@ def create_markdown(D_stat, prot_len_dist_jpg, output_prefix):
         "{:,}".format(D_stat['Protein length'][0]),
         "{:,}".format(D_stat['Protein length'][1]),
         "{:,}".format(D_stat['Exon length'][0]),
-        "{:,}".format(D_stat['Exon length'][0]),
-        "{:,}".format(D_stat['Intron length'][1]),
+        "{:,}".format(D_stat['Exon length'][1]),
+        "{:,}".format(D_stat['Intron length'][0]),
         "{:,}".format(D_stat['Intron length'][1]),
         "{:,}".format(D_stat['Spliced'][0]),
         D_stat['Spliced'][1],
@@ -342,8 +445,39 @@ def create_markdown(D_stat, prot_len_dist_jpg, output_prefix):
     )
     md += markdown(gene_structure_table, extras=["wiki-tables"])
 
+    # Transcript assembly summary
+    transcript_header = '### 2. Transcriptome reads assembly'
+    md += '<br>'
+    md += markdown(transcript_header)
+
+    transcript_stats_table = '''
+|| *Attributes* || *Values* ||
+|| Number of reads || %s ||
+|| Number of mapped reads || %s (%s%%) ||
+|| Number of assembled contigs || %s ||
+|| Number of contigs > 1 kbp || %s ||
+|| Total transcript size (Mbp) || %s ||
+''' % (
+        "{:,}".format(D_trinity['Num reads']),
+        "{:,}".format(D_trinity['Num mapped reads']),
+        "{:,}".format(D_trinity['Alignment rate']),
+        "{:,}".format(D_trinity['Total contigs']),
+        "{:,}".format(D_trinity['Long contigs']),
+        "{:,}".format(D_trinity['Total size'])
+    )
+    md += markdown(transcript_stats_table, extras=["wiki-tables"])
+
+    # Transscript length distribution
+    trans_len_txt = '### 3. Transcript length distribution'
+    md += '<br>'
+    md += markdown(trans_len_txt)
+    md += markdown("![Transcript length distribution](%s)" % (
+        os.path.basename(trans_len_dist_jpg)
+    ))
+
     # Protein length distribution
     prot_len_txt = '### 4. Protein length distribution'
+    md += '<br>'
     md += markdown(prot_len_txt)
     md += markdown("![Protein length distribution](%s)" % (
         os.path.basename(prot_len_dist_jpg))
@@ -355,7 +489,10 @@ def create_markdown(D_stat, prot_len_dist_jpg, output_prefix):
     header_txt = '''
 <head>
 <style>
-body {font-family: sans-serif}
+body {
+    font-family: sans-serif;
+    padding: 50px 30px 50px 80px;
+}
 img {width: 500;}
 td {
     border-bottom: 1px solid #ddd;

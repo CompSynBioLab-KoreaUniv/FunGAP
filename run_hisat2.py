@@ -13,7 +13,7 @@ sys.path.append(this_dir)
 from set_logging import set_logging
 
 # Parameter
-samtools_bin = os.path.join(this_dir, 'samtools-1.3/bin/samtools')
+samtools_bin = os.path.join(this_dir, 'external/samtools-1.3/bin/samtools')
 
 
 # Main function

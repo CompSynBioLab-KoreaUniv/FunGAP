@@ -170,14 +170,29 @@ def run_braker1(
 
         if not os.path.exists(gff3_braker1):
             os.environ['LD_LIBRARY_PATH'] = os.path.join(
-                this_dir, 'external/bamtools/lib'
+                this_dir, 'external/bamtools-2.3.0/lib'
+            )
+            augustus_config_path = os.path.join(
+                this_dir, 'external/augustus-3.2.1/config'
+            )
+            bamtools_path = os.path.join(
+                this_dir, 'external/bamtools-2.3.0/bin'
+            )
+            genemark_path = os.path.join(
+                this_dir, 'external/external/gm_et_linux_64/gmes_petap'
+            )
+            samtools_path = os.path.join(
+                this_dir, 'external/samtools-1.3/bin'
             )
             command1 = (
                 '%s --fungus --softmasking --cores=%s --genome=%s '
-                '--bam=%s --species=%s --gff3 > %s 2>&1'
+                '--bam=%s --species=%s --gff3 --AUGUSTUS_CONFIG_PATH=%s '
+                '--BAMTOOLS_PATH=%s --GENEMARK_PATH=%s --SAMTOOLS_PATH=%s '
+                '> %s 2>&1'
             ) % (
                 braker1_bin, num_cores, masked_assembly, bam_file,
-                prefix, log_braker
+                prefix, augustus_config_path, bamtools_path, genemark_path,
+                samtools_path, log_braker
             )
             logger_txt.debug('[Run] %s' % (command1))
             os.system(command1)

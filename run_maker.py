@@ -578,9 +578,9 @@ def train_snap(root_dir, all_gff_file, version, prefix, maker_bin):
     )
     maker_dir = os.path.dirname(maker_bin)
     maker2zff_bin = os.path.join(maker_dir, 'maker2zff')
-    fathom_bin = os.path.join(maker_dir, '../exe/fathom')
-    forge_bin = os.path.join(maker_dir, '../exe/forge')
-    hmm_assembler_bin = os.path.join(maker_dir, '../exe/hmm-assembler.pl')
+    fathom_bin = os.path.join(maker_dir, '../exe/snap/fathom')
+    forge_bin = os.path.join(maker_dir, '../exe/snap/forge')
+    hmm_assembler_bin = os.path.join(maker_dir, '../exe/snap/hmm-assembler.pl')
 
     # Change directory into Maker run1 directory
     os.chdir(maker_run_dir)

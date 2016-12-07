@@ -1,0 +1,8 @@
+/home/mbnmbn00/scripts/fgap/external/bamtools-2.3.0/build/src/api/CMakeFiles/APIHeaders.dir
+/home/mbnmbn00/scripts/fgap/external/bamtools-2.3.0/build/src/api/CMakeFiles/AlgorithmsHeaders.dir
+/home/mbnmbn00/scripts/fgap/external/bamtools-2.3.0/build/src/api/CMakeFiles/BamTools.dir
+/home/mbnmbn00/scripts/fgap/external/bamtools-2.3.0/build/src/api/CMakeFiles/BamTools-static.dir
+/home/mbnmbn00/scripts/fgap/external/bamtools-2.3.0/build/src/utils/CMakeFiles/BamTools-utils.dir
+/home/mbnmbn00/scripts/fgap/external/bamtools-2.3.0/build/src/CMakeFiles/SharedHeaders.dir
+/home/mbnmbn00/scripts/fgap/external/bamtools-2.3.0/build/src/toolkit/CMakeFiles/bamtools_cmd.dir
+/home/mbnmbn00/scripts/fgap/external/bamtools-2.3.0/build/src/third_party/jsoncpp/CMakeFiles/jsoncpp.dir

@@ -197,7 +197,7 @@ def get_path(
         'Trinity', with_trinity, binary_trinity, fgap_trinity
     )
 
-    fgap_maker = os.path.join(this_dir, 'external/maker_2.31.8/bin/maker')
+    fgap_maker = os.path.join(this_dir, 'external/maker/bin/maker')
     binary_maker = 'maker'
     maker_path = check_binary(
         'Maker', with_maker, binary_maker, fgap_maker

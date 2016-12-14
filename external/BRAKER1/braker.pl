@@ -1023,7 +1023,7 @@ sub augustus{
       my $idx = $i + 1;
       $errorfile = "$errorfilesDir/augustus.$idx.stderr";
       $stdoutfile = "$otherfilesDir/augustus.$idx.gff";
-      $cmdString = "$augpath --species=$species --singlestrand=true --extrinsicCfgFile=$extrinsic --alternatives-from-evidence=$alternatives_from_evidence --hintsfile=$hintsfile --UTR=$UTR";
+      $cmdString = "$augpath --species=$species --extrinsicCfgFile=$extrinsic --alternatives-from-evidence=$alternatives_from_evidence --hintsfile=$hintsfile --UTR=$UTR";
       if(defined($optCfgFile)){
         $cmdString .= " --optCfgFile=$optCfgFile"; 
       }

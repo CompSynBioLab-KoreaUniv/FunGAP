@@ -378,9 +378,16 @@ def run_maker_batch(
     os.chdir(maker_run1_dir)
 
     # Make CTL files
-    os.environ["PATH"] += os.path.join(
-        this_dir, 'external/exonerate-2.2.0-x86_64/bin/exonerate'
-    )
+    os.environ["PATH"] = os.path.join(
+        this_dir, 'external/exonerate-2.2.0-x86_64/bin'
+    ) + ':' + os.environ["PATH"]
+    os.environ["PATH"] = os.path.join(
+        this_dir, 'external/augustus-3.2.1/bin'
+    ) + ':' + os.environ["PATH"]
+    os.environ["PATH"] = os.path.join(
+        this_dir, 'external/gm_et_linux_64/gmes_petap'
+    ) + ':' + os.environ["PATH"]
+
     os.system('%s -CTL' % (maker_bin))
 
     # Editting maker_opts.ctl - general
@@ -393,7 +400,7 @@ def run_maker_batch(
     # For fungal genome
     replace('maker_opts.ctl', 'split_hit=', 'split_hit=5000')
     replace('maker_opts.ctl', 'single_exon=', 'single_exon=1')
-    replace('maker_opts.ctl', 'single_length=', 'single_length=150')
+    replace('maker_opts.ctl', 'single_length=', 'single_length=50')
     replace('maker_opts.ctl', 'correct_est_fusion=', 'correct_est_fusion=1')
 
     # If EST is provided
@@ -444,6 +451,16 @@ def run_maker_trained(
     if not glob(maker_run_dir):
         os.mkdir(maker_run_dir)
 
+    os.environ["PATH"] = os.path.join(
+        this_dir, 'external/exonerate-2.2.0-x86_64/bin'
+    ) + ':' + os.environ["PATH"]
+    os.environ["PATH"] = os.path.join(
+        this_dir, 'external/augustus-3.2.1/bin'
+    ) + ':' + os.environ["PATH"]
+    os.environ["PATH"] = os.path.join(
+        this_dir, 'external/gm_et_linux_64/gmes_petap'
+    ) + ':' + os.environ["PATH"]
+
     # Change directory
     os.chdir(maker_run_dir)
 
@@ -457,7 +474,7 @@ def run_maker_trained(
     # For fungal genome
     replace('maker_opts.ctl', 'split_hit=', 'split_hit=5000')
     replace('maker_opts.ctl', 'single_exon=', 'single_exon=1')
-    replace('maker_opts.ctl', 'single_length=', 'single_length=150')
+    replace('maker_opts.ctl', 'single_length=', 'single_length=50')
     replace('maker_opts.ctl', 'correct_est_fusion=', 'correct_est_fusion=1')
 
     # Remove repeat org

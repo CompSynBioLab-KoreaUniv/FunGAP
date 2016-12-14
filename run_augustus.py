@@ -20,7 +20,7 @@ sys.path.append(this_dir)
 from set_logging import set_logging
 
 # Parameters
-augustus_bin = os.path.join(this_dir, 'augustus-3.2.1/bin/augustus')
+augustus_bin = os.path.join(this_dir, 'external/augustus-3.2.1/bin/augustus')
 
 
 def main(argv):
@@ -120,7 +120,7 @@ def run_augustus(input_fasta, output_dir, species):
     logger_time.debug('START: Augustus')
     if not glob(augustus_output):
         command = (
-            '%s --uniqueGeneId=true --gff3=on %s '
+            '%s --uniqueGeneId=true --singlestrand=true --gff3=on %s '
             '--species=%s --stopCodonExcludedFromCDS=false --softmasking=1 '
             '> %s'
         ) % (

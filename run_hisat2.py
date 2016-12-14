@@ -180,9 +180,12 @@ def run_hisat2(
             log_file = os.path.join(
                 log_dir, output_base, '%s_%s.log' % (output_base, prefix)
             )
-            command2 = '%s -p %s -x %s -1 %s -2 %s -S %s > %s 2>&1' % (
-                hisat2_bin, num_cores, ref_fasta, read_file, fastq_pair,
-                hisat2_output, log_file
+            command2 = (
+                '%s --max-intronlen 2000 -p %s -x %s -1 %s -2 %s -S %s'
+                ' > %s 2>&1' % (
+                    hisat2_bin, num_cores, ref_fasta, read_file, fastq_pair,
+                    hisat2_output, log_file
+                )
             )
             logger_txt.debug('[Run] %s' % (command2))
             os.system(command2)

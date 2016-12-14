@@ -1,0 +1,156 @@
+/*
+*bisonc++ directives
+*/
+%class-name Parser
+%filenames parser
+%baseclass-preinclude ../../include/phylotree.hh
+%scanner ../scanner/scanner.h              //includes Scanner class
+%scanner-token-function d_scanner.lex()
+%debug
+
+/*
+type of semantic value of non-terminal symbols
+*/
+%union{
+ Treenode* nodeptr;
+}
+
+/*
+tokens: terminal symbols, which the scanner returns, need to be in upper case letters
+*/
+%token DISTANCE SPECIES NUM BEGIN END TRANSLATE TREE
+
+/*
+nonterminal symbols, need to be in lower case letters
+*/
+%type <nodeptr> subtree branch branchset leaf tree
+/*
+start symbol: if the token stream can be completely reduced to this
+symbol, the input is accepted
+*/
+%start nexus  
+
+%%
+
+/*
+grammar rules (analogous to Backus-Naur form)
+*/
+
+nexus:
+    tree
+|
+    BEGIN
+    TREE
+    ';'
+    TREE
+    SPECIES
+    '='
+    tree
+    END
+    ';'
+|
+    BEGIN
+    TREE
+    ';'
+    TRANSLATE
+    translationkey
+    TREE
+    SPECIES
+    '='
+    tree
+    END
+    ';'
+;
+translationkey:
+     key	
+     ','
+     translationkey
+|
+     key
+     ';'	
+;
+
+key:
+    NUM
+    SPECIES
+    {
+    	pspecies->push_back(d_scanner.matched());
+    }
+;
+
+tree:	
+    subtree
+    ';'
+    {
+	$$ = $1;
+    }
+;
+
+subtree:
+    leaf
+    {	
+	$$ = $1;
+    }
+|
+    '('
+    branchset
+    ')'
+    {	
+	ptree->push_back($2);
+	$$ = $2;
+    }
+;
+
+leaf:
+    NUM
+    {
+    	Treenode *temp = new Treenode(pspecies->at(atoi(d_scanner.matched().c_str())-1));
+    	ptree->push_back(temp);
+    	$$ = temp;
+    }
+|
+    SPECIES
+    {
+     	Treenode *temp = new Treenode(d_scanner.matched());
+     	ptree->push_back(temp);
+     	pspecies->push_back(d_scanner.matched());
+     	$$ = temp;
+    }
+;
+branchset:
+    branch
+    {
+	Treenode *temp = new Treenode;
+	temp->addChild($1);
+	$$ = temp;
+    }
+|
+    branchset
+    ','
+    branch
+    {
+	$1->addChild($3);
+	$$ = $1;
+    }
+;
+
+branch:
+    subtree
+    ':'
+    DISTANCE
+    {	
+	$1->addDistance(atof(d_scanner.matched().c_str())); //d_scanner.matched() returns the string, which the regular expression of a token type has matched
+	$$=$1;
+	
+    }
+|
+    subtree
+    ':'
+    NUM
+    {
+	$1->addDistance(atof(d_scanner.matched().c_str()));
+	$$=$1;
+    }	
+	
+;
+

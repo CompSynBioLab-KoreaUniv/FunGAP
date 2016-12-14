@@ -1,0 +1,1 @@
+-Wall -Wno-sign-compare -ansi -pedantic -O3  

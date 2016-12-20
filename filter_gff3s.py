@@ -437,7 +437,9 @@ def filtering(
 
     # Filtering
     final_gene_set = []
+    i = 1
     for model_chunk in model_chunks:
+        i += 1
         # Build Graph
         G = nx.Graph()
         for gene_name1 in model_chunk:
@@ -452,7 +454,7 @@ def filtering(
                 condition2 = overlap < (end2 - start2 + 1) * 0.1
                 if overlap == 0 or condition1 and condition2:
                     G.add_edge(gene_name1, gene_name2)
-        all_combs = list(nx.enumerate_all_cliques(G))
+        all_combs = list(nx.find_cliques(G))
 
         # Get score and pick best one
         max_score = 0

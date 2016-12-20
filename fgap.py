@@ -337,7 +337,7 @@ def run_check_dependencies(
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_run_hisat2')
+    logger_time.debug('DONE : check_dependencies\n')
 
     return os.path.join(output_dir, 'fgap_exe.config')
 
@@ -359,7 +359,7 @@ def run_hisat2(
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_run_hisat2')
+    logger_time.debug('DONE : wrapper_run_hisat2\n')
 
     # Get output BAM file paths
     trans_bams = []
@@ -387,7 +387,7 @@ def run_trinity(trans_bams, output_dir, project_name, num_cores, config_file):
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_run_trinity')
+    logger_time.debug('DONE : wrapper_run_trinity\n')
 
     # Get output transcriptome assembly files
     trinity_asms = glob(os.path.join(
@@ -411,7 +411,7 @@ def run_repeat_modeler(
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_run_repeat_modeler')
+    logger_time.debug('DONE : wrapper_run_repeat_modeler\n')
 
     repeat_model_file = glob(os.path.join(
         output_dir, 'repeat_modeler/RM*/consensi.fa.classified')
@@ -438,7 +438,7 @@ def run_maker(
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_run_maker')
+    logger_time.debug('DONE : wrapper_run_maker\n')
 
     maker_gff3s = glob(
         os.path.join(output_dir, 'gpre_maker', '*/maker_*.gff3')
@@ -459,7 +459,7 @@ def run_augustus(masked_assembly, output_dir, augustus_species):
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_run_augustus')
+    logger_time.debug('DONE : wrapper_run_augustus\n')
 
     augustus_gff3 = os.path.join(output_dir, 'augustus.gff3')
     augustus_faa = os.path.join(output_dir, 'augustus.faa')
@@ -482,7 +482,7 @@ def run_braker1(
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_run_braker1')
+    logger_time.debug('DONE : wrapper_run_braker1\n')
 
     prefixes = [os.path.basename(x).split('_')[0] for x in trans_bams]
     prefixes_u = list(set(prefixes))
@@ -516,7 +516,7 @@ def run_busco(input_faa, output_prefix, num_cores, config_file):
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_run_busco')
+    logger_time.debug('DONE : wrapper_run_busco\n')
 
 
 def make_nr_prot(all_prot_files, output_dir):
@@ -533,7 +533,7 @@ def make_nr_prot(all_prot_files, output_dir):
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_make_nr_prot')
+    logger_time.debug('DONE : wrapper_make_nr_prot\n')
 
     nr_prot_file = os.path.join(gpre_filtered_dir, 'nr_prot.faa')
     nr_prot_mapping_file = os.path.join(
@@ -564,7 +564,7 @@ def run_blastp(nr_prot_file, output_dir, sister_proteome, num_cores):
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_run_blastp')
+    logger_time.debug('DONE : wrapper_run_blastp\n')
 
     return blastp_output
 
@@ -582,7 +582,7 @@ def run_iprscan(nr_prot_file, output_dir, config_file):
     logger_txt.debug('[Wapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_run_iprscan')
+    logger_time.debug('DONE : wrapper_run_iprscan\n')
 
     ipr_output = os.path.join(output_dir, 'gpre_ipr', 'nr_prot.xml')
     return ipr_output
@@ -601,7 +601,7 @@ def import_blast(blastp_output, nr_prot_mapping_file):
     logger_time.debug('START: wrapper_import_blast')
     logger_txt.debug('[Wrapper] %s' % (command))
     os.system(command)
-    logger_time.debug('DONE : wrapper_import_blast')
+    logger_time.debug('DONE : wrapper_import_blast\n')
 
     # Return files
     blast_dict_score = '%s_blast_score.p' % (output_prefix)
@@ -617,7 +617,7 @@ def import_busco(busco_dir):
     logger_time.debug('START: wrapper_import_busco')
     logger_txt.debug('[Wrapper] %s' % (command))
     os.system(command)
-    logger_time.debug('DONE : wrapper_import_busco')
+    logger_time.debug('DONE : wrapper_import_busco\n')
 
     # Return files
     busco_dict_score = os.path.join(busco_dir, 'busco_score.p')
@@ -639,7 +639,7 @@ def import_pfam(ipr_output, nr_prot_mapping_file):
     logger_time.debug('START: wrapper_import_pfam')
     logger_txt.debug('[Wrapper] %s' % (command))
     os.system(command)
-    logger_time.debug('DONE : wrapper_import_pfam')
+    logger_time.debug('DONE : wrapper_import_pfam\n')
 
     # Return files
     pfam_dict_score = '%s_pfam_score.p' % (output_prefix)
@@ -661,7 +661,7 @@ def catch_bad_genes(
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_filter_gff3s')
+    logger_time.debug('DONE : wrapper_catch_bad_genes\n')
 
     return os.path.join(bad_output_dir, 'D_bad.p')
 
@@ -693,7 +693,7 @@ def filter_gff3s(
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_filter_gff3s')
+    logger_time.debug('DONE : wrapper_filter_gff3s\n')
 
 
 def copy_output(output_dir):
@@ -706,7 +706,7 @@ def copy_output(output_dir):
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE: wrapper_copy_output')
+    logger_time.debug('DONE: wrapper_copy_output\n')
 
 
 def create_markdown(genome_assembly, output_dir, trinity_asms):
@@ -728,7 +728,7 @@ def create_markdown(genome_assembly, output_dir, trinity_asms):
     logger_txt.debug('[Wrapper] %s' % (command))
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE: wrapper_create_markdown')
+    logger_time.debug('DONE: wrapper_create_markdown\n')
 
 
 if __name__ == "__main__":

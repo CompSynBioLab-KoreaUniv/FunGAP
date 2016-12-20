@@ -234,7 +234,9 @@ def get_path(
     if glob_interproscan:
         fgap_interproscan = glob_interproscan[0]
     else:
-        fgap_interproscan = 'external/interproscan-5.18-57.0/interproscan.sh'
+        fgap_interproscan = os.path.join(
+            this_dir, 'external/interproscan-5.18-57.0/interproscan.sh'
+        )
     binary_interproscan = 'interproscan.sh'
     interproscan_path = check_binary(
         'InterProScan', with_interproscan, binary_interproscan,

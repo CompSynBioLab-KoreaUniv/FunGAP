@@ -730,6 +730,8 @@ def create_markdown(genome_assembly, output_dir, trinity_asms):
     check_call(command_args)
     logger_time.debug('DONE: wrapper_create_markdown\n')
 
+    logger_time.debug('## DONE: fgap ##')
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])

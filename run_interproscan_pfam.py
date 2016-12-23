@@ -81,8 +81,8 @@ def main(argv):
 
     # Run functions :) Slow is as good as fast
     interproscan_bin = parse_config(config_file)
-    check_sequence(input_fasta)
-    run_iprscan(input_fasta, output_dir, log_dir, interproscan_bin)
+    new_input_fasta = check_sequence(input_fasta)
+    run_iprscan(new_input_fasta, output_dir, log_dir, interproscan_bin)
 
 
 # Define functions
@@ -129,8 +129,6 @@ def parse_config(config_file):
 
 
 def check_sequence(input_fasta):
-    aa_char = 'ARNDCEQGHILKMFPSTWYV'
-    aa_list = list(aa_char)
     with open(input_fasta) as f_in:
         fasta = (line.rstrip() for line in f_in)
         fasta = list(line for line in fasta if line)
@@ -142,13 +140,19 @@ def check_sequence(input_fasta):
             continue
         D[gene_name] += line
 
+    new_input_fasta = '%s_nonX' % (input_fasta)
+    outhandle = open(new_input_fasta, 'w')
     for gene_name, seq in D.items():
-        non_aa = [x for x in seq if x not in aa_list]
+        if 'X' in seq:
+            continue
+        i = 0
+        outhandle.write('>%s\n' % (gene_name))
+        while i < len(seq):
+            outhandle.write('%s\n' % (seq[i: i + 60]))
+            i += 60
 
-    if non_aa:
-        print 'You have wrong sequence'
-        print non_aa
-        sys.exit(2)
+    outhandle.close()
+    return new_input_fasta
 
 
 def run_iprscan(input_fasta, output_dir, log_dir, interproscan_bin):

@@ -127,5 +127,6 @@ def import_pfam(ipr_file, D_mapping, output_prefix):
     output_pickle2 = '%s_pfam_count.p' % (output_prefix)
     cPickle.dump(D_pfam_count, open(output_pickle2, 'wb'))
 
+
 if __name__ == "__main__":
     main(sys.argv[1:])

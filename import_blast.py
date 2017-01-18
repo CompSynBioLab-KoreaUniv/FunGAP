@@ -125,6 +125,10 @@ def import_blast(blast_file, D_mapping, output_prefix):
             match_len = m_iden.group(2)
             cov1 = float(match_len) / float(query_len)
             cov2 = float(match_len) / float(db_len)
+            if cov1 > 1:
+                cov1 = 1
+            if cov2 > 1:
+                cov2 = 1
             score = cov1 * cov2 * float(blt_score)
             id_list = D_mapping[query]
 

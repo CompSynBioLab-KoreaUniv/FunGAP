@@ -194,7 +194,7 @@ def parse_augustus(output_dir):
     outhandle = open(outfile, "w")
     D_seq_sorted = sorted(
         D_seq.items(),
-        key=lambda x: int(x[0].split('.')[1].replace('g', ''))
+        key=lambda x: int(re.search(r'g(\d+)\.t\d+$', x[0]).group(1))
     )
     for transcript_id, prot_seq in D_seq_sorted:
         header_txt = '>%s\n' % (transcript_id)

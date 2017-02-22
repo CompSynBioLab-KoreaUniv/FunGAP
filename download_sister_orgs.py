@@ -224,8 +224,13 @@ def download_genome(download_dir, taxon, asm_ids, num_sisters):
             download_dir, '%s_protein.faa' % (genbank_acc)  # Unzipped file
         )
         if not os.path.exists(out_faa) and not os.path.exists(out_faa_u):
-            url = '%s/%s_%s/*protein.faa.gz' % (
-                ftp_base, genbank_acc, asm_name2
+            acc_part1 = genbank_acc[0:3]
+            acc_part2 = genbank_acc[4:7]
+            acc_part3 = genbank_acc[7:10]
+            acc_part4 = genbank_acc[10:13]
+            url = '%s/%s/%s/%s/%s/%s_%s/*protein.faa.gz' % (
+                ftp_base, acc_part1, acc_part2, acc_part3, acc_part4,
+                genbank_acc, asm_name2
             )
             command = 'wget --quiet -nc %s' % (url)
             print '[Run] %s' % (command)

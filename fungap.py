@@ -48,7 +48,7 @@ create_markdown_path = os.path.join(this_dir, 'create_markdown.py')
 # Main function
 def main(argv):
     argparse_usage = (
-        'fgap.py -g <genome_assembly> -r <trans_read_files> '
+        'fungap.py -g <genome_assembly> -r <trans_read_files> '
         '-o <output_dir> -p <project_name> -a <augustus_species> '
         '-O <org_id> -s <sister_proteome>'
     )
@@ -205,7 +205,7 @@ def main(argv):
 
     # Set logging
     log_file = os.path.join(
-        output_dir, 'logs', 'pipeline', 'fgap.log'
+        output_dir, 'logs', 'pipeline', 'fungap.log'
     )
     global logger_time, logger_txt
     logger_time, logger_txt = set_logging(log_file)
@@ -339,7 +339,7 @@ def run_check_dependencies(
     check_call(command_args)
     logger_time.debug('DONE : check_dependencies\n')
 
-    return os.path.join(output_dir, 'fgap_exe.config')
+    return os.path.join(output_dir, 'fungap_exe.config')
 
 
 def run_hisat2(
@@ -713,15 +713,15 @@ def create_markdown(genome_assembly, output_dir, trinity_asms):
     # python create_markdown.py -f <input_fasta> -g <input_gff3>
     # -t <trinity_assembly> -H <hisat2_log> -o <output_prefix>
 
-    fgap_gff3 = os.path.join(output_dir, 'gpre_filtered/gpre_filtered.gff3')
+    fungap_gff3 = os.path.join(output_dir, 'gpre_filtered/gpre_filtered.gff3')
     trinity_asm = trinity_asms[0]
     hisat2_log = glob(
         os.path.join(output_dir, 'logs/trans_hisat2/trans_hisat2_*.log')
     )[0]
-    output_prefix = os.path.join(output_dir, 'fgap_out/fgap_out')
+    output_prefix = os.path.join(output_dir, 'fungap_out/fungap_out')
 
     command = 'python %s -f %s -g %s -t %s -H %s -o %s' % (
-        create_markdown_path, genome_assembly, fgap_gff3, trinity_asm,
+        create_markdown_path, genome_assembly, fungap_gff3, trinity_asm,
         hisat2_log, output_prefix
     )
     logger_time.debug('START: wrapper_create_markdown')
@@ -730,7 +730,7 @@ def create_markdown(genome_assembly, output_dir, trinity_asms):
     check_call(command_args)
     logger_time.debug('DONE: wrapper_create_markdown\n')
 
-    logger_time.debug('## DONE: fgap ##')
+    logger_time.debug('## DONE: FunGAP ##')
 
 
 if __name__ == "__main__":

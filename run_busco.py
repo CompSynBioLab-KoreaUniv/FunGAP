@@ -95,11 +95,11 @@ def main(argv):
     if not glob(os.path.join(lineage_path, 'hmms/*hmm')):
         logger_txt.debug(
             '\n[ERROR] You did not download BUSCO library\n'
-            'Go to FGAP_PATH/data/ and type\n'
+            'Go to FunGAP_PATH/data/ and type\n'
             'wget http://busco.ezlab.org/v1/files/fungi_buscos.tar.gz;'
             'tar -zxvf fungi_buscos.tar.gz\n'
-            'You can resume fGAP without restarting '
-            '(run fGAP in the same directory)'
+            'You can resume FunGAP without restarting '
+            '(run FunGAP in the same directory)'
         )
         sys.exit(2)
 

@@ -166,89 +166,89 @@ def get_path(
     with_hisat2, with_trinity, with_maker, with_repeat_modeler,
     with_braker1, with_busco, with_interproscan, with_genemark
 ):
-    def check_binary(tool_name, path, binary, fgap_external):
+    def check_binary(tool_name, path, binary, fungap_external):
         if path and os.path.exists(os.path.join(path, binary)):
             logger_txt.debug(
                 '[%s path] %s' % (tool_name, os.path.join(path, binary))
             )
             return os.path.join(path, binary)
-        elif os.path.exists(fgap_external):
+        elif os.path.exists(fungap_external):
             logger_txt.debug(
-                '[%s path] %s' % (tool_name, fgap_external)
+                '[%s path] %s' % (tool_name, fungap_external)
             )
-            return fgap_external
+            return fungap_external
         else:
             logger_txt.debug(
                 '\n[ERROR] No installation for %s. We expect %s to exist' % (
-                    tool_name, fgap_external
+                    tool_name, fungap_external
                 )
             )
             sys.exit(2)
 
-    fgap_hisat2 = os.path.join(this_dir, 'external/hisat2/hisat2')
+    fungap_hisat2 = os.path.join(this_dir, 'external/hisat2/hisat2')
     binary_hisat2 = 'hisat2'
     hisat2_path = check_binary(
-        'Hisat2', with_hisat2, binary_hisat2, fgap_hisat2
+        'Hisat2', with_hisat2, binary_hisat2, fungap_hisat2
     )
 
-    fgap_trinity = os.path.join(this_dir, 'external/trinityrnaseq/Trinity')
+    fungap_trinity = os.path.join(this_dir, 'external/trinityrnaseq/Trinity')
     binary_trinity = 'Trinity'
     trinity_path = check_binary(
-        'Trinity', with_trinity, binary_trinity, fgap_trinity
+        'Trinity', with_trinity, binary_trinity, fungap_trinity
     )
 
-    fgap_maker = os.path.join(this_dir, 'external/maker/bin/maker')
+    fungap_maker = os.path.join(this_dir, 'external/maker/bin/maker')
     binary_maker = 'maker'
     maker_path = check_binary(
-        'Maker', with_maker, binary_maker, fgap_maker
+        'Maker', with_maker, binary_maker, fungap_maker
     )
 
-    fgap_repeat_modeler = os.path.join(
+    fungap_repeat_modeler = os.path.join(
         this_dir, 'external/RepeatModeler/RepeatModeler'
     )
     binary_repeat_modeler = 'RepeatModeler'
     repeat_modeler_path = check_binary(
         'RepeatModeler', with_repeat_modeler, binary_repeat_modeler,
-        fgap_repeat_modeler
+        fungap_repeat_modeler
     )
 
-    fgap_braker1 = os.path.join(
+    fungap_braker1 = os.path.join(
         this_dir, 'external/BRAKER1/braker.pl'
     )
     binary_braker1 = 'braker.pl'
     braker1_path = check_binary(
-        'Braker1', with_braker1, binary_braker1, fgap_braker1
+        'Braker1', with_braker1, binary_braker1, fungap_braker1
     )
 
-    fgap_busco = os.path.join(
+    fungap_busco = os.path.join(
         this_dir, 'external/BUSCO_v1.1b1/BUSCO_v1.1b1.py'
     )
     binary_busco = 'BUSCO_v1.1b1.py'
     busco_path = check_binary(
-        'Busco', with_busco, binary_busco, fgap_busco
+        'Busco', with_busco, binary_busco, fungap_busco
     )
 
     glob_interproscan = glob(os.path.join(
         this_dir, 'external/interproscan-5.*-*.0/interproscan.sh'
     ))
     if glob_interproscan:
-        fgap_interproscan = glob_interproscan[0]
+        fungap_interproscan = glob_interproscan[0]
     else:
-        fgap_interproscan = os.path.join(
+        fungap_interproscan = os.path.join(
             this_dir, 'external/interproscan-5.18-57.0/interproscan.sh'
         )
     binary_interproscan = 'interproscan.sh'
     interproscan_path = check_binary(
         'InterProScan', with_interproscan, binary_interproscan,
-        fgap_interproscan
+        fungap_interproscan
     )
 
-    fgap_genemark = os.path.join(
+    fungap_genemark = os.path.join(
         this_dir, 'external/gm_et_linux_64/gmes_petap/gmes_petap.pl'
     )
     binary_genemark = 'gmes_petap.pl'
     genemark_path = check_binary(
-        'Busco', with_genemark, binary_genemark, fgap_genemark
+        'Busco', with_genemark, binary_genemark, fungap_genemark
     )
 
     return (
@@ -325,7 +325,7 @@ def write_config(
     repeat_modeler_path, braker1_path, busco_path, interproscan_path,
     genemark_path
 ):
-    config_file = os.path.join(output_dir, 'fgap_exe.config')
+    config_file = os.path.join(output_dir, 'fungap_exe.config')
     outhandle = open(config_file, 'w')
     outhandle.write('# Program paths\n')
     outhandle.write('HISAT2_PATH=%s\n' % (hisat2_path))

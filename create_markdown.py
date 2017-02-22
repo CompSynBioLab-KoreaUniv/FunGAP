@@ -391,7 +391,7 @@ def create_markdown(
     D_stat, D_trinity, trans_len_dist_jpg, prot_len_dist_jpg, output_prefix
 ):
     # Header
-    header_txt = '# fGAP report'
+    header_txt = '# FunGAP report'
     md = markdown(header_txt)
 
     # Date

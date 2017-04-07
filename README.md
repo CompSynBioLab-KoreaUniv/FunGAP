@@ -7,6 +7,7 @@ FunGAP performs gene prediction on given genome assembly and RNA-seq reads. See 
   * [Step1: Preprocessing of input data](#step1)
   * [Step2: Gene prediction](#step2)
   * [Step3: Gene model evaluation and filtration](#step3)
+* [Contact](#contact)
 
 <a name="inputoutput"></a>
 ## FunGAP INPUT & OUTPUT
@@ -92,6 +93,7 @@ In the filtration process, FunGAP finds “gene blocks” defined as a set of ge
 
 ![](http://compbio.korea.ac.kr/bnmin/fungap/filtering.png)
 
+<a name="contact"></a>
 ## Contact
 
 * Project principal investigator: In-Geol Choi at Korea University

@@ -5,7 +5,7 @@ FunGAP performs gene prediction on given genome assembly and RNA-seq reads. See 
 * [Download FunGAP](#download)
 * [BLAST+ installation](#blast)
 * [Trinity installation](#trinity)
-_* [Maker2 installation](#maker)
+ * [Maker2 installation](#maker)
 
 ## FunGAP INPUT & OUTPUT
 

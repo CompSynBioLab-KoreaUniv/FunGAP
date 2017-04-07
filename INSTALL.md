@@ -227,10 +227,10 @@ sudo apt-get install python-pip
 Install needed modules
 ```
 sudo pip install biopython  # version 1.65 tested
-sudo pip install numpy
-sudo pip install networkx
-sudo pip install matplotlib
-sudo pip install markdown2
+sudo pip install numpy  # version 1.6.1 tested
+sudo pip install networkx  # version 1.1 tested
+sudo pip install matplotlib  # version 1.5.x tested
+sudo pip install markdown2  # version 2.3.3 tested
 ```
 
 You can check if FunGAP is correctly installed.

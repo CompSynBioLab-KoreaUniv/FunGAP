@@ -1,6 +1,6 @@
 # FunGAP: Fungal Genome Annotation Pipeline
 
-FunGAP performs gene prediction on given genome assembly and RNA-seq reads. See **INSTALL.md** and **USAGE.md** for installation and usage, or you can go wiki tab for the same.
+FunGAP performs gene prediction on given genome assembly and RNA-seq reads. See **INSTALL.md** and **USAGE.md** for installation and usage instruction, or you can go wiki tab for the same.
 
 * [FunGAP INPUT & OUTPUT](#inputoutput)
 * [Pipeline description](#pipedesc)

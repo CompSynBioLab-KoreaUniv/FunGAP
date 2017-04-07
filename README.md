@@ -2,7 +2,7 @@
 
 FunGAP (Fungal Genome Annotation Pipeline) performs gene prediction on given genome assembly and RNA-seq reads.
 
-See wiki tab for installation and usage.
+See INSTALL.md and USAGE.md for installation and usage, or you can go wiki tab for the same.
 
 Contact: mbnmbn00@korea.ac.kr (or mbnmbn00@gmail.com)
 

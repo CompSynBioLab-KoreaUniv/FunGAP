@@ -116,17 +116,23 @@ def main(argv):
         help="User-defined InterproScan installation path (binary directory)"
     )
 
+    # Options for non-fungus genome
+    parser.add_argument(
+        '--no_braker_fungus', dest='no_braker_fungus', action='store_true',
+        help='No --fungus flag in BRAKER for non-fungus genomes'
+    )
+
     args = parser.parse_args()
     if args.output_dir:
         output_dir = os.path.abspath(args.output_dir[0])
     else:
-        print '[ERROR] Please provide ROOT DIRECTORY'
+        print '[ERROR] Please provide OUTPUT DIRECTORY'
         sys.exit(2)
 
     if args.trans_read_files:
         trans_read_files = [os.path.abspath(x) for x in args.trans_read_files]
     else:
-        print '[ERROR] Please provide transcriptome read files'
+        print '[ERROR] Please provide TRANSCRIPTOME READ FILES'
         sys.exit(2)
 
     if args.project_name:
@@ -200,6 +206,11 @@ def main(argv):
     else:
         with_interproscan = ''
 
+    if args.no_braker_fungus:
+        no_braker_fungus = True
+    else:
+        no_braker_fungus = False
+
     # Create nessasary dirs
     create_dir(output_dir)
 
@@ -245,7 +256,8 @@ def main(argv):
 
     # Run Braker1
     braker1_gff3s, braker1_faas = run_braker1(
-        masked_assembly, trans_bams, output_dir, num_cores, config_file
+        masked_assembly, trans_bams, output_dir, num_cores, config_file,
+        no_braker_fungus
     )
 
     # Run BUSCO on each gene models
@@ -467,16 +479,22 @@ def run_augustus(masked_assembly, output_dir, augustus_species):
 
 
 def run_braker1(
-    masked_assembly, trans_bams, output_dir, num_cores, config_file
+    masked_assembly, trans_bams, output_dir, num_cores, config_file,
+    no_braker_fungus
 ):
+    if no_braker_fungus:
+        fungus_flag = ''
+    else:
+        fungus_flag = '--fungus'
+
     braker1_output_dir = os.path.join(output_dir, 'gpre_braker1')
     log_dir = os.path.join(output_dir, 'logs')
 
     # run_braker1.py -m <masked_assembly> -b <bam_files>
     # -o <output_dir> -l <log_dir> -p <project_name> -c <num_cores>
-    command = 'python %s -m %s -b %s -o %s -l %s -c %s -C %s' % (
+    command = 'python %s -m %s -b %s -o %s -l %s -c %s -C %s %s' % (
         run_braker1_path, masked_assembly, ' '.join(trans_bams),
-        braker1_output_dir, log_dir, num_cores, config_file
+        braker1_output_dir, log_dir, num_cores, config_file, fungus_flag
     )
     logger_time.debug('START: wrapper_run_braker1')
     logger_txt.debug('[Wrapper] %s' % (command))

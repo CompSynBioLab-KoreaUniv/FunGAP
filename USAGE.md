@@ -124,13 +124,14 @@ This is very beta version of the software, so please don't hesitate reporting an
 
 <a name="testdata"></a>
 ## Test dataset
-You can download yeast genome and RNA-seq data for testing FunGAP from NCBI.
+You can download yeast genome assembly (FASTA) and RNA-seq reads (two FASTQs) from NCBI for testing FunGAP.
 
 ```
-# Download RNA-seq reads using [SRA toolkit](https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/)
+# Download RNA-seq reads using SRA toolkit (https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/)
 fastq-dump -I --split-files SRR1198667
 
 # Download assembly
 wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz
 ```
 
+It took about 9 hours by dual Intel(R) Xeon(R) CPU E5-2670 v3 with 40 CPU cores.

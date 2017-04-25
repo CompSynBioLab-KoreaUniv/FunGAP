@@ -1,5 +1,14 @@
-## Preparing protein database
+# Usage of FunGAP
 
+* [Preparing protein database](#protdb)
+* [Running FunGAP](#runningfungap)
+  * [Augustus species](#augustusspecies)
+* [FunGAP output](#output)
+* [Trouble-shootings](#troubleshootings)
+* [Test dataset](#testdata)
+
+<a name="protdb"></a>
+## Preparing protein database
 FunGAP requires `PROTEIN DATABASE` in FASTA file. We recommend three or four relatives' proteome to save running time. For convenience, we provide a script `download_sister_orgs.py` to build your own protein database for your genome using NCBI API.
 
 Assume you downloaded FunGAP in `$HOME/FunGAP`
@@ -34,7 +43,7 @@ zcat ./*faa > prot_db.faa
 
 You can now input `prot_db.faa` to FunGAP as `PROTEIN DATABASE`. 
 
-
+<a name="runningfungap"></a>
 ## Running FunGAP
 
 To run FunGAP, you need three main arguments
@@ -60,6 +69,7 @@ python $HOME/FunGAP/fungap.py\
 
 - Organism ID will be used in naming gene ID. For example, gene IDs will look like `Hypma_00001.t1`, `Hypma_00002.t1`, and so on.
 
+<a name="augustusspecies"></a>
 ### Augustus species
 You should provide one `augustus_species` used in Augustus.<br>
 This is the list what Augustus provides.
@@ -100,6 +110,7 @@ Ascomycota | Schizosaccharomycetes | Schizosaccharomyces pombe | schizosaccharom
 Basidiomycota | Ustilaginomycetes | Ustilago maydis | ustilago_maydis |
 Ascomycota | Saccharomycetes | Yarrowia lipolytica | yarrowia_lipolytica |
 
+<a name="output"></a>
 ## Output
 Final output will be located in output directory you gave in the arguments
 
@@ -107,5 +118,20 @@ Final output will be located in output directory you gave in the arguments
 - fungap_output.gff3
 - fungap_output_stats.html
 
+<a name="troubleshootings"></a>
 ## Trouble-shootings
 This is very beta version of the software, so please don't hesitate reporting any bug or error you have encountered at mbnmbn00@korea.ac.kr or mbnmbn00@gmail.com.
+
+<a name="testdata"></a>
+## Test dataset
+You can download yeast genome assembly (FASTA) and RNA-seq reads (two FASTQs) from NCBI for testing FunGAP.
+
+```
+# Download RNA-seq reads using SRA toolkit (https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/)
+fastq-dump -I --split-files SRR1198667
+
+# Download assembly
+wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz
+```
+
+It took about 9 hours by dual Intel(R) Xeon(R) CPU E5-2670 v3 with 40 CPU cores.

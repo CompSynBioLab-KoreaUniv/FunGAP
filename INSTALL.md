@@ -1,6 +1,6 @@
 # Installation of FunGAP
 
-FunGAP requires several dependencies installed before running. The installation procedure described here was intensely tested on Ubuntu 14.04 LTS.
+FunGAP requires several dependencies installed before running. The installation procedure described here was intensely tested on Ubuntu 14.04 LTS. Note that **Maker2** and **Repbase** require registration for download and installation.
 
 1. [Download FunGAP](#download)
 1. [BLAST+ installation](#blast)

@@ -2,7 +2,6 @@
 
 '''
 Copy output to fungap_out directory
-Author Byoungnam Min on Feb 2, 2016
 '''
 
 # Import modules
@@ -47,7 +46,9 @@ def copy_output(output_dir):
         )
         sys.exit(2)
     else:
-        fungap_out_gff3 = os.path.join(output_dir, 'fungap_out/fungap_out.gff3')
+        fungap_out_gff3 = os.path.join(
+            output_dir, 'fungap_out/fungap_out.gff3'
+        )
         copyfile(gff3_out, fungap_out_gff3)
 
     prot_out = os.path.join(output_dir, 'gpre_filtered/gpre_filtered_prot.faa')
@@ -57,7 +58,9 @@ def copy_output(output_dir):
         )
         sys.exit(2)
     else:
-        fungap_out_prot = os.path.join(output_dir, 'fungap_out/fungap_out_prot.faa')
+        fungap_out_prot = os.path.join(
+            output_dir, 'fungap_out/fungap_out_prot.faa'
+        )
         copyfile(prot_out, fungap_out_prot)
 
 

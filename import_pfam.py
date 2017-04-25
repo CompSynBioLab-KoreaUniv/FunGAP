@@ -2,7 +2,11 @@
 
 '''
 Import pfam and store in dictionary
-Author Byoungnam Min on Dec 24
+Pfam evidence score is HMM alignment bit score. If there are multiple Pfam
+    domains, sum of scores are used
+
+Input: IPRscan output in .tsv
+Output: cPickle file containing dict object
 '''
 
 # Import module

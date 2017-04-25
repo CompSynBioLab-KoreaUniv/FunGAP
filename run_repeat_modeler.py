@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
 '''
-Run Repeat modeler
-Author Byoungnam Min on Aug 19, 2015
+Run RepeatModeler. The output of repeat models are passed into Maker
+
+Input: genome assembly in FASTA
+Output: Repeat model in FASTA (named consensi.fa.classified)
 '''
 
 # Import modules

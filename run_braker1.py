@@ -1,8 +1,23 @@
 #!/usr/bin/python
 
 '''
-Run BRAKER1
-Author Byoungnam Min on Mar 24, 2015
+Run Braker
+
+* Used Braker parameters in FunGAP
+braker.pl\
+ --fungus\
+ --softmasking\
+ --cores=<NUM_CORES>\
+ --genome=<GENOME_ASSEMBLY>\
+ --bam=<BAM_FILE>\
+ --species=<LIB_NAME>\
+ --gff3
+
+--fungus: GeneMark-ET option: run algorithm with branch point model (most
+    useful for fungal genomes)
+
+Input: BAM file (Hisat-generated), masked assembly
+Output: gene features in GFF3
 '''
 
 # Import modules
@@ -100,9 +115,9 @@ def main(argv):
         sys.exit(2)
 
     if args.fungus_flag:
-        fungus_flag = ''
-    else:
         fungus_flag = '--fungus'
+    else:
+        fungus_flag = ''
 
     # Create necessary dirs
     create_dir(output_dir, log_dir)
@@ -217,9 +232,9 @@ def run_braker1(
                 '--BAMTOOLS_PATH=%s --GENEMARK_PATH=%s --SAMTOOLS_PATH=%s '
                 '--workingdir=%s > %s 2>&1'
             ) % (
-                braker1_bin, num_cores, masked_assembly, bam_file,
+                braker1_bin, fungus_flag, num_cores, masked_assembly, bam_file,
                 species, augustus_config_path, bamtools_path, genemark_path,
-                samtools_path, working_dir, log_braker, fungus_flag
+                samtools_path, working_dir, log_braker
             )
             logger_txt.debug('[Run] %s' % (command1))
             os.system(command1)

@@ -2,7 +2,24 @@
 
 '''
 Run AUGUSTUS for gene prediction with ab initio model.
-Author Byoungnam Min on May 11, 2015
+
+* Used Augustus parameters in FunGAP
+augustus\
+    --uniqueGeneId=true\
+    --singlestrand=true\
+    --gff3=on\
+    --species=<SPECIES_ARG>\
+    --stopCodonExcludedFromCDS=false\
+    --softmasking=1\
+    <FASTA_FILE>\
+    > <OUTPUT_GFF3>
+
+--singlestrand: Predict genes independently on each strand. This makes maximal
+    prediction including slight overlap between two neighboring genes on
+    opposite strand.
+
+Input: masked assembly and species parameter for Augustus
+Output: gene features in GFF3
 '''
 
 # Import modules

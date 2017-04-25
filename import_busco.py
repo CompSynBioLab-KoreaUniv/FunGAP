@@ -2,7 +2,10 @@
 
 '''
 Import BUSCO output and store it in dictionary
-Author Byoungnam Min on Dec 23, 2015
+BUSCO evidence score is HMM alignment bit score
+
+Input: BUSCO output
+Output: cPickle file containing dict object
 '''
 
 # Import modules

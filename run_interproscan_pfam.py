@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
 '''
-Run IPRscan
-Author Byoungnam Min on Feb 15, 2015
- - UPDATE: ADD draw_barchart function - Jun 25, 2015
+Run IPRscan for Pfam domain identification on predicted genes
+
+Input: protein FASTA file
+Output: InterProScan output in .tsv format
 '''
 
 # Import modules

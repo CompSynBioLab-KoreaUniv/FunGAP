@@ -2,7 +2,9 @@
 
 '''
 Download protein sequences of sister organisms from NCBI
-Author Byoungnam Min on Aug 16, 2016
+
+Input: taxon name (e.g., Neurospora)
+Output: a directory containing protein FASTA files gzipped
 '''
 
 # Import modules
@@ -33,7 +35,8 @@ def main(argv):
         "-t", "--taxon", dest="taxon", nargs=1,
         help=(
             "Taxon that you want to download. You can choose any clade "
-            "registered in NCBI (default: Fungi)."
+            "registered in NCBI (default: Fungi), but genus name is optimal "
+            "(e.g., Neurospora)"
         )
     )
     parser.add_argument(

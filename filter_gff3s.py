@@ -1,8 +1,18 @@
 #!/usr/bin/python
 
 '''
-Filter multiple gff3 files based on BLAST score
-Author Byoungnam Min on Nov 26, 2015
+Filter multiple gff3 files based on evidence score
+
+    FunGAP finds "gene blocks" defined as a set of gene models that overlap
+with at least one base pair. FunGAP gets all combinations of gene models
+in a gene block and calculates the sum of the evidence scores. Gene models
+in the block with the highest evidence score are selected as final genes of
+that region. Short coding sequence overlap (<10% of coding sequence length)
+is allowed.
+
+Input: multiple GFF3 files, Blast score file, Busco score file, Pfam score
+    file, bad genes file
+Output: filtered gene featrue file in GFF3
 '''
 
 # Import modules

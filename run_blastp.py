@@ -1,13 +1,12 @@
 #!/usr/bin/python
 
 '''
-Run Blastp
-  1) Run blastp to first dataset
-  2) Filter >0.00001 hit
-  3) Run blastp to second dataset
-  4) Filter >0.00001 hit
-  5) And so on..
-Author Byoungnam Min on Mar 20, 2015
+Run Blastp to databases
+    1) Run blastp to first dataset
+    2) Filter >0.00001 hit
+    3) Run blastp to second dataset
+    4) Filter >0.00001 hit
+    5) And so on..
 '''
 
 # Import modules
@@ -26,7 +25,6 @@ from set_logging import set_logging
 
 # Parameters
 evalue_cut = 0.00001
-makeblastdb_bin = os.path.join(this_dir, 'blast/makeblastdb')
 
 
 # Main function
@@ -154,7 +152,7 @@ def run_blastp_ref(filtered_fasta, ref, output_prefix, tmp_num, num_cores):
     # If blast-index was not generated, make one
     blast_index_file = '%s.*phr' % (ref)
     if not glob(blast_index_file):
-        command = '%s -in %s -dbtype prot' % (makeblastdb_bin, ref)
+        command = 'makeblastdb -in %s -dbtype prot' % (ref)
         logger_txt.debug('[Run] %s' % (command))
         os.system(command)
 

@@ -1,9 +1,12 @@
 #!/usr/bin/python
 
 '''
-Import BLAST output and generate "cov1 x cov2 x bit_score"
-Key is a tuple contating prefix, gene_id
-Author Byoungnam Min on Dec 22, 2015
+Import BLAST output
+BLAST evidence score is calculated with "cov_query x cov_db x bit_score"
+Coverage is calculated by matched_length / query or db length
+
+Input: BLAST output
+Output: cPickle file containing dict object
 '''
 
 # Import modeuls

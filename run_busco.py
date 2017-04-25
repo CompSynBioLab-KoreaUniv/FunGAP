@@ -2,7 +2,14 @@
 
 '''
 Run BUSCO
-Author Byoungnam Min on Nov 17, 2015
+
+* Please download fungi_buscos at path_to_fungap/data by typing
+wget http://busco.ezlab.org/v1/files/fungi_buscos.tar.gz
+tar -zxvf fungi_buscos.tar.gz
+Currently version1 is supported.
+
+Input: protein FASTA file
+Output: BUSCO output in text
 '''
 
 # Import modules

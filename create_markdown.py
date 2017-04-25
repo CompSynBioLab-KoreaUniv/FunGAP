@@ -2,7 +2,6 @@
 
 '''
 Create Markedown document
-Author Byoungnam Min on Aug 17, 2016
 '''
 
 # Import modules

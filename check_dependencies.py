@@ -1,8 +1,15 @@
 #!/usr/bin/python
 
 '''
-Check dependencies
-Author Byoungnam Min on Nov 23, 2016
+Check if dependencies are correctly located and installed
+    1) Hisat2
+    2) Trinity
+    3) Maker
+    4) RepeatModeler
+    5) Braker
+    6) BUSCO
+    7) InterProScan
+    8) GeneMark
 '''
 
 # Import modules

@@ -2,13 +2,38 @@
 
 '''
 Wrapper gene prediction pipeline
-Author Byoungnam Min on Aug 13, 2015
+
+This script runs the pipeline with following order.
+    1) Preprocessing
+        check_dependencies.py
+        run_hisat2.py
+        run_trinity.py
+        run_repeat_modeler.py
+
+    2) Gene prediction
+        run_augustus.py
+        run_maker.py
+        run_braker1.py
+
+    3) Evaluation and filtering
+        run_busco.py
+        run_interproscan_pfam.py
+        make_nr_prot.py
+        run_blastp.py
+        import_blast.py
+        import_busco.py
+        import_pfam.py
+        catch_bad_genes.py
+        filter_gff3s.py
+
+    4) Write output
+        copy_output.py
+        create_markdown.py
 '''
 
 # Import modules
 import sys
 import os
-import re
 import shlex
 from glob import glob
 from datetime import datetime
@@ -121,6 +146,18 @@ def main(argv):
         '--no_braker_fungus', dest='no_braker_fungus', action='store_true',
         help='No --fungus flag in BRAKER for non-fungus genomes'
     )
+    parser.add_argument(
+        '--no_jaccard_clip', dest='no_jaccard_clip', action='store_true',
+        help='No --jaccard_clip flag in Trinity for non-fungus genomes'
+    )
+    parser.add_argument(
+        '--no_genemark_fungus', dest='no_genemark_fungus', action='store_true',
+        help='No --fungus flag in GeneMark for non-fungus genomes'
+    )
+    parser.add_argument(
+        "-M", "--max_intron", dest="max_intron", nargs='?',
+        help="Max intron length (Default: 2,000 bp)"
+    )
 
     args = parser.parse_args()
     if args.output_dir:
@@ -206,10 +243,26 @@ def main(argv):
     else:
         with_interproscan = ''
 
+    # For non-fungus genomes
     if args.no_braker_fungus:
-        no_braker_fungus = True
+        no_braker_fungus = ''
     else:
-        no_braker_fungus = False
+        no_braker_fungus = '--fungus'
+
+    if args.no_jaccard_clip:
+        no_jaccard_clip = ''
+    else:
+        no_jaccard_clip = '--jaccard_clip'
+
+    if args.no_genemark_fungus:
+        no_genemark_fungus = ''
+    else:
+        no_genemark_fungus = '--gmes_fungus'
+
+    if args.max_intron:
+        max_intron = int(args.max_intron)
+    else:
+        max_intron = 2000
 
     # Create nessasary dirs
     create_dir(output_dir)
@@ -231,10 +284,12 @@ def main(argv):
         with_repeat_modeler, with_braker1, with_busco, with_interproscan
     )
     trans_bams = run_hisat2(
-        genome_assembly, trans_read_files, output_dir, num_cores, config_file
+        genome_assembly, trans_read_files, output_dir, num_cores, config_file,
+        max_intron
     )
     trinity_asms = run_trinity(
-        trans_bams, output_dir, project_name, num_cores, config_file
+        trans_bams, output_dir, project_name, num_cores, config_file,
+        no_jaccard_clip, max_intron
     )
     repeat_model_file = run_repeat_modeler(
         genome_assembly, output_dir, project_name, num_cores, config_file
@@ -242,7 +297,7 @@ def main(argv):
     maker_gff3s, maker_faas = run_maker(
         genome_assembly, output_dir, augustus_species,
         project_name, sister_proteome, num_cores, repeat_model_file,
-        trinity_asms, config_file
+        trinity_asms, config_file, no_genemark_fungus
     )
     # Get masked assembly
     masked_assembly = os.path.join(
@@ -324,12 +379,15 @@ def main(argv):
 
 
 def create_dir(output_dir):
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
     log_dir = os.path.join(output_dir, 'logs')
-    if not glob(log_dir):
+    if not os.path.exists(log_dir):
         os.mkdir(log_dir)
 
     log_pipeline_dir = os.path.join(output_dir, 'logs', 'pipeline')
-    if not glob(log_pipeline_dir):
+    if not os.path.exists(log_pipeline_dir):
         os.mkdir(log_pipeline_dir)
 
 
@@ -355,7 +413,8 @@ def run_check_dependencies(
 
 
 def run_hisat2(
-    genome_assembly, trans_read_files, output_dir, num_cores, config_file
+    genome_assembly, trans_read_files, output_dir, num_cores, config_file,
+    max_intron
 ):
     hisat2_output_dir = os.path.join(output_dir, 'trans_hisat2')
     log_dir = os.path.join(output_dir, 'logs')
@@ -363,9 +422,9 @@ def run_hisat2(
     # run_hisat2.py -r <fastq1> <fastq2> <fastq3> ... \
     # -o <output_dir> -l <log_dir> -f <ref_fasta> -c <num_cores>
     # -C <config_file>
-    command = 'python %s -r %s -o %s -l %s -f %s -c %s -C %s' % (
+    command = 'python %s -r %s -o %s -l %s -f %s -c %s -C %s -m %s' % (
         run_hisat2_path, ' '.join(trans_read_files), hisat2_output_dir,
-        log_dir, genome_assembly, num_cores, config_file
+        log_dir, genome_assembly, num_cores, config_file, max_intron
     )
     logger_time.debug('START: wrapper_run_hisat2')
     logger_txt.debug('[Wrapper] %s' % (command))
@@ -377,23 +436,26 @@ def run_hisat2(
     trans_bams = []
     for trans_read_file in trans_read_files:
         prefix = os.path.basename(trans_read_file).split('_')[0]
-        hisat2_output = os.path.join(hisat2_output_dir, '%s.sam' % (prefix))
-        sorted_bam_file = re.sub('.sam$', '_sorted.bam', hisat2_output)
-        trans_bams.append(sorted_bam_file)
+        hisat2_output = os.path.join(hisat2_output_dir, '%s.bam' % (prefix))
+        trans_bams.append(hisat2_output)
 
     trans_bams2 = list(set(trans_bams))
 
     return trans_bams2
 
 
-def run_trinity(trans_bams, output_dir, project_name, num_cores, config_file):
+def run_trinity(
+    trans_bams, output_dir, project_name, num_cores, config_file,
+    no_jaccard_clip, max_intron
+):
     trinity_output_dir = os.path.join(output_dir, 'trans_trinity')
     log_dir = os.path.join(output_dir, 'logs')
     # run_trinity.py -b <bam_files> -o <output_dir> -l <log_dir>
     # -p <project_name> -c <num_cores> -C <config_file>
-    command = 'python %s -b %s -o %s -l %s -p %s -c %s -C %s' % (
+    command = 'python %s -b %s -o %s -l %s -p %s -c %s -C %s -m %s %s' % (
         run_trinity_path, ' '.join(trans_bams), trinity_output_dir,
-        log_dir, project_name, num_cores, config_file
+        log_dir, project_name, num_cores, config_file, max_intron,
+        no_jaccard_clip
     )
     logger_time.debug('START: wrapper_run_trinity')
     logger_txt.debug('[Wrapper] %s' % (command))
@@ -434,17 +496,17 @@ def run_repeat_modeler(
 def run_maker(
     genome_assembly, output_dir, augustus_species, project_name,
     sister_proteome, num_cores, repeat_model_file, trinity_asms,
-    config_file
+    config_file, no_genemark_fungus
 ):
     # run_maker.py -i <input_fasta> -r <root_dir> \
     # -p <project_name> -P <protein_db_fastas> -c <num_cores> \
     # -R <repeat_model> -e <est_files>'
     command = (
-        'python %s -i %s -r %s -a %s -p %s -P %s -c %s -R %s -e %s -C %s'
+        'python %s -i %s -r %s -a %s -p %s -P %s -c %s -R %s -e %s -C %s %s'
     ) % (
         run_maker_path, genome_assembly, output_dir, augustus_species,
         project_name, sister_proteome, num_cores, repeat_model_file,
-        ' '.join(trinity_asms), config_file
+        ' '.join(trinity_asms), config_file, no_genemark_fungus
     )
     logger_time.debug('START: wrapper_run_maker')
     logger_txt.debug('[Wrapper] %s' % (command))
@@ -482,11 +544,6 @@ def run_braker1(
     masked_assembly, trans_bams, output_dir, num_cores, config_file,
     no_braker_fungus
 ):
-    if no_braker_fungus:
-        fungus_flag = ''
-    else:
-        fungus_flag = '--fungus'
-
     braker1_output_dir = os.path.join(output_dir, 'gpre_braker1')
     log_dir = os.path.join(output_dir, 'logs')
 
@@ -494,7 +551,7 @@ def run_braker1(
     # -o <output_dir> -l <log_dir> -p <project_name> -c <num_cores>
     command = 'python %s -m %s -b %s -o %s -l %s -c %s -C %s %s' % (
         run_braker1_path, masked_assembly, ' '.join(trans_bams),
-        braker1_output_dir, log_dir, num_cores, config_file, fungus_flag
+        braker1_output_dir, log_dir, num_cores, config_file, no_braker_fungus
     )
     logger_time.debug('START: wrapper_run_braker1')
     logger_txt.debug('[Wrapper] %s' % (command))
@@ -502,7 +559,10 @@ def run_braker1(
     check_call(command_args)
     logger_time.debug('DONE : wrapper_run_braker1\n')
 
-    prefixes = [os.path.basename(x).split('_')[0] for x in trans_bams]
+    prefixes = [
+        os.path.basename(x).split('_')[0].replace('.bam', '')
+        for x in trans_bams
+    ]
     prefixes_u = list(set(prefixes))
 
     braker1_gff3s = []

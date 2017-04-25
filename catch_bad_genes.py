@@ -1,14 +1,13 @@
 #!/usr/bin/python
 
 '''
-Catch bad genes given gff3 files
-   1) Stop codon in the middle of proteins
-   2) Check if translation consists of more than 50% X residues
-   3) Check if feature begins or ends in gap
+Catch bad genes for given gff3 files
+    1) Stop codon in the middle of proteins
+    2) Check if translation consists of more than 50% X residues
+    3) Check if feature begins or ends in gap
 
- - Input: Multiple gff3s
- - Output: Pickle for filter_gff3s_ver3.py
- Author Byoungnam Min on Feb 20, 2016
+Input: multiple gff3s
+Output: pickle for filter_gff3s_ver3.py
 '''
 
 # Import modeuls

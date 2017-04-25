@@ -1,8 +1,7 @@
 #!/usr/bin/python
 
 '''
-Make nr prot FASTA file.
-Author Byoungnam Min on Nov 16, 2015
+Make nonredundant protein FASTA file.
 '''
 
 # Import modules

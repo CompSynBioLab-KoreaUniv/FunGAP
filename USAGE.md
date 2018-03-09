@@ -38,7 +38,7 @@ Now make protein database.
 
 ```
 cd sister_orgs/
-zcat ./*faa > prot_db.faa
+zcat ./*faa.gz > prot_db.faa
 ```
 
 You can now input `prot_db.faa` to FunGAP as `PROTEIN DATABASE`. 

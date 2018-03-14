@@ -229,7 +229,8 @@ def main(argv):
 
         # Train run1 & run Maker run2
         all_gff_file_run1 = collect_result(
-            input_fasta, root_dir, project_name, '1', est_prefix
+            input_fasta, root_dir, project_name, '1', est_prefix,
+            maker_bin
         )
         logger_time.debug('START training run1 & running maker run2')
         snap_hmm_file_run1 = train_snap(
@@ -250,7 +251,8 @@ def main(argv):
 
         # Train run2 & run Maker run3
         all_gff_file_run2 = collect_result(
-            input_fasta, root_dir, project_name, '2', est_prefix
+            input_fasta, root_dir, project_name, '2', est_prefix,
+            maker_bin
         )
         logger_time.debug('START training run2 & running maker run3')
         snap_hmm_file_run2 = train_snap(
@@ -279,7 +281,8 @@ def main(argv):
 
         # Train run3 & run Maker run4
         all_gff_file_run3 = collect_result(
-            input_fasta, root_dir, project_name, '3', est_prefix
+            input_fasta, root_dir, project_name, '3', est_prefix,
+            maker_bin
         )
         logger_time.debug('START training run3 & running maker run4')
         snap_hmm_file_run3 = train_snap(
@@ -300,11 +303,13 @@ def main(argv):
 
         # Get final GFF3 & FASTA
         collect_result_final(
-            input_fasta, root_dir, project_name, est_prefix
+            input_fasta, root_dir, project_name, est_prefix,
+            maker_bin
         )
 
         all_gff_file = collect_result(
-            input_fasta, root_dir, project_name, '4', est_prefix
+            input_fasta, root_dir, project_name, '4', est_prefix,
+            maker_bin
         )
 
 
@@ -580,7 +585,9 @@ def run_maker_trained(
     os.system(command)
 
 
-def collect_result(input_fasta, root_dir, project_name, version, prefix):
+def collect_result(
+    input_fasta, root_dir, project_name, version, prefix, maker_bin
+):
     maker_run_dir = os.path.join(
         root_dir, software, prefix, 'maker_run%s' % (version)
     )
@@ -598,8 +605,10 @@ def collect_result(input_fasta, root_dir, project_name, version, prefix):
     )
 
     # Change directory to maker_run_dir
+    maker_dir = os.path.dirname(maker_bin)
+    gff3_merge_bin = os.path.join(maker_dir, 'gff3_merge')
     os.chdir(maker_run_dir)
-    command = 'gff3_merge -d %s' % (index_file)
+    command = '%s -d %s' % (gff3_merge_bin, index_file)
     logger_txt.debug('[Run] %s' % (command))
     os.system(command)
 
@@ -611,7 +620,9 @@ def collect_result(input_fasta, root_dir, project_name, version, prefix):
     return all_gff_file_abs
 
 
-def collect_result_final(input_fasta, root_dir, project_name, prefix):
+def collect_result_final(
+    input_fasta, root_dir, project_name, prefix, maker_bin
+):
     maker_run_dir = os.path.join(root_dir, software, prefix, 'maker_run4')
     input_prefix = (
         os.path.basename(input_fasta)
@@ -628,12 +639,15 @@ def collect_result_final(input_fasta, root_dir, project_name, prefix):
 
     # Change directory to maker_run_dir
     os.chdir(maker_run_dir)
-    command1 = 'gff3_merge -g -n -d %s' % (index_file)
+    maker_dir = os.path.dirname(maker_bin)
+    gff3_merge_bin = os.path.join(maker_dir, 'gff3_merge')
+    command1 = '%s -g -n -d %s' % (gff3_merge_bin, index_file)
     logger_txt.debug('[Run] %s' % (command1))
     os.system(command1)
 
     # Collect FASTA, too
-    command2 = 'fasta_merge -d %s' % (index_file)
+    fasta_merge_bin = os.path.join(maker_dir, 'fasta_merge')
+    command2 = '%s -d %s' % (fasta_merge_bin, index_file)
     logger_txt.debug('[Run] %s' % (command2))
     os.system(command2)
 
@@ -726,12 +740,11 @@ def get_masked_asm(root_dir, est_files):
     maker_run_dir = os.path.join(
         root_dir, software, est_prefix_first, 'maker_run3'
     )
-    masked_asm_path = os.path.join(
-        maker_run_dir, '*/*/*/*/*/*/query.masked.fasta'
-    )
     # masked_asm_files = glob(masked_asm_path)
     masked_asm = os.path.join(root_dir, software, 'masked_assembly.fasta')
-    command = '(ls %s | xargs cat) > %s' % (masked_asm_path, masked_asm)
+    command = 'find %s -name "query.masked.fasta" | xargs cat > %s' % (
+        maker_run_dir, masked_asm
+    )
     logger_txt.debug('[Run] %s' % (command))
     os.system(command)
 

@@ -168,7 +168,7 @@ Install Braker1 and its dependencies.
 
 Copy gm_key to `$HOME`
 ```
-cp $HOME/FunGAP/external/gm_et_linux_64/gm_key ~/.gm_key
+cp $HOME/FunGAP/external/gm_et_linux_64/gmes_petap/gm_key ~/.gm_key
 ```
 
 Install perl modules

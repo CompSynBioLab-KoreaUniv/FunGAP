@@ -81,9 +81,11 @@ BUSCO provides hidden Markov models for single-copy orthologs conserved in all f
 
 Pfam provides a database of manually curated protein families. We assume that gene models annotated with a Pfam domain are more likely to be an actual gene. Evidence scores for Pfam are directly provided by the hmmer3-match score in the XML output of InterProScan (-f XML option). For multiple domains in one gene model, the sum of the scores is used.
 
+****
+
 **Scoring function**
 
-Three bit scores gained from the above three sources are summed to provide evidence scores for each gene model. The equation of this scoring function is as follows:
+Three bit scores gained from the above four sources are summed to provide evidence scores for each gene model. The equation of this scoring function is as follows:
 
 Evidence score (gene model) = BLASTscore*cov(query)*cov(target) + BUSCOscore + Pfamscores
 

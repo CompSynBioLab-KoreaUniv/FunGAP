@@ -192,12 +192,26 @@ def run_hisat2(
     # -S trans_hisat2/chocu-mRNA_with_annot.sam
     hisat2_outputs = []
     for read_file in read_files:
-        if re.search(r'_R1.fastq', read_file):
-            fastq_pair = read_file.replace('_1.fastq', '_2.fastq')
-        elif re.search(r'_1.fastq', read_file):
-            fastq_pair = read_file.replace('_1.fastq', '_2.fastq')
-        else:
+        if read_file.endswith('_1.fastq') or read_file.endswith('_1.fq'):
+            read_pair = (
+                read_file
+                .replace('_1.fastq', '_2.fastq')
+                .replace('_1.fq', '_2.fq')
+            )
+            read_arg = '-1 {} -2 {}'.format(read_file, read_pair)
+        elif read_file.endswith('_s.fastq') or read_file.endswith('_s.fq'):
+            read_arg = '-U {}'.format(read_file)
+        elif (
+            read_file.endswith('_2.fastq') or
+            read_file.endswith('_2.fq')
+        ):
             continue
+        else:
+            logger_txt.debug(
+                '[ERROR] Please check trans_read files:\n'
+                '--> {}'.format(os.path.basename(read_file))
+            )
+            sys.exit(2)
 
         prefix = os.path.basename(read_file).split('_')[0]
         hisat2_output = os.path.join(
@@ -209,10 +223,11 @@ def run_hisat2(
                 log_dir, output_base, '%s_%s.log' % (output_base, prefix)
             )
             command2 = (
-                '%s --max-intronlen %s -p %s -x %s -1 %s -2 %s 2> %s | '
-                'samtools view -bSF4 - | samtools sort - -o %s' % (
-                    hisat2_bin, max_intron, num_cores, ref_fasta, read_file,
-                    fastq_pair, log_file, hisat2_output
+                '{} --max-intronlen {} -p {} -x {} {} 2> {} | '
+                '{} view -bSF4 - | {} sort - -o {}'.format(
+                    hisat2_bin, max_intron, num_cores, ref_fasta, read_arg,
+                    log_file, samtools_bin, samtools_bin,
+                    hisat2_output
                 )
             )
             logger_txt.debug('[Run] %s' % (command2))
@@ -221,6 +236,12 @@ def run_hisat2(
             logger_txt.debug(
                 'Ruuning Hisat2 has already been finished for %s' % (prefix)
             )
+
+    if not hisat2_outputs:
+        logger_txt.debug(
+            'No BAM file was made. Please check the log file'
+        )
+        sys.exit(2)
 
 
 if __name__ == "__main__":

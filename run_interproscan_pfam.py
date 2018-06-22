@@ -144,7 +144,7 @@ def check_sequence(input_fasta):
     new_input_fasta = '%s_nonX' % (input_fasta)
     outhandle = open(new_input_fasta, 'w')
     for gene_name, seq in D.items():
-        if 'X' in seq:
+        if 'X' in seq or '*' in seq:
             continue
         i = 0
         outhandle.write('>%s\n' % (gene_name))

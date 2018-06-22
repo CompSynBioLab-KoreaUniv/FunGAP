@@ -5,7 +5,9 @@ Wrapper gene prediction pipeline
 
 This script runs the pipeline with following order.
     1) Preprocessing
+        check_inputs.py
         check_dependencies.py
+        read_qc.py
         run_hisat2.py
         run_trinity.py
         run_repeat_modeler.py
@@ -20,6 +22,8 @@ This script runs the pipeline with following order.
         run_interproscan_pfam.py
         make_nr_prot.py
         run_blastp.py
+        make_transcripts.py
+        run_blastn.py
         import_blast.py
         import_busco.py
         import_pfam.py
@@ -30,6 +34,9 @@ This script runs the pipeline with following order.
         copy_output.py
         create_markdown.py
 '''
+
+# Version
+__version__ = '1.0.1'
 
 # Import modules
 import sys
@@ -45,6 +52,7 @@ this_path = os.path.realpath(__file__)
 this_dir = os.path.dirname(this_path)
 sys.path.append(this_dir)
 from set_logging import set_logging
+from check_inputs import check_inputs
 
 # File paths
 run_check_dependencies_path = os.path.join(this_dir, 'check_dependencies.py')
@@ -60,9 +68,12 @@ run_busco_path = os.path.join(this_dir, 'run_busco.py')
 run_iprscan_path = os.path.join(this_dir, 'run_interproscan_pfam.py')
 make_nr_prot_path = os.path.join(this_dir, 'make_nr_prot.py')
 run_blastp_path = os.path.join(this_dir, 'run_blastp.py')
+make_transcripts_path = os.path.join(this_dir, 'make_transcripts.py')
+run_blastn_path = os.path.join(this_dir, 'run_blastn.py')
 import_blast_path = os.path.join(this_dir, 'import_blast.py')
 import_busco_path = os.path.join(this_dir, 'import_busco.py')
 import_pfam_path = os.path.join(this_dir, 'import_pfam.py')
+import_blastn_path = os.path.join(this_dir, 'import_blastn.py')
 catch_bad_genes_path = os.path.join(this_dir, 'catch_bad_genes.py')
 filter_gff3s_path = os.path.join(this_dir, 'filter_gff3s.py')
 
@@ -73,23 +84,43 @@ create_markdown_path = os.path.join(this_dir, 'create_markdown.py')
 # Main function
 def main(argv):
     argparse_usage = (
-        'fungap.py -g <genome_assembly> -r <trans_read_files> '
+        'fungap.py -g <genome_assembly> -12UA <trans_read_files> '
         '-o <output_dir> -p <project_name> -a <augustus_species> '
         '-O <org_id> -s <sister_proteome>'
     )
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
         "-o", "--output_dir", dest="output_dir", nargs=1,
-        help="Output directory"
+        help="Output directory (default: 'fungap_out')"
     )
     parser.add_argument(
-        "-r", "--trans_read_files", dest="trans_read_files", nargs=2,
-        help="Multiple transcriptome read files in FASTAQ"
-        " (two paired-end files)"
+        "-1", "--trans_read_1", dest="trans_read_1", nargs='?',
+        help=(
+            'Paired-end read1 "<prefix>_1.fastq" <prefix> may not '
+            'contain "_" character'
+        )
+    )
+    parser.add_argument(
+        "-2", "--trans_read_2", dest="trans_read_2", nargs='?',
+        help=(
+            'Paired-end read2 "<prefix>_2.fastq" <prefix> may not '
+            'contain "_" character'
+        )
+    )
+    parser.add_argument(
+        "-U", "--trans_read_single", dest="trans_read_single", nargs='?',
+        help=(
+            'Single read "<prefix>_s.fastq" <prefix> may not '
+            'contain "_" character'
+        )
+    )
+    parser.add_argument(
+        "-A", "--trans_bam", dest="trans_bam", nargs='?',
+        help='BAM file (RNA-seq reads alignment onto a genome assembly'
     )
     parser.add_argument(
         "-p", "--project_name", dest="project_name", nargs=1,
-        help="Project name without space. e.g. Mag, Eco, Pst_LUM"
+        help="Project name without space. e.g. Mag (default: 'project')"
     )
     parser.add_argument(
         "-g", "--genome_assembly", dest="genome_assembly", nargs=1,
@@ -101,7 +132,9 @@ def main(argv):
     )
     parser.add_argument(
         "-O", "--org_id", dest="org_id", nargs=1,
-        help="Organism ID. E.g. Hypma for Hypsizygus marmoreus"
+        help=(
+            "Organism ID. E.g. Hypma for Hypsizygus marmoreus (default: 'Gene')"
+        )
     )
     parser.add_argument(
         "-s", "--sister_proteome", dest="sister_proteome", nargs=1,
@@ -109,9 +142,8 @@ def main(argv):
     )
     parser.add_argument(
         "-c", "--num_cores", dest="num_cores", nargs=1,
-        help="Number of cores to be used"
+        help="Number of cores to be used (default: 1)"
     )
-
     parser.add_argument(
         "-H", "--with_hisat2", dest="with_hisat2", nargs='?',
         help="User-defined Hisat2 installation path (binary directory)"
@@ -140,6 +172,10 @@ def main(argv):
         "-i", "--with_interproscan", dest="with_interproscan", nargs='?',
         help="User-defined InterproScan installation path (binary directory)"
     )
+    parser.add_argument(
+        '-v', '--version', action='version',
+        version='%(prog)s {}'.format(__version__)
+    )
 
     # Options for non-fungus genome
     parser.add_argument(
@@ -166,47 +202,60 @@ def main(argv):
         print '[ERROR] Please provide OUTPUT DIRECTORY'
         sys.exit(2)
 
-    if args.trans_read_files:
-        trans_read_files = [os.path.abspath(x) for x in args.trans_read_files]
+    if args.trans_read_1:
+        trans_read_1 = os.path.abspath(args.trans_read_1)
     else:
-        print '[ERROR] Please provide TRANSCRIPTOME READ FILES'
-        sys.exit(2)
+        trans_read_1 = ""
+
+    if args.trans_read_2:
+        trans_read_2 = os.path.abspath(args.trans_read_2)
+    else:
+        trans_read_2 = ""
+
+    if args.trans_read_single:
+        trans_read_single = os.path.abspath(args.trans_read_single)
+    else:
+        trans_read_single = ""
+
+    if args.trans_bam:
+        trans_bam = os.path.abspath(args.trans_bam)
+    else:
+        trans_bam = ""
 
     if args.project_name:
         project_name = args.project_name[0]
     else:
-        print '[ERROR] Please provide PROJECTN NAME'
+        print '[ERROR] Please provide PROJECT NAME'
         sys.exit(2)
 
     if args.genome_assembly:
         genome_assembly = os.path.abspath(args.genome_assembly[0])
     else:
-        print '[ERROR] Please provide transcriptome read files'
+        print '[ERROR] Please provide GENOME ASSEMBLY FILE'
         sys.exit(2)
 
     if args.augustus_species:
         augustus_species = args.augustus_species[0]
     else:
-        print '[ERROR] Please provide transcriptome AUGUSTUS SPECIES'
+        print '[ERROR] Please provide AUGUSTUS SPECIES'
         sys.exit(2)
 
     if args.org_id:
         org_id = args.org_id[0]
     else:
-        print '[ERROR] Please provide transcriptome ORGANISM ID'
+        print '[ERROR] Please provide ORGANISM ID'
         sys.exit(2)
 
     if args.sister_proteome:
         sister_proteome = os.path.abspath(args.sister_proteome[0])
     else:
-        print '[ERROR] Please provide TRANSCRIPTOME READ FILES'
+        print '[ERROR] Please provide SISTER PROTEOME FILE'
         sys.exit(2)
 
     if args.num_cores:
         num_cores = args.num_cores[0]
     else:
-        print '[ERROR] Please provide NUMBER OF CORES'
-        sys.exit(2)
+        num_cores = 1
 
     if args.with_hisat2:
         with_hisat2 = os.path.abspath(args.with_hisat2)
@@ -219,7 +268,7 @@ def main(argv):
         with_trinity = ''
 
     if args.with_maker:
-        with_maker = os.path.abspath(args.maker)
+        with_maker = os.path.abspath(args.with_maker)
     else:
         with_maker = ''
 
@@ -279,6 +328,10 @@ def main(argv):
     )
 
     # Run functions :) Slow is as good as Fast
+    trans_read_files = check_inputs(
+        trans_read_1, trans_read_2, trans_read_single, trans_bam,
+        genome_assembly, sister_proteome
+    )
     config_file = run_check_dependencies(
         output_dir, with_hisat2, with_trinity, with_maker,
         with_repeat_modeler, with_braker1, with_busco, with_interproscan
@@ -349,6 +402,39 @@ def main(argv):
     # Run IPRscan with nr prot file
     ipr_output = run_iprscan(nr_prot_file, output_dir, config_file)
 
+    # Get transcripts
+    transcript_dir = os.path.join(output_dir, 'gpre_filtered', 'transcript')
+    if not os.path.exists(transcript_dir):
+        os.mkdir(transcript_dir)
+    trinity_asm = os.path.join(transcript_dir, 'trinity_transcripts.fna')
+    command = 'cat %s > %s' % (' '.join(trinity_asms), trinity_asm)
+    logger_txt.debug('Create transcript')
+    logger_txt.debug('[Run] %s' % (command))
+    os.system(command)
+
+    augustus_transcript = make_transcripts(
+        genome_assembly, augustus_gff3, transcript_dir, augustus_prefix
+    )
+    run_blastn(
+        augustus_transcript, trinity_asm, output_dir, augustus_prefix
+    )
+    for maker_gff3 in maker_gff3s:
+        maker_prefix = os.path.basename(maker_gff3).split('.')[0]
+        maker_transcript = make_transcripts(
+            genome_assembly, maker_gff3, transcript_dir, maker_prefix
+        )
+        run_blastn(
+            maker_transcript, trinity_asm, output_dir, maker_prefix
+        )
+    for braker1_gff3 in braker1_gff3s:
+        braker1_prefix = os.path.basename(braker1_gff3).split('.')[0]
+        braker1_transcript = make_transcripts(
+            genome_assembly, braker1_gff3, transcript_dir, braker1_prefix
+        )
+        run_blastn(
+            braker1_transcript, trinity_asm, output_dir, braker1_prefix
+        )
+
     # Import BLAST, BUSCO and Pfam score
     blast_dict_score, blast_dict_evalue = import_blast(
         blastp_output, nr_prot_mapping_file
@@ -357,6 +443,7 @@ def main(argv):
     pfam_dict_score, pfam_dict_count = import_pfam(
         ipr_output, nr_prot_mapping_file
     )
+    blastn_dict = import_blastn(transcript_dir)
 
     # Catch bad genes
     D_bad_pickle = catch_bad_genes(
@@ -367,8 +454,8 @@ def main(argv):
     filter_gff3s(
         maker_gff3s, augustus_gff3, braker1_gff3s,
         blast_dict_score, blast_dict_evalue, busco_dict_score, busco_dict_list,
-        pfam_dict_score, pfam_dict_count, D_bad_pickle, nr_prot_file,
-        nr_prot_mapping_file, org_id, output_dir
+        pfam_dict_score, pfam_dict_count, blastn_dict, D_bad_pickle,
+        nr_prot_file, nr_prot_mapping_file, org_id, output_dir
     )
 
     # Copy output files
@@ -416,6 +503,9 @@ def run_hisat2(
     genome_assembly, trans_read_files, output_dir, num_cores, config_file,
     max_intron
 ):
+    if len(trans_read_files) == 1 and trans_read_files[0].endswith('.bam'):
+        return trans_read_files
+
     hisat2_output_dir = os.path.join(output_dir, 'trans_hisat2')
     log_dir = os.path.join(output_dir, 'logs')
 
@@ -438,9 +528,7 @@ def run_hisat2(
         prefix = os.path.basename(trans_read_file).split('_')[0]
         hisat2_output = os.path.join(hisat2_output_dir, '%s.bam' % (prefix))
         trans_bams.append(hisat2_output)
-
     trans_bams2 = list(set(trans_bams))
-
     return trans_bams2
 
 
@@ -666,6 +754,42 @@ def run_iprscan(nr_prot_file, output_dir, config_file):
     return ipr_output
 
 
+def make_transcripts(
+    genome_assembly, gff3_file, transcript_dir, prefix
+):
+    transcript_prefix = os.path.join(transcript_dir, prefix)
+    transcript_file = os.path.join(
+        transcript_dir, '%s_transcript.fna' % (prefix)
+    )
+    command = 'python %s -f %s -g %s -o %s' % (
+        make_transcripts_path, genome_assembly, gff3_file, transcript_prefix
+    )
+    logger_time.debug('START: wrapper_make_transcripts')
+    logger_txt.debug('[Wapper] %s' % (command))
+    command_args = shlex.split(command)
+    check_call(command_args)
+    logger_time.debug('DONE : wrapper_make_transcripts\n')
+
+    return transcript_file
+
+
+def run_blastn(
+    predicted_transcript, assembled_transcript, output_dir, prefix
+):
+    transcript_dir = os.path.join(output_dir, 'gpre_filtered/transcript')
+    log_dir = os.path.join(output_dir, 'logs')
+    out_prefix = os.path.join(transcript_dir, prefix)
+    command = 'python %s -q %s -d %s -o %s -l %s' % (
+        run_blastn_path, predicted_transcript, assembled_transcript,
+        out_prefix, log_dir
+    )
+    logger_time.debug('START: wrapper_run_blastn')
+    logger_txt.debug('[Wapper] %s' % (command))
+    command_args = shlex.split(command)
+    check_call(command_args)
+    logger_time.debug('DONE : wrapper_run_blastn\n')
+
+
 def import_blast(blastp_output, nr_prot_mapping_file):
     # import_blast.py -b <blast_file> -m <nr_prot_mapping>
     # -o <output_prefix>
@@ -726,6 +850,17 @@ def import_pfam(ipr_output, nr_prot_mapping_file):
     return pfam_dict_score, pfam_dict_count
 
 
+def import_blastn(transcript_dir):
+    command = 'python %s -b %s' % (import_blastn_path, transcript_dir)
+    logger_time.debug('START: wrapper_import_blastn')
+    logger_txt.debug('[Wrapper] %s' % (command))
+    os.system(command)
+    logger_time.debug('DONE : wrapper_import_blastn\n')
+    blastn_dict = os.path.join(transcript_dir, 'blastn_score.p')
+
+    return blastn_dict
+
+
 def catch_bad_genes(
     maker_gff3s, augustus_gff3, braker1_gff3s, genome_assembly,
     output_dir
@@ -747,7 +882,7 @@ def catch_bad_genes(
 def filter_gff3s(
     maker_gff3s, augustus_gff3, braker1_gff3s,
     blast_dict_score, blast_dict_evalue, busco_dict_score, busco_dict_list,
-    pfam_dict_score, pfam_dict_count, D_bad_pickle, nr_prot_file,
+    pfam_dict_score, pfam_dict_count, blastn_dict, D_bad_pickle, nr_prot_file,
     nr_prot_mapping_file, org_id, output_dir
 ):
 
@@ -758,14 +893,14 @@ def filter_gff3s(
     # Run filter_gff3s
     output_prefix = os.path.join(output_dir, 'gpre_filtered', 'gpre_filtered')
     command = (
-        'python %s -i %s -m %s -b %s %s -B %s %s -p %s %s -g %s -n %s '
+        'python %s -i %s -m %s -b %s %s -B %s %s -p %s %s -N %s -g %s -n %s '
         '-s %s -o %s'
     ) % (
         filter_gff3s_path,
         ' '.join(maker_gff3s + [augustus_gff3] + braker1_gff3s),
         nr_prot_mapping_file, blast_dict_score, blast_dict_evalue,
         busco_dict_score, busco_dict_list, pfam_dict_score, pfam_dict_count,
-        D_bad_pickle, nr_prot_file, org_id, output_prefix
+        blastn_dict, D_bad_pickle, nr_prot_file, org_id, output_prefix
     )
     logger_time.debug('START: wrapper_filter_gff3s')
     logger_txt.debug('[Wrapper] %s' % (command))

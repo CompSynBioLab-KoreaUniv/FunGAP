@@ -90,7 +90,7 @@ def main(argv):
         with_trinity = ''
 
     if args.with_maker:
-        with_maker = os.path.abspath(args.maker)
+        with_maker = os.path.abspath(args.with_maker)
     else:
         with_maker = ''
 
@@ -174,11 +174,19 @@ def get_path(
     with_braker1, with_busco, with_interproscan, with_genemark
 ):
     def check_binary(tool_name, path, binary, fungap_external):
-        if path and os.path.exists(os.path.join(path, binary)):
-            logger_txt.debug(
-                '[%s path] %s' % (tool_name, os.path.join(path, binary))
-            )
-            return os.path.join(path, binary)
+        if path:
+            if os.path.exists(os.path.join(path, binary)):
+                logger_txt.debug(
+                    '[%s path] %s' % (tool_name, os.path.join(path, binary))
+                )
+                return os.path.join(path, binary)
+            else:
+                logger_txt.debug(
+                    "\n[ERROR] You provided wrong %s path. Please check" % (
+                        path
+                    )
+                )
+                sys.exit(2)
         elif os.path.exists(fungap_external):
             logger_txt.debug(
                 '[%s path] %s' % (tool_name, fungap_external)
@@ -255,7 +263,7 @@ def get_path(
     )
     binary_genemark = 'gmes_petap.pl'
     genemark_path = check_binary(
-        'Busco', with_genemark, binary_genemark, fungap_genemark
+        'GeneMark', with_genemark, binary_genemark, fungap_genemark
     )
 
     return (
@@ -277,12 +285,12 @@ def check_working(
             if e.errno == os.errno.ENOENT:
                 logger_txt.debug(
                     '%s --help is not working. Please check your installation'
-                )
+                ) % (os.path.basename(binary_path))
                 sys.exit(2)
             else:
                 logger_txt.debug(
                     '%s --help is not working. Please check your installation'
-                )
+                ) % (os.path.basename(binary_path))
                 sys.exit(2)
                 raise
         logger_txt.debug(
@@ -314,12 +322,12 @@ def check_working(
         if e.errno == os.errno.ENOENT:
             logger_txt.debug(
                 '%s --help is not working. Please check your installation'
-            )
+            ) % (os.path.basename(genemark_path))
             sys.exit(2)
         else:
             logger_txt.debug(
                 '%s --help is not working. Please check your installation'
-            )
+            ) % (os.path.basename(genemark_path))
             sys.exit(2)
             raise
     logger_txt.debug(
@@ -357,12 +365,12 @@ def check_blast():
             if e.errno == os.errno.ENOENT:
                 logger_txt.debug(
                     '%s -help is not working. Please check your installation'
-                )
+                ) % (os.path.basename(binary_paths))
                 sys.exit(2)
             else:
                 logger_txt.debug(
                     '%s -help is not working. Please check your installation'
-                )
+                ) % (os.path.basename(binary_paths))
                 sys.exit(2)
                 raise
         logger_txt.debug(

@@ -300,38 +300,43 @@ def get_stats_trinity(trinity_assembly, hisat2_log):
         else:
             D_contig[contig_name] += len(line)
 
-    hisat2_log_txt = import_file(hisat2_log)
-    reg_reads = re.compile(r'(\d+) reads; of these:')
-    reg_nopairs = re.compile(
-        r'(\d+) pairs aligned 0 times concordantly or discordantly; of these:'
-    )
-    reg_aligned_one = re.compile(
-        r'        (\d+) \(\S+%\) aligned exactly 1 time'
-    )
-    reg_aligned_multi = re.compile(
-        r'        (\d+) \(\S+%\) aligned >1 times'
-    )
-    for line in hisat2_log_txt:
-        m_reads = reg_reads.search(line)
-        if m_reads:
-            num_reads = int(m_reads.group(1)) * 2
-        m_nopairs = reg_nopairs.search(line)
-        if m_nopairs:
-            num_nopairs = int(m_nopairs.group(1))
-        m_aligned_one = reg_aligned_one.search(line)
-        if m_aligned_one:
-            num_aligned_one = int(m_aligned_one.group(1))
-        m_aligned_multi = reg_aligned_multi.search(line)
-        if m_aligned_multi:
-            num_aligned_multi = int(m_aligned_multi.group(1))
-
     num_contigs = len(D_contig)
     total_size = sum(D_contig.values())
     long_contigs = sum(1 for x in D_contig.values() if x > 1000)
-    num_mapped = (
-        num_reads - num_nopairs * 2 + num_aligned_one + num_aligned_multi
-    )
-    alignment_rate = round(float(num_mapped) / num_reads * 100, 1)
+
+    if os.path.exists(hisat2_log):
+        hisat2_log_txt = import_file(hisat2_log)
+        reg_reads = re.compile(r'(\d+) reads; of these:')
+        reg_nopairs = re.compile(
+            r'(\d+) pairs aligned 0 times concordantly or discordantly; of these:'
+        )
+        reg_aligned_one = re.compile(
+            r'        (\d+) \(\S+%\) aligned exactly 1 time'
+        )
+        reg_aligned_multi = re.compile(
+            r'        (\d+) \(\S+%\) aligned >1 times'
+        )
+        for line in hisat2_log_txt:
+            m_reads = reg_reads.search(line)
+            if m_reads:
+                num_reads = int(m_reads.group(1)) * 2
+            m_nopairs = reg_nopairs.search(line)
+            if m_nopairs:
+                num_nopairs = int(m_nopairs.group(1))
+            m_aligned_one = reg_aligned_one.search(line)
+            if m_aligned_one:
+                num_aligned_one = int(m_aligned_one.group(1))
+            m_aligned_multi = reg_aligned_multi.search(line)
+            if m_aligned_multi:
+                num_aligned_multi = int(m_aligned_multi.group(1))
+        num_mapped = (
+            num_reads - num_nopairs * 2 + num_aligned_one + num_aligned_multi
+        )
+        alignment_rate = round(float(num_mapped) / num_reads * 100, 1)
+    else:
+        num_reads = 'N/A'
+        num_mapped = 'N/A'
+        alignment_rate = 'N/A'
 
     D_trinity = {}
     D_trinity['Total contigs'] = num_contigs

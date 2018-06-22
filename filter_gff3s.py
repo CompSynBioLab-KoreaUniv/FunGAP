@@ -41,8 +41,8 @@ total_busco = 1438
 def main(argv):
     argparse_usage = (
         'filter_gff3s.py -i <input_gff3s> -m <mapping_file> -b <blast_dict> '
-        '-B <busco_dict> -p <ipr_dict> -g <bad_dict> -n <nr_prot_file> '
-        '-s <short_id> -o <output_prefix> -r <root_dir>'
+        '-B <busco_dict> -p <ipr_dict> -N <blastn_dict> -g <bad_dict> '
+        '-n <nr_prot_file> -s <short_id> -o <output_prefix> -r <root_dir>'
     )
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
@@ -64,6 +64,10 @@ def main(argv):
     parser.add_argument(
         "-p", "--ipr_dict", dest="ipr_dict", nargs=2,
         help="Parsed IPRscan output in dictionary"
+    )
+    parser.add_argument(
+        "-N", "--blastn_dict", dest="blastn_dict", nargs=1,
+        help="Parsed BLASTn output in dictionary"
     )
     parser.add_argument(
         "-g", "--bad_dict", dest="bad_dict", nargs=1,
@@ -119,7 +123,13 @@ def main(argv):
         ipr_dict_score = os.path.abspath(args.ipr_dict[0])
         ipr_dict_count = os.path.abspath(args.ipr_dict[1])
     else:
-        print '[ERROR] Please provide IPR DICT PICKLE'
+        print '[ERROR] Please provide IPR DICT PICKLEs'
+        sys.exit(2)
+
+    if args.blastn_dict:
+        blastn_dict = os.path.abspath(args.blastn_dict[0])
+    else:
+        print '[ERROR] Please provide BLASTn DICT PICKLE'
         sys.exit(2)
 
     if args.bad_dict:
@@ -170,6 +180,7 @@ def main(argv):
     D_busco_list = cPickle.load(open(busco_dict_list, 'rb'))
     D_pfam_score = cPickle.load(open(ipr_dict_score, 'rb'))
     D_pfam_count = cPickle.load(open(ipr_dict_count, 'rb'))
+    D_blastn_score = cPickle.load(open(blastn_dict, 'rb'))
 
     # Self-filtering to get stats
     D_stats = {}
@@ -178,8 +189,8 @@ def main(argv):
         D_gff3, D_gene, D_cds, D_cds_len, D_exon = import_gff3([input_gff3])
         self_filtered, stats = filtering(
             D_gene, D_cds, D_cds_len, D_mapping, D_blast_score, D_blast_evalue,
-            D_busco_score, D_busco_list, D_pfam_score, D_pfam_count, D_bad,
-            output_prefix
+            D_busco_score, D_busco_list, D_pfam_score, D_pfam_count,
+            D_blastn_score, D_bad, output_prefix
         )
         outfile_self = '%s_%s_filtered.list' % (output_prefix, prefix)
         outhandle_self = open(outfile_self, 'w')
@@ -192,11 +203,11 @@ def main(argv):
 
         (
             raw_num_genes, final_num_genes, blast_hit, pfam_hit,
-            pfam_domains, busco_hit
+            pfam_domains, busco_hit, blastn_hit
         ) = stats
         new_stats = (
             raw_num_genes, final_num_genes, blast_hit, pfam_hit,
-            pfam_domains, busco_hit, cds_len_filtered
+            pfam_domains, busco_hit, blastn_hit, cds_len_filtered
         )
         D_stats[prefix] = new_stats
 
@@ -204,8 +215,8 @@ def main(argv):
     D_gff3, D_gene, D_cds, D_cds_len, D_exon = import_gff3(input_gff3s)
     final_gene_set, final_stats = filtering(
         D_gene, D_cds, D_cds_len, D_mapping, D_blast_score, D_blast_evalue,
-        D_busco_score, D_busco_list, D_pfam_score, D_pfam_count, D_bad,
-        output_prefix
+        D_busco_score, D_busco_list, D_pfam_score, D_pfam_count,
+        D_blastn_score, D_bad, output_prefix
     )
     D_prot = import_prot(nr_prot_file, D_mapping_rev)
     write_final_prots(final_gene_set, D_mapping, output_prefix)
@@ -219,12 +230,12 @@ def main(argv):
 
     (
         raw_num_genes, final_num_genes, blast_hit, pfam_hit,
-        pfam_domains, busco_hit
+        pfam_domains, busco_hit, blastn_hit
     ) = final_stats
 
     new_final_stats = (
         raw_num_genes, final_num_genes, blast_hit, pfam_hit,
-        pfam_domains, busco_hit, cds_len_final
+        pfam_domains, busco_hit, blastn_hit, cds_len_final
     )
     D_stats['final'] = new_final_stats
 
@@ -321,7 +332,7 @@ def import_gff3(gff3_files):
 
                 new_mrna_id = (prefix, mrna_id)
                 D_gene[new_mrna_id] = (
-                    scaffold, source, feat_type, start, end, score,
+                    scaffold, source, feat_type, int(start), int(end), score,
                     strand, phase
                 )
 
@@ -374,8 +385,8 @@ def import_gff3(gff3_files):
 
 def filtering(
     D_gene, D_cds, D_cds_len, D_mapping, D_blast_score, D_blast_evalue,
-    D_busco_score, D_busco_list, D_pfam_score, D_pfam_count, D_bad,
-    output_prefix
+    D_busco_score, D_busco_list, D_pfam_score, D_pfam_count, D_blastn_score,
+    D_bad, output_prefix
 ):
     # Filter good gene models
     D_cds_filtered = {}
@@ -393,9 +404,9 @@ def filtering(
     # Write score table
     outfile_score = '%s_score.txt' % (output_prefix)
     outhandle_score = open(outfile_score, 'w')
-    header_txt = '%s\t%s\t%s\t%s\t%s\t%s\n' % (
+    header_txt = '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (
         'software', 'software_id', 'blast_score', 'busco_score',
-        'pfam_score', 'score_sum'
+        'pfam_score', 'blastn_score', 'score_sum'
     )
     outhandle_score.write(header_txt)
     for tup in D_cds_sorted:
@@ -405,10 +416,11 @@ def filtering(
         blast_score = D_blast_score[gene_tup]
         busco_score = D_busco_score[gene_tup]
         pfam_score = D_pfam_score[gene_tup]
-        score_sum = sum([blast_score, busco_score, pfam_score])
-        row_txt = '%s\t%s\t%s\t%s\t%s\t%s\n' % (
+        blastn_score = D_blastn_score[gene_tup]
+        score_sum = sum([blast_score, busco_score, pfam_score, blastn_score])
+        row_txt = '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (
             software, software_id, round(blast_score, 1),
-            round(busco_score, 1), round(pfam_score, 1),
+            round(busco_score, 1), round(pfam_score, 1), blastn_score,
             round(score_sum, 1)
         )
         outhandle_score.write(row_txt)
@@ -475,8 +487,11 @@ def filtering(
                 blast_score = D_blast_score[element]
                 busco_score = D_busco_score[element]
                 pfam_score = D_pfam_score[element]
+                blastn_score = D_blastn_score[element]
 
-                score += sum([blast_score, pfam_score, busco_score])
+                score += sum(
+                    [blast_score, pfam_score, busco_score, blastn_score]
+                )
 
             if score == max_score:
                 final_chunk += [comb]
@@ -505,6 +520,7 @@ def filtering(
     pfam_hit = 0
     pfam_domains = 0
     busco_list = []
+    blastn_hit = 0
     for final_gene in final_gene_set:
         check = final_gene in D_blast_evalue
         if check and D_blast_evalue[final_gene] < blast_cutoff:
@@ -514,11 +530,13 @@ def filtering(
             pfam_domains += D_pfam_count[final_gene]
         if D_busco_list[final_gene]:
             busco_list += D_busco_list[final_gene]
+        if D_blastn_score[final_gene]:
+            blastn_hit += 1
 
     busco_hit = len(set(busco_list))
     stats = (
         raw_num_genes, final_num_genes, blast_hit, pfam_hit,
-        pfam_domains, busco_hit
+        pfam_domains, busco_hit, blastn_hit
     )
 
     return final_gene_set, stats
@@ -556,10 +574,14 @@ def write_final_prots(final_gene_set, D_mapping, output_prefix):
 def write_files(
     final_gene_set, D_gene, D_gff3, D_prot, D_exon, output_prefix, short_id
 ):
+
+    final_gene_set_sorted = sorted(
+        final_gene_set, key=lambda x: (D_gene[x][0], D_gene[x][3])
+    )
     output_gff3 = open('%s.gff3' % (output_prefix), 'w')
     output_gff3.write('##gff-version 3\n')  # gff3 Header
     i = 1
-    for gene in final_gene_set:
+    for gene in final_gene_set_sorted:
         (
             gscaffold, gsource, gfeat_type, gstart, gend, gscore,
             gstrand, gphase
@@ -633,7 +655,7 @@ def write_files(
 
     # Write protein faa file
     output_prot = open('%s_prot.faa' % (output_prefix), 'w')
-    for gene_num, gene in enumerate(final_gene_set, start=1):
+    for gene_num, gene in enumerate(final_gene_set_sorted, start=1):
         output_prot.write('>%s_%s.t1 source=%s:%s\n' % (
             short_id, str(gene_num).zfill(5), gene[0], gene[1]
         ))
@@ -648,9 +670,9 @@ def write_files(
 def write_stats(D_stats, output_prefix):
     outfile = '%s_stats_evidence.txt' % (output_prefix)
     outhandle = open(outfile, 'w')
-    header_txt = '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (
+    header_txt = '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (
         'source', 'raw_models', 'filtered_models', 'blast_hit',
-        'pfam_hit', 'pfam_domains', 'missing_busco', 'coding_region'
+        'pfam_hit', 'pfam_domains', 'busco', 'blastn_hit', 'coding_region'
     )
     outhandle.write(header_txt)
     for prefix, stats in D_stats.items():
@@ -659,11 +681,11 @@ def write_stats(D_stats, output_prefix):
 
         (
             raw_num_genes, final_num_genes, blast_hit, pfam_hit,
-            pfam_domains, busco_hit, coding_region
+            pfam_domains, busco_hit, blastn_hit, coding_region
         ) = stats
-        row_txt = '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (
+        row_txt = '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (
             prefix, raw_num_genes, final_num_genes, blast_hit,
-            pfam_hit, pfam_domains, busco_hit, coding_region
+            pfam_hit, pfam_domains, busco_hit, blastn_hit, coding_region
         )
 
         outhandle.write(row_txt)
@@ -671,11 +693,11 @@ def write_stats(D_stats, output_prefix):
     final_stats = D_stats['final']
     (
         raw_num_genes, final_num_genes, blast_hit, pfam_hit,
-        pfam_domains, busco_hit, coding_region
+        pfam_domains, busco_hit, blastn_hit, coding_region
     ) = final_stats
-    row_txt = '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (
+    row_txt = '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (
         'final', raw_num_genes, final_num_genes, blast_hit,
-        pfam_hit, pfam_domains, busco_hit, coding_region
+        pfam_hit, pfam_domains, busco_hit, blastn_hit, coding_region
     )
     outhandle.write(row_txt)
     outhandle.close()

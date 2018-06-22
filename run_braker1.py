@@ -179,11 +179,7 @@ def run_braker1(
     # --genome=final.assembly.fasta --bam=merged.bam
     # --species=<species> --gff3
     for bam_file in bam_files:
-        prefix = (
-            os.path.basename(bam_file)
-            .replace('.bam', '')
-            .replace('_sorted', '')
-        )
+        prefix = os.path.basename(bam_file).split('_')[0].replace('.bam', '')
         gff3_braker1 = os.path.join(
             output_dir, prefix, 'braker1_%s.gff3' % (prefix)
         )
@@ -221,7 +217,7 @@ def run_braker1(
                 this_dir, 'external/gm_et_linux_64/gmes_petap'
             )
             samtools_path = os.path.join(
-                this_dir, 'external/samtools-1.3/bin'
+                this_dir, 'external/samtools-1.3/bin/samtools'
             )
             working_dir = os.path.join(output_dir, prefix)
             if not os.path.exists(working_dir):

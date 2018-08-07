@@ -98,7 +98,7 @@ In the filtration process, FunGAP finds “gene blocks” defined as a set of ge
 <a name="contact"></a>
 ## Contact
 
-* Project principal investigator: In-Geol Choi at Korea University
+* Project principal investigator: Prof. In-Geol Choi, CSBL at Korea University
 * Contact (email-address): igchoi at korea.ac.kr or mbnmbn00 at korea.ac.kr (or mbnmbn00 at gmail.com)
 
-If you have any problem to install or run, please don't hesistate to contact me. I will help you as much as I can and that helps build more robust program.
+If you have any problem to install or run, please don't hesistate to contact us. We will help you as much as we can. Any input from users will help to build more robust pipeline.

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 '''
 Download protein sequences of sister organisms from NCBI
@@ -28,11 +28,11 @@ def main(argv):
     )
     parser = ArgumentParser(usage=optparse_usage)
     parser.add_argument(
-        "-d", "--download_dir", dest="download_dir", nargs=1,
+        "-d", "--download_dir", nargs='?', default='sister_orgs',
         help="Download directory"
     )
     parser.add_argument(
-        "-t", "--taxon", dest="taxon", nargs=1,
+        "-t", "--taxon", nargs=1, required=True,
         help=(
             "Taxon that you want to download. You can choose any clade "
             "registered in NCBI (default: Fungi), but genus name is optimal "
@@ -40,38 +40,19 @@ def main(argv):
         )
     )
     parser.add_argument(
-        "-n", "--num_sisters", dest="num_sisters", nargs=1,
-        help="Number of sister orgasnisms"
+        "-n", "--num_sisters", nargs='?', default=3, type=int,
+        help="Number of sister organisms"
     )
     parser.add_argument(
-        "-e", "--email_address", dest="email_address", nargs=1,
+        "-e", "--email_address", nargs=1, required=True,
         help="E-mail address for Entrez usage"
     )
 
     args = parser.parse_args()
-    if args.download_dir:
-        download_dir = os.path.abspath(args.download_dir[0])
-    else:
-        print '[ERROR] Please provide DOWNLOAD DIRECTORY'
-        sys.exit(2)
-
-    if args.taxon:
-        taxon = args.taxon[0]
-    else:
-        print '[ERROR] Please provide TAXON'
-        sys.exit(2)
-
-    if args.num_sisters:
-        num_sisters = int(args.num_sisters[0])
-    else:
-        print '[ERROR] Please provide NUBER OF SISTERS'
-        sys.exit(2)
-
-    if args.email_address:
-        email_address = args.email_address[0]
-    else:
-        print '[ERROR] Please provide E-MAIL ADDRESS'
-        sys.exit(2)
+    download_dir = os.path.abspath(args.download_dir)
+    taxon = args.taxon[0]
+    num_sisters = args.num_sisters
+    email_address = args.email_address[0]
 
     # Register E-mail address
     Entrez.email = email_address
@@ -106,11 +87,10 @@ def validate_taxon(taxon, num_sisters):
         handle2.close()
 
     else:
-        print (
-            "The taxon '%s' you provided is invalid. "
-            "Please check NCBI Taxonomy" % (taxon)
+        sys.exit(
+            "[ERROR] The taxon '{}' you provided is invalid. "
+            "Please check NCBI Taxonomy".format(taxon)
         )
-        sys.exit(2)
 
     rank = record2[0]["Rank"]
     lineage = record2[0]["Lineage"]
@@ -146,9 +126,9 @@ def validate_taxon(taxon, num_sisters):
             genus = tax_element['ScientificName']
 
     print '\n==='
-    print 'Taxon: %s' % (taxon)
-    print 'Rank: %s' % (rank)
-    print 'Lineage: %s' % (lineage)
+    print 'Taxon: {}'.format(taxon)
+    print 'Rank: {}'.format(rank)
+    print 'Lineage: {}'.format(lineage)
     print '===\n'
 
     asm_ids = []
@@ -161,7 +141,7 @@ def validate_taxon(taxon, num_sisters):
 
         # Get assembly IDs from NCBI
         handle3 = Entrez.esearch(
-            db="assembly", term='%s[taxonomy]' % (taxa[i]),
+            db="assembly", term='{}[taxonomy]'.format(taxa[i]),
             retmode="xml", retmax=1000000
         )
         record3 = Entrez.read(handle3, validate=False)
@@ -188,7 +168,7 @@ def download_genome(download_dir, taxon, asm_ids, num_sisters):
     print 'Downloading protein sequence files...'
     outtable = 'sister_orgs.list'
     outhandle = open(outtable, 'w')
-    header_txt = '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (
+    header_txt = '{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
         'asm_id', 'organism', 'genbank_acc', 'kingdom', 'phylum',
         'subphylum', 'class', 'order', 'family', 'file_name'
     )
@@ -221,39 +201,41 @@ def download_genome(download_dir, taxon, asm_ids, num_sisters):
         kingdom, phylum, subphylum, Class, order, family, genus = tax_tup
 
         out_faa = os.path.join(
-            download_dir, '%s_protein.faa.gz' % (genbank_acc)
+            download_dir, '{}_protein.faa.gz'.format(genbank_acc)
         )
         out_faa_u = os.path.join(
-            download_dir, '%s_protein.faa' % (genbank_acc)  # Unzipped file
+            download_dir, '{}_protein.faa'.format(genbank_acc)  # Unzipped file
         )
         if not os.path.exists(out_faa) and not os.path.exists(out_faa_u):
             acc_part1 = genbank_acc[0:3]
             acc_part2 = genbank_acc[4:7]
             acc_part3 = genbank_acc[7:10]
             acc_part4 = genbank_acc[10:13]
-            url = '%s/%s/%s/%s/%s/%s_%s/*protein.faa.gz' % (
+            url = '{}/{}/{}/{}/{}/{}_{}/*protein.faa.gz'.format(
                 ftp_base, acc_part1, acc_part2, acc_part3, acc_part4,
                 genbank_acc, asm_name2
             )
-            command = 'wget --quiet -nc %s' % (url)
-            print '[Run] %s' % (command)
+            command = 'wget --quiet -nc {}'.format(url)
+            print '[Run] {}'.format(command)
             os.system(command)
-            downloaded_file = glob("%s_*protein.faa.gz" % (genbank_acc))
+            downloaded_file = glob("{}_*protein.faa.gz".format(genbank_acc))
             if downloaded_file:
-                command2 = 'mv %s %s' % (
+                command2 = 'mv {} {}'.format(
                     downloaded_file[0], os.path.join(download_dir, out_faa)
                 )
-                print '[Run] %s' % (command2)
+                print '[Run] {}'.format(command2)
                 os.system(command2)
                 num_downloaded_files += 1
                 if num_downloaded_files == num_sisters:
                     break
             else:
-                print 'No downloadable file for this entry: %s' % (genbank_acc)
+                print('No downloadable file for this entry: {}'.format(
+                    genbank_acc
+                ))
                 out_faa = 'NA'
 
         # Write to table
-        row_txt = '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t\n' % (
+        row_txt = '{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
             asm_id, org_name, genbank_acc, kingdom, phylum, subphylum, Class,
             order, family, out_faa
         )
@@ -308,3 +290,4 @@ def get_taxonomy(tax_id):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+

@@ -1,19 +1,26 @@
-# Installation of FunGAP
+# Installation of FunGAP v1.1.0
 
-FunGAP requires several dependencies installed before running. The installation procedure described here was intensely tested on Ubuntu 14.04 LTS. Note that **Maker2** and **Repbase** require registration for download and installation.
+Because FunGAP implements many dependent programs, you may encounter issues during
+installation. Please don't hesitate to contact me (mbnmbn00@@gmail.com) for help.
 
-1. [Download FunGAP](#download)
-1. [BLAST+ installation](#blast)
-1. [Trinity installation](#trinity)
-1. [Maker2 installation](#maker)
-1. [RepeatModeler installation](#repeatmodeler)
-1. [Braker1 installation](#braker)
-1. [BUSCO Installation](#busco)
-1. [InterProScan installation](#interproscan)
-1. [Install Python modules](#pythonmodules)
+These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
 
 <a name="download"></a>
-## Download FunGAP
+## 0. FunGAP requirements and tested versions
+
+### 0.1 Required softwares
+
+1. Hisat2 v2.1.0
+1. Trinity v2.6.6
+1. RepeatModeler v1.0.11
+1. Maker v
+1. BUSCO v3.0.2
+1. Pfam_scan v1.6
+1. BLAST v2.6.0+
+1. Samtools v1.9
+1. Bamtools v2.4.1
+
+
 Download FunGAP using GitHub clone. Suppose we are installing FunGAP in your `$HOME` directory, but you are free to change the location.
 
 ```

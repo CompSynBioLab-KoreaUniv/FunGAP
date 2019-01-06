@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 '''
 Given fasta and gff3, get transcript sequence in .fna foramt

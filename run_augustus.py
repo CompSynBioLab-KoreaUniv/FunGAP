@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 '''
 Run AUGUSTUS for gene prediction with ab initio model.
@@ -35,74 +35,49 @@ this_path = os.path.realpath(__file__)
 this_dir = os.path.dirname(this_path)
 sys.path.append(this_dir)
 from set_logging import set_logging
+from import_config import import_config
 
 # Parameters
-augustus_bin = os.path.join(this_dir, 'external/augustus-3.2.1/bin/augustus')
+D_conf = import_config(this_dir)
+augustus_bin = D_conf['AUGUSTUS_PATH']
 
 
 def main(argv):
-    optparse_usage = (
-        'run_augustus.py -i <input_fasta> -o <output_dir> '
-        '-s <species> -l <log_dir>'
-    )
-    parser = ArgumentParser(usage=optparse_usage)
+    argparse_usage = 'run_augustus.py -m <masked_assembly> -s <species>'
+    parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
-        "-i", "--input_fasta", dest="input_fasta", nargs=1,
-        help="Input fasta file"
+        '-m', '--masked_assembly', nargs=1, required=True,
+        help='Repeat-masked genome assembly in FASTA format'
     )
     parser.add_argument(
-        "-o", "--output_dir", dest="output_dir", nargs=1,
-        help=(
-            'Resulting gff3 and intermediates files will be stored '
-            'in this directory'
-        )
+        '-s', '--species', nargs=1, required=True,
+        help='Augustus reference species'
     )
     parser.add_argument(
-        "-s", "--species", dest="species", nargs=1,
-        help="Augustus reference species"
+        '-o', '--output_dir', nargs='?', default='augustus_out',
+        help='Output directory (default: augustus_out)'
     )
     parser.add_argument(
-        "-l", "--log_dir", dest="log_dir", nargs=1,
+        '-l', '--log_dir', nargs='?', default='logs',
         help='Log directory'
     )
 
     args = parser.parse_args()
-    if args.input_fasta:
-        input_fasta = os.path.abspath(args.input_fasta[0])
-    else:
-        print '[ERROR] Please provide INPUT FASTA'
-        sys.exit(2)
-
-    if args.output_dir:
-        output_dir = os.path.abspath(args.output_dir[0])
-    else:
-        print '[ERROR] Please provide OUTPUT DIRECTORY'
-        sys.exit(2)
-
-    if args.species:
-        species = args.species[0]
-    else:
-        print '[ERROR] Please provide SPECIES'
-        sys.exit(2)
-
-    if args.log_dir:
-        log_dir = os.path.abspath(args.log_dir[0])
-    else:
-        print '[ERROR] Please provide LOG DIRECTORY'
-        sys.exit(2)
+    masked_assembly = os.path.abspath(args.masked_assembly[0])
+    species = args.species[0]
+    output_dir = os.path.abspath(args.output_dir)
+    log_dir = os.path.abspath(args.log_dir)
 
     # Create necessary dirs
     create_dir(output_dir, log_dir)
 
     # Set logging
-    log_file = os.path.join(
-        log_dir, 'pipeline', 'run_augustus.log'
-    )
+    log_file = os.path.join(log_dir, 'run_augustus.log')
     global logger_time, logger_txt
     logger_time, logger_txt = set_logging(log_file)
 
     # Run functions :) Slow is as good as Fast
-    run_augustus(input_fasta, output_dir, species)
+    run_augustus(masked_assembly, output_dir, species)
     parse_augustus(output_dir)
 
 
@@ -121,12 +96,8 @@ def create_dir(output_dir, log_dir):
     if not glob(log_dir):
         os.mkdir(log_dir)
 
-    log_pipeline_dir = os.path.join(log_dir, 'pipeline')
-    if not glob(log_pipeline_dir):
-        os.mkdir(log_pipeline_dir)
 
-
-def run_augustus(input_fasta, output_dir, species):
+def run_augustus(masked_assembly, output_dir, species):
     # augustus --uniqueGeneId=true --gff3=on Neucr2_AssemblyScaffolds.fasta
     # --species=fusarium_graminearum --stopCodonExcludedFromCDS=false
     # > Neucr2.gff3
@@ -137,13 +108,12 @@ def run_augustus(input_fasta, output_dir, species):
     logger_time.debug('START: Augustus')
     if not glob(augustus_output):
         command = (
-            '%s --uniqueGeneId=true --singlestrand=true --gff3=on %s '
-            '--species=%s --stopCodonExcludedFromCDS=false --softmasking=1 '
-            '> %s'
-        ) % (
-            augustus_bin, input_fasta, species, augustus_output
-        )
-        logger_txt.debug('[Run] %s' % (command))
+            '{} --uniqueGeneId=true --singlestrand=true --gff3=on {} '
+            '--species={} --stopCodonExcludedFromCDS=false --softmasking=1 '
+            '> {}'.format(
+            augustus_bin, masked_assembly, species, augustus_output
+        ))
+        logger_txt.debug('[Run] {}'.format(command))
         os.system(command)
     else:
         logger_txt.debug('Running Augustus has already been finished')
@@ -214,11 +184,11 @@ def parse_augustus(output_dir):
         key=lambda x: int(re.search(r'g(\d+)\.t\d+$', x[0]).group(1))
     )
     for transcript_id, prot_seq in D_seq_sorted:
-        header_txt = '>%s\n' % (transcript_id)
+        header_txt = '>{}\n'.format(transcript_id)
         outhandle.write(header_txt)
         i = 0
         while i < len(prot_seq):
-            row_txt = '%s\n' % (prot_seq[i:i + 60])
+            row_txt = '{}\n'.format(prot_seq[i:i + 60])
             outhandle.write(row_txt)
             i += 60
 

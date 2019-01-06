@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 '''
 Make transcripts file from genome FASTA and GFF3
@@ -17,48 +17,26 @@ from Bio.Alphabet import generic_dna
 
 # Main function
 def main(argv):
-    optparse_usage = (
-        'gff3_transcript.py -f <input_fasta> -g <input_gff3> '
+    argparse_usage = (
+        'make_transcripts.py -f <input_fasta> -g <input_gff3> '
         '-o <output_prefix>'
     )
-    parser = ArgumentParser(usage=optparse_usage)
+    parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
-        "-f", "--input_fasta", dest="input_fasta", nargs=1,
-        help="Input fasta file"
+        '-f', '--input_fasta', nargs=1, required=True,
+        help='Input fasta file'
     )
     parser.add_argument(
-        "-g", "--input_gff3", dest="input_gff3", nargs=1,
-        help="Input gff3 file"
-    )
-    parser.add_argument(
-        "-o", "--output_prefix", dest="output_prefix", nargs=1,
-        help="Ouput prefix"
+        '-g', '--input_gff3', nargs=1, required=True,
+        help='Input gff3 file'
     )
 
     args = parser.parse_args()
-    if args.input_fasta:
-        input_fasta = os.path.abspath(args.input_fasta[0])
-    else:
-        print 'ERROR: please provide INPUT FASTA'
-        parser.print_help()
-        sys.exit(2)
-
-    if args.input_gff3:
-        input_gff3 = os.path.abspath(args.input_gff3[0])
-    else:
-        print 'ERROR: please provide INPUT GFF3'
-        parser.print_help()
-        sys.exit(2)
-
-    if args.output_prefix:
-        output_prefix = args.output_prefix[0]
-    else:
-        print 'ERROR: please provide OUTPUT PREFIX'
-        parser.print_help()
-        sys.exit(2)
+    input_fasta = os.path.abspath(args.input_fasta[0])
+    input_gff3 = os.path.abspath(args.input_gff3[0])
 
     # Run functions :)
-    parse_gff3(input_fasta, input_gff3, output_prefix)
+    parse_gff3(input_fasta, input_gff3)
 
 
 def import_file(input_file):
@@ -74,7 +52,7 @@ def get_reverse_complement(nuc_seq):
     return rev_comp_dna
 
 
-def parse_gff3(input_fasta, input_gff3, output_prefix):
+def parse_gff3(input_fasta, input_gff3):
     # Read gff3
     gff3 = import_file(input_gff3)
 
@@ -109,7 +87,8 @@ def parse_gff3(input_fasta, input_gff3, output_prefix):
         D_fasta[scaffold_id] += line
 
     # Extract sequence
-    output_transcript = '%s_transcript.fna' % (output_prefix)
+    gff3_base = os.path.splitext(input_gff3)[0]
+    output_transcript = '{}_transcript.fna'.format(gff3_base)
     output2 = open(output_transcript, 'w')
 
     gene_ids = sorted(
@@ -154,14 +133,14 @@ def parse_gff3(input_fasta, input_gff3, output_prefix):
             nuc_seq = nuc_seq[codon_start:]
 
         # Write to file
-        output2.write('>%s\n' % (gene_id))
+        output2.write('>{}\n'.format(gene_id))
         j = 0
         while j < len(nuc_seq):
-            output2.write('%s\n' % (nuc_seq[j:j + 60]))
+            output2.write('{}\n'.format(nuc_seq[j:j + 60]))
             j += 60
 
     output2.close()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main(sys.argv[1:])

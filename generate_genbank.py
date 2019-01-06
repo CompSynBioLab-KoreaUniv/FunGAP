@@ -1,8 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 '''
 Generate Genbank file using GFF3 and annotations
-Author Byoungnam Min on Dec 26, 2015
 '''
 
 # Import modeuls
@@ -26,98 +25,62 @@ from Bio.SeqFeature import FeatureLocation, CompoundLocation
 
 # Initialized values
 gffInfoFields = [
-    "seqid", "source", "type", "start", "end", "score", "strand",
-    "phase", "attributes"
+    'seqid', 'source', 'type', 'start', 'end', 'score', 'strand',
+    'phase', 'attributes'
 ]
-GFFRecord = namedtuple("GFFRecord", gffInfoFields)
+GFFRecord = namedtuple('GFFRecord', gffInfoFields)
 
 
 def main(argv):
     argparse_usage = (
-        'generate_genbank.py -f <input_fna> -g <input_gff3> '
-        '-a <input_faa> -o <output_prefix>'
+        'generate_genbank.py -f <input_fna> -g <input_gff3> -a <input_faa> '
     )
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
-        "-f", "--input_fna", dest="input_fna", nargs=1,
-        help="Input FNA file"
+        '-f', '--input_fna', nargs=1, required=True,
+        help='Input FNA file'
     )
     parser.add_argument(
-        "-g", "--input_gff3", dest="input_gff3", nargs=1,
-        help="Input GFF3 file"
+        '-g', '--input_gff3', nargs=1, required=True,
+        help='Input GFF3 file'
     )
     parser.add_argument(
-        "-a", "--input_faa", dest="input_faa", nargs=1,
-        help="Input FAA file"
+        '-a', '--input_faa', nargs=1, required=True,
+        help='Input FAA file'
     )
     parser.add_argument(
-        "-o", "--output_prefix", dest="output_prefix", nargs=1,
-        help="Output prefix"
+        '-o', '--output_prefix', nargs='?', default='out',
+        help='Output prefix'
     )
     parser.add_argument(
-        "-O", "--organism_name", dest="organism_name", nargs='?',
-        help="Organism name (default: organism)"
+        '-O', '--organism_name', nargs='?', default='organism',
+        help='Organism name (default: organism)'
     )
     parser.add_argument(
-        "-d", "--data_file_division", dest="data_file_division", nargs='?',
-        help="Data file division (default: PLN)"
+        '-d', '--data_file_division', nargs='?', default='PLN',
+        help='Data file division (default: PLN)'
     )
     parser.add_argument(
-        "-t", "--taxonomy", dest="taxonomy", nargs='?',
+        '-t', '--taxonomy', nargs='?', default='Eukaryota',
         help=(
-            "Taxonomy separated by '; ', such as 'Eukaryota; Fungi'\n"
-            "(default: Eukaryota)"
+            'Taxonomy separated by "; ", such as "Eukaryota; Fungi"\n'
+            '(default: Eukaryota)'
         )
     )
 
     args = parser.parse_args()
-    if args.input_fna:
-        input_fna = os.path.abspath(args.input_fna[0])
-    else:
-        print '[ERROR] Please provide INPUT FNA FILE'
-        parser.print_help()
-        sys.exit(2)
-
-    if args.input_gff3:
-        input_gff3 = os.path.abspath(args.input_gff3[0])
-    else:
-        print '[ERROR] Please provide INPUT GFF3 FILE'
-        parser.print_help()
-        sys.exit(2)
-
-    if args.input_faa:
-        input_faa = os.path.abspath(args.input_faa[0])
-    else:
-        print '[ERROR] Please provide INPUT FAA FILE'
-        parser.print_help()
-        sys.exit(2)
-
-    if args.output_prefix:
-        output_prefix = os.path.abspath(args.output_prefix[0])
-    else:
-        print '[ERROR] Please provide OUTPUT PREFIX'
-        parser.print_help()
-        sys.exit(2)
-
-    if args.organism_name:
-        organism_name = args.organism_name
-    else:
-        organism_name = 'organism'
-
-    if args.data_file_division:
-        data_file_division = args.data_file_division
-    else:
-        data_file_division = 'PLN'
-
-    if args.taxonomy:
-        taxonomy = args.taxonomy
-    else:
-        taxonomy = 'Eukaryota'
+    input_fna = os.path.abspath(args.input_fna[0])
+    input_gff3 = os.path.abspath(args.input_gff3[0])
+    input_faa = os.path.abspath(args.input_faa[0])
+    output_prefix = os.path.abspath(args.output_prefix)
+    organism_name = args.organism_name
+    data_file_division = args.data_file_division
+    taxonomy = args.taxonomy
 
     # Run functions :) Slow is as good as Fast
     generate_genbank(
-        input_fna, input_gff3, input_faa, output_prefix,
-        organism_name, data_file_division, taxonomy
+        input_fna, input_gff3, input_faa, output_prefix, organism_name,
+        data_file_division, taxonomy
     )
 
 
@@ -132,45 +95,43 @@ def import_file(input_file):
 
 
 def parseGFFAttributes(attributeString):
-    """Parse the GFF3 attribute column and return a dict"""
-    if attributeString == ".":
+    # Parse the GFF3 attribute column and return a dict
+    if attributeString == '.':
         return {}
     ret = {}
-    for attribute in attributeString.split(";"):
-        key, value = attribute.split("=")
+    for attribute in attributeString.split(';'):
+        key, value = attribute.split('=')
         ret[urllib.unquote(key)] = urllib.unquote(value)
     return ret
 
 
 def parseGFF3(filename):
-    """
-    A minimalistic GFF3 format parser.
-    Yields objects that contain info about a single GFF3 feature.
+    # A minimalistic GFF3 format parser.
+    # Yields objects that contain info about a single GFF3 feature.
+    # Supports transparent gzip decompression.
 
-    Supports transparent gzip decompression.
-    """
     # Parse with transparent decompression
-    openFunc = gzip.open if filename.endswith(".gz") else open
+    openFunc = gzip.open if filename.endswith('.gz') else open
     with openFunc(filename) as infile:
         for line in infile:
-            if line.startswith("#"):
+            if line.startswith('#'):
                 continue
-            parts = line.strip().split("\t")
+            parts = line.strip().split('\t')
             # If this fails, the file format is not standard-compatible
             assert len(parts) == len(gffInfoFields)
             # Normalize data
             normalizedInfo = {
-                "seqid": None if parts[0] == "." else urllib.unquote(parts[0]),
-                "source":
-                    None if parts[1] == "." else urllib.unquote(parts[1]),
-                "type": None if parts[2] == "." else urllib.unquote(parts[2]),
-                "start": None if parts[3] == "." else int(parts[3]),
-                "end": None if parts[4] == "." else int(parts[4]),
-                "score": None if parts[5] == "." else float(parts[5]),
-                "strand":
-                    None if parts[6] == "." else urllib.unquote(parts[6]),
-                "phase": None if parts[7] == "." else urllib.unquote(parts[7]),
-                "attributes": parseGFFAttributes(parts[8])
+                'seqid': None if parts[0] == '.' else urllib.unquote(parts[0]),
+                'source':
+                    None if parts[1] == '.' else urllib.unquote(parts[1]),
+                'type': None if parts[2] == '.' else urllib.unquote(parts[2]),
+                'start': None if parts[3] == '.' else int(parts[3]),
+                'end': None if parts[4] == '.' else int(parts[4]),
+                'score': None if parts[5] == '.' else float(parts[5]),
+                'strand':
+                    None if parts[6] == '.' else urllib.unquote(parts[6]),
+                'phase': None if parts[7] == '.' else urllib.unquote(parts[7]),
+                'attributes': parseGFFAttributes(parts[8])
             }
             # Alternatively, you can emit the dictionary here,
             # if you need mutability:
@@ -186,8 +147,8 @@ def generate_genbank(
     outfile = '%s.gb' % (output_prefix)
 
     # First, import input_fna in dictionary
-    D_fna = SeqIO.to_dict(SeqIO.parse(input_fna, "fasta", generic_dna))
-    D_faa = SeqIO.to_dict(SeqIO.parse(input_faa, "fasta", generic_protein))
+    D_fna = SeqIO.to_dict(SeqIO.parse(input_fna, 'fasta', generic_dna))
+    D_faa = SeqIO.to_dict(SeqIO.parse(input_faa, 'fasta', generic_protein))
 
     D_fna_sorted = sorted(
         D_fna.items(),
@@ -214,16 +175,14 @@ def generate_genbank(
 
         my_seq_record.description = '{} {}'.format(organism_name, scaffold)
         date = datetime.today().strftime('%d-%^b-%Y')
-        my_seq_record.annotations["date"] = date
-        my_seq_record.annotations["organism"] = organism_name
-        print data_file_division
+        my_seq_record.annotations['date'] = date
+        my_seq_record.annotations['organism'] = organism_name
         my_seq_record.data_file_division = data_file_division
-        quit()
-        my_seq_record.annotations["keywords"] = [
-            "Whole genome sequencing project"
+        my_seq_record.annotations['keywords'] = [
+            'Whole genome sequencing project'
         ]
-        my_seq_record.annotations["taxonomy"] = taxonomy.split('; ')
-        my_seq_record.annotations["source"] = organism_name
+        my_seq_record.annotations['taxonomy'] = taxonomy.split('; ')
+        my_seq_record.annotations['source'] = organism_name
 
         for record in parseGFF3(input_gff3):
             if scaffold != record.seqid:
@@ -307,7 +266,7 @@ def generate_genbank(
                 mrna_locus_tag = record.attributes['ID']
                 mrna_qualifiers['locus_tag'] = mrna_locus_tag
                 if record.score:
-                    mrna_qualifiers['note'] = "prediction score=%s" % (
+                    mrna_qualifiers['note'] = 'prediction score=%s' % (
                         record.score
                     )
 
@@ -333,11 +292,9 @@ def generate_genbank(
                 my_seq_record.features.append(mrna_feature)
                 my_seq_record.features.append(cds_feature)
         my_seq_records.append(my_seq_record)
-        break
 
-    SeqIO.write(my_seq_records, outfile, "genbank")
-    sys.exit()
+    SeqIO.write(my_seq_records, outfile, 'genbank')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main(sys.argv[1:])

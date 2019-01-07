@@ -18,10 +18,8 @@ FunGAP inputs:
 ```
 --output_dir                      | Output directory
 --trans_read_files                | Illumina paired-end mRNA reads files (FASTQ)
---project_name                    | Project name without white space
 --genome_assembly                 | Genome assembly file (FASTA)
 --augustus_species                | Augustus --species argument
---org_id                          | Organism ID for assigning gene IDs
 --sister_proteome                 | Protein database (FASTA)
 --num_cores                       | Number of CPU cores to be used
 ```

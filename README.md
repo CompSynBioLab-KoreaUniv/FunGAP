@@ -85,7 +85,7 @@ Pfam provides a database of manually curated protein families. We assume that ge
 
 **BLASTn**
 
-Sequence similarity with assembled transcriptome can give the direct evidence for reliability of predicted genes. FunGAP runs BLASTn for each predicted gene against Trinity-assembled transcripts. Length 
+Sequence similarity with assembled transcriptome can give the direct evidence for reliability of predicted genes. FunGAP runs BLASTn for each predicted gene against Trinity-assembled transcripts. Length coverage is also considered.
 
 ****
 

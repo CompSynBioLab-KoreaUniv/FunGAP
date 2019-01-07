@@ -1,6 +1,6 @@
 # FunGAP: Fungal Genome Annotation Pipeline v1.1.0
 
-### Last updated: Jan 7, 2019
+**Last updated: Jan 7, 2019**
 
 FunGAP performs gene prediction on given genome assembly and RNA-seq reads. See **INSTALL.md** and **USAGE.md** for installation and usage instruction, or you can go wiki tab for the same.
 

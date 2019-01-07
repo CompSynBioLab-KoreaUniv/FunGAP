@@ -137,7 +137,7 @@ Don't forget to download the key, too.
 ### 4.1. Uncompress downloaded files
 
 ```
-mkdir -p $FUNGAP_DIR/external/
+mkdir $FUNGAP_DIR/external/
 mv gm_et_linux_64.tar.gz gm_key_64.gz $FUNGAP_DIR/external/  # Move your downloaded files to this directory
 cd $FUNGAP_DIR/external/
 tar -zxvf gm_et_linux_64.tar.gz
@@ -169,247 +169,94 @@ cd $FUNGAP_DIR/external/gm_et_linux_64/gmes_petap
 
 ### 5. RepeatModeler installation
 
-**Note: RepeatModerler is available in Anaconda2 (https://anaconda.org/bioconda/repeatmodeler), but I couldn't install working program at the moment. Installation seems okay, but no result is produced. I will update this whenever working RepeatModeler is available.**
+**Note: RepeatModerler is available in Anaconda2 (https://anaconda.org/bioconda/repeatmodeler), but conda-installed program did not work at the moment. Installation seemed okay, but no result was produced. I will update this whenever working RepeatModeler is available.**
 
-4-1. Check perl version.
+### 5.1. Check perl version.
 
-$ perl -v
-It should be > 5.8.8
-
-4-2. Install RECON 1.08
-
-$ wget http://www.repeatmasker.org/RepeatModeler/RECON-1.08.tar.gz
-$ tar -zxvf RECON-1.08.tar.gz
-$ cd RECON-1.08/src/
-$ make
-$ make install
-
-4-3. Install RepeatScout 1.0.5
-
-$ wget http://www.repeatmasker.org/RepeatScout-1.0.5.tar.gz
-$ tar -zxvf RepeatScout-1.0.5.tar.gz 
-$ cd RepeatScout-1
-$ make
-
-4-4. Install NSEG
-
-$ mkdir nseg
-$ cd nseg
-$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/genwin.c
-$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/genwin.h
-$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/lnfac.h
-$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/makefile
-$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nmerge.c
-$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nseg.c
-$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/runnseg
-$ make
-
-4-5. Install RepeatMasker 4.0.7
-
-$ wget http://www.repeatmasker.org/RepeatMasker-open-4-0-8.tar.gz
-$ tar -zxvf RepeatMasker-open-4-0-8.tar.gz
-$ cd RepeatMasker
-$ perl ./configure
-
-* Note that trf and rmblastn is located at /home/XXXX/anaconda2/envs/fungap/bin
-
-4-6. Install RepeatModeler 1.0.11
-
-$ wget http://www.repeatmasker.org/RepeatModeler/RepeatModeler-open-1.0.11.tar.gz
-$ tar -zxvf RepeatModeler-open-1.0.11.tar.gz
-$ cd RepeatModeler-open-1.0.11/
-$ perl ./configure
-
-* Note that trf and rmblastn is located at /home/XXXX/anaconda2/envs/fungap/bin
-
-4-7. Check the installation
-
-$ cd $FUNGAP_DIR/external/RepeatModeler-open-1.0.11/
-$ ./BuildDatabase --help
-$ ./RepeatModeler --help
-
-
-Unzip maker2
-```
-cd $HOME/FunGAP/external/
-tar -zxvf maker-2.31.8.tgz
-```
-
-Install Maker2 pre-requisites
-```
-cd $HOME/FunGAP/external/maker/src
-sudo apt-get install libpq-dev
-perl Build.PL
-sudo ./Build installdeps
-./Build installexes
-./Build install
-```
-
-Configure RepeatMasker. First, download repbase manually from http://www.girinst.org/server/RepBase/index.php
-<br> Then move it to `$HOME/FunGAP/external/maker/exe/RepeatMasker/`
-
-```
-cd $HOME/FunGAP/external/maker/exe/RepeatMasker/
-tar -zxvf repeatmaskerlibraries-20150807.tar.gz
-./configure
-
-# **TRF PROGRAM**
-# This is the full path to the TRF program.
-# This is now used by RepeatMasker to mask simple repeats.
-# Enter path [  ]:
-path/to/FunGAP/external/maker/exe/RepeatMasker/trf
-
-# Add a Search Engine:
-# 1. CrossMatch: [ Un-configured ]
-# 2. RMBlast - NCBI Blast with RepeatMasker extensions: [ Un-configured ]
-# 3. WUBlast/ABBlast (required by DupMasker): [ Un-configured ]
-# 4. HMMER3.1 & DFAM: [ Un-configured ]
-
-# 5. Done
-# Enter Selection:
-2
-
-# **RMBlast (rmblastn) INSTALLATION PATH**
-# This is the path to the location where
-# the rmblastn and makeblastdb programs can be found.
-# Enter path [  ]:
-path/to/FunGAP/external/maker/exe/RepeatMasker/rmblast/bin
-```
-
-<a name="repeatmodeler"></a>
-## RepeatModeler installation
-**RepeatModeler** is a *de novo* repeat family identification and modeling package.
-http://www.repeatmasker.org/RepeatModeler.html
-
-Install RepeatModeler and its dependencies.
-
-Check perl version (ensure version >5.8.8)
 ```
 perl -v
 ```
 
-Install RepeatModeler
+It should be > 5.8.8
+
+### 5.2. Install RECON 1.08
+
 ```
-cd $HOME/FunGAP/external/
-wget http://www.repeatmasker.org/RepeatModeler-open-1-0-8.tar.gz
-tar -zxvf RepeatModeler-open-1-0-8.tar.gz
-cd RepeatModeler/
+cd $FUNGAP_DIR/external/
+wget http://www.repeatmasker.org/RepeatModeler/RECON-1.08.tar.gz
+tar -zxvf RECON-1.08.tar.gz
+cd RECON-1.08/src/
+make
+make install
+```
+
+### 5.3. Install RepeatScout 1.0.5
+
+```
+wget http://www.repeatmasker.org/RepeatScout-1.0.5.tar.gz
+tar -zxvf RepeatScout-1.0.5.tar.gz 
+cd RepeatScout-1
+make
+```
+
+### 5.4. Install NSEG
+
+```
+mkdir nseg
+cd nseg
+wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/genwin.c
+wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/genwin.h
+wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/lnfac.h
+wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/makefile
+wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nmerge.c
+wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nseg.c
+wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/runnseg
+make
+```
+
+### 5.5. Install RepeatMasker 4.0.8
+
+I could not use conda-installed RepeatMasker for RepeatModeler installation. So I manually installed.
+
+```
+wget http://www.repeatmasker.org/RepeatMasker-open-4-0-8.tar.gz
+tar -zxvf RepeatMasker-open-4-0-8.tar.gz
+cd RepeatMasker
 perl ./configure
-
-# **REPEATMASKER INSTALLATION PATH**
-# This is the path to the location where
-# the RepeatMasker program suite can be found.
-# Enter path [  ]:
-path/to/FunGAP/external/maker/exe/RepeatMasker/
-
-# **RECON INSTALLATION PATH**
-# This is the path to the location where
-# the RECON program suite can be found.
-# Enter path [  ]:
-path/to/FunGAP/external/RECON-1.08/bin
-
-# **RepeatScout INSTALLATION PATH**
-# This is the path to the location where
-# the RepeatScout program suite can be found.
-# Enter path [  ]:
-path/to/FunGAP/external/RepeatScout-1/
-
-# **TRF INSTALLATION PATH**
-# This is the path to the location where
-# the TRF program can be found.
-# Enter path [  ]:
-path/to/FunGAP/external/maker/exe/RepeatMasker
-
-# Add a Search Engine:
-# 1. RMBlast - NCBI Blast with RepeatMasker extensions: [ Un-configured ]
-# 2. WUBlast/ABBlast: [ Un-configured ]
-
-# 3. Done
-# Enter Selection:
-1
-
-# **RMBlast (rmblastn) INSTALLATION PATH**
-# This is the path to the location where
-# the rmblastn and makeblastdb programs can be found.
-# Enter path [  ]:
-path/to/FunGAP/external/maker/exe/RepeatMasker/rmblast/bin
 ```
 
-<a name="braker"></a>
-## Braker1 installation
-Braker1 is an unsupervised RNA-Seq-based genome annotation with GeneMark-ET and AUGUSTUS.
-http://exon.gatech.edu/genemark/braker1.html
+- Note: `trf` and `rmblastn` are located at `~/anaconda2/envs/fungap/bin`.
 
-Install Braker1 and its dependencies.
+### 5.6. Install RepeatModeler 1.0.11
 
-Copy gm_key to `$HOME`
 ```
-cp $HOME/FunGAP/external/gm_et_linux_64/gm_key ~/.gm_key
-```
-
-Install perl modules
-```
-sudo cpan YAML
-sudo cpan App::cpanminus
-sudo cpanm File::Spec::Functions
-sudo cpanm Hash::Merge
-sudo cpanm List::Util
-sudo cpanm Logger::Simple
-sudo cpanm Module::Load::Conditional
-sudo cpanm Parallel::ForkManager
-sudo cpanm POSIX
-sudo cpanm Scalar::Util::Numeric
-sudo cpanm YAML
+$ wget http://www.repeatmasker.org/RepeatModeler/RepeatModeler-open-1.0.11.tar.gz
+$ tar -zxvf RepeatModeler-open-1.0.11.tar.gz
+$ cd RepeatModeler-open-1.0.11/
+$ perl ./configure
 ```
 
-For bamtools,
+ - Note: `trf` and `rmblastn` is located at `~/anaconda2/envs/fungap/bin`
+
+### 5.7. Check the installation
+
 ```
-sudo apt-get install zlib1g-dev
+cd $FUNGAP_DIR/external/RepeatModeler-open-1.0.11/
+./BuildDatabase --help
+./RepeatModeler --help
 ```
 
-<a name="busco"></a>
-## BUSCO Installation
-**Busco**: Benchmarking Universal Single-Copy Orthologs
-http://busco.ezlab.org/
+<br />
 
-Download BUSCO dataset.
-```
-cd $HOME/FunGAP/data/
-wget http://busco.ezlab.org/v1/files/fungi_buscos.tar.gz
-tar -zxvf fungi_buscos.tar.gz
-```
+## 6. Configure FunGAP
 
-<a name="interproscan"></a>
-## InterProScan installation
-**InterProScan** scans a sequence for matches against the InterPro protein signature databases.
-https://github.com/ebi-pf-team/interproscan/wiki
+This script allows users to set and test (by --help command) all the dependencies. If this script runs without any issue, you are ready to run FunGAP!
 
-Install InterProScan.
 ```
-cd $HOME/FunGAP/external/
-wget ftp://ftp.ebi.ac.uk/pub/software/unix/iprscan/5/5.18-57.0/interproscan-5.18-57.0-64-bit.tar.gz
-tar -zxvf interproscan-5.18-57.0-64-bit.tar.gz
-```
-
-<a name="pythonmodules"></a>
-## Install Python modules
-FunGAP requires several python modules and they can be installed by pip.
-
-Install pip
-```
-sudo apt-get install python-pip
-```
-
-Install needed modules
-```
-sudo pip install biopython  # version 1.65 tested
-sudo pip install numpy  # version 1.6.1 tested
-sudo pip install networkx  # version 1.1 tested
-sudo pip install matplotlib  # version 1.5.x tested
-sudo pip install markdown2  # version 2.3.3 tested
-```
-
-You can check if FunGAP is correctly installed.
-```
-python $HOME/FunGAP/check_dependencies.py -o tmp
+cd $FUNGAP_DIR
+python set_dependencies.py \
+  --pfam_db_dir db/pfam \
+  --busco_db_dir db/busco/basidiomycota_odb9/ \
+  --genemark_dir external/gm_et_linux_64/gmes_petap/ \
+  --repeat_modeler_dir external/RepeatModeler-open-1.0.11
 ```

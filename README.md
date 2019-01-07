@@ -2,7 +2,7 @@
 
 **Last update: Jan 7, 2019**
 
-FunGAP performs gene prediction on given genome assembly and RNA-seq reads. See **INSTALL.md** and **USAGE.md** for installation and usage instruction, or you can go wiki tab for the same.
+FunGAP performs gene prediction on given genome assembly and RNA-seq reads. See **INSTALL.md** and **USAGE.md** for installation and usage instruction, or you can go to wiki tab for the same.
 
 * [FunGAP INPUT & OUTPUT](#inputoutput)
 * [Pipeline description](#pipedesc)

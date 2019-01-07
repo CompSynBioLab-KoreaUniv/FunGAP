@@ -193,6 +193,7 @@ make install
 ### 5.3. Install RepeatScout 1.0.5
 
 ```
+cd $FUNGAP_DIR/external/
 wget http://www.repeatmasker.org/RepeatScout-1.0.5.tar.gz
 tar -zxvf RepeatScout-1.0.5.tar.gz 
 cd RepeatScout-1
@@ -202,6 +203,7 @@ make
 ### 5.4. Install NSEG
 
 ```
+cd $FUNGAP_DIR/external/
 mkdir nseg
 cd nseg
 wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/genwin.c
@@ -219,6 +221,7 @@ make
 I could not use conda-installed RepeatMasker for RepeatModeler installation. So I manually installed.
 
 ```
+cd $FUNGAP_DIR/external/
 wget http://www.repeatmasker.org/RepeatMasker-open-4-0-8.tar.gz
 tar -zxvf RepeatMasker-open-4-0-8.tar.gz
 cd RepeatMasker
@@ -230,10 +233,11 @@ perl ./configure
 ### 5.6. Install RepeatModeler 1.0.11
 
 ```
-$ wget http://www.repeatmasker.org/RepeatModeler/RepeatModeler-open-1.0.11.tar.gz
-$ tar -zxvf RepeatModeler-open-1.0.11.tar.gz
-$ cd RepeatModeler-open-1.0.11/
-$ perl ./configure
+cd $FUNGAP_DIR/external/
+wget http://www.repeatmasker.org/RepeatModeler/RepeatModeler-open-1.0.11.tar.gz
+tar -zxvf RepeatModeler-open-1.0.11.tar.gz
+cd RepeatModeler-open-1.0.11/
+perl ./configure
 ```
 
  - Note: `trf` and `rmblastn` is located at `~/anaconda2/envs/fungap/bin`

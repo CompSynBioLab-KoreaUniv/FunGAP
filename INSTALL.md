@@ -1,64 +1,231 @@
 # Installation of FunGAP v1.1.0
 
 Because FunGAP implements many dependent programs, you may encounter issues during
-installation. Please don't hesitate to contact me (mbnmbn00@@gmail.com) for help.
+installation. Please don't hesitate to contact me (mbnmbn00@gmail.com) for help.
 
 These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
 
-<a name="download"></a>
-## 0. FunGAP requirements and tested versions
+## 0. FunGAP requirements
 
-### 0.1 Required softwares
+### 0.1. Required softwares (and tested versions)
 
-1. Hisat2 v2.1.0
-1. Trinity v2.6.6
-1. RepeatModeler v1.0.11
-1. Maker v
-1. BUSCO v3.0.2
-1. Pfam_scan v1.6
-1. BLAST v2.6.0+
-1. Samtools v1.9
-1. Bamtools v2.4.1
+1. [Hisat2](https://ccb.jhu.edu/software/hisat2/index.shtml) v2.1.0
+1. [Trinity](https://github.com/trinityrnaseq/trinityrnaseq) v2.6.6
+1. [RepeatModeler](http://www.repeatmasker.org/RepeatModeler/) v1.0.11
+1. [Maker](http://www.yandell-lab.org/software/maker.html) v2.31.10
+1. [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) v4.38
+1. [Augustus](https://github.com/Gaius-Augustus/Augustus) v3.3
+1. [Braker](http://exon.gatech.edu/braker1.html) v1.9
+1. [BUSCO](https://busco.ezlab.org/) v3.0.2
+1. [Pfam_scan](https://www.ebi.ac.uk/seqdb/confluence/display/THD/PfamScan) v1.6
+1. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download) v2.6.0+
+1. [Samtools](http://www.htslib.org/download/) v1.9
+1. [Bamtools](https://github.com/pezmaster31/bamtools) v2.4.1
 
+### 0.2. Required databases
 
-Download FunGAP using GitHub clone. Suppose we are installing FunGAP in your `$HOME` directory, but you are free to change the location.
+1. [BUSCO](https://busco.ezlab.org/) odb9
+1. [Pfam](https://pfam.xfam.org/) release 32.0
+
+<br/>
+
+## 1. Setup Anaconda environment
+
+For robust installation, we recommend to use Anaconda environment and install dependent programs and libraries as much as possible.
+
+### 1.1. Install Anaconda2 (v4.5.12 tested)
+
+Download and install Anaconda2 (We assume that you install in ```$HOME/anaconda2```)
+
+```
+cd $HOME
+wget https://repo.continuum.io/archive/Anaconda2-2018.12-Linux-x86_64.sh
+bash Anaconda2-2018.12-Linux-x86_64.sh
+```
+
+### 1.2. Set ```$PATH``` variable
+
+```
+echo ". ~/anaconda2/etc/profile.d/conda.sh" >> ~/.bashrc
+source ~/.bashrc
+```
+
+### 1.3. Create and activate an environment
+
+```
+conda update conda
+conda create -n fungap
+conda activate fungap
+```
+
+### 1.4. Add channels
+
+```
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+```
+
+### 1.5. Install dependencies
+
+```
+conda install -c bioconda augustus rmblast maker trinity hisat2 braker busco blast pfam_scan
+pip install biopython bcbio-gff networkx markdown2 matplotlib
+cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
+```
+
+<br />
+
+## 2. Download and install FunGAP
+
+### 2.1. Download FunGAP
+
+Download FunGAP using GitHub clone. Suppose we are installing FunGAP in your `$HOME` directory, but you are free to change the location. `$FUNGAP_DIR` is going to be your FunGAP installation directory.
 
 ```
 cd $HOME
 git clone https://github.com/CompSynBioLab-KoreaUniv/FunGAP.git
+cd fungap/
+export FUNGAP_DIR=$(pwd)
 ```
 
-<a name="blast"></a>
-## BLAST+ installatioon
-**BLAST+** is used in Maker and BUSCO running.
+<br />
+
+## 3. Download databases
+
+### 3.1. Pfam DB download 
+
+ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release
 
 ```
-sudo apt-get install ncbi-blast+
+cd $FUNGAP_DIR  # Change directory to FunGAP installation directory
+mkdir -p db/pfam
+cd db/pfam
+wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
+wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.dat.gz
+gunzip Pfam-A.hmm.gz
+gunzip Pfam-A.hmm.dat.gz
+hmmpress Pfam-A.hmm  # HMMER package (would be automatically installed in the above Anaconda step)
 ```
 
-<a name="trinity"></a>
-## Trinity installation
-**Trinity** performs efficient and robust *de novo* reconstruction of transcriptomes from RNA sequencing data. https://github.com/trinityrnaseq/trinityrnaseq/wiki
+### 3.2. BUSCO DB download
 
-Download and install Trinity v2.2.0 using github.
+There are various databases in BUSCO, so just download one of them fitted to your target genome. Here are example commands.
 
 ```
-cd $HOME/FunGAP/external
-git clone https://github.com/trinityrnaseq/trinityrnaseq.git
-cd trinityrnaseq
-make
+cd $FUNGAP_DIR
+mkdir -p db/busco
+cd db/busco
+wget https://busco.ezlab.org/datasets/fungi_odb9.tar.gz
+wget https://busco.ezlab.org/datasets/ascomycota_odb9.tar.gz
+wget https://busco.ezlab.org/datasets/basidiomycota_odb9.tar.gz
+tar -zxvf fungi_odb9.tar.gz
+tar -zxvf ascomycota_odb9.tar.gz
+tar -zxvf basidiomycota_odb9.tar.gz
 ```
 
-<a name="maker"></a>
-## Maker2 installation
-**Maker2** is an easy-to-use annotation pipeline designed for emerging model organism genomes. http://www.gmod.org/wiki/MAKER
+<br />
 
-**\#\#\# Please note that you need a proper license to use Maker2. \#\#\#**
+## 4. Install GeneMark
 
-Download and move `maker-2.31.8.tgz` to your FunGAP directory
+Go to this site and download GeneMark-ES/ET.
+http://topaz.gatech.edu/GeneMark/license_download.cgi
+Don't forget to download the key, too.
+
+### 4.1. Uncompress downloaded files
+
 ```
-mv maker-2.31.8.tgz $HOME/FunGAP/external/
+mkdir -p $FUNGAP_DIR/external/
+mv gm_et_linux_64.tar.gz gm_key_64.gz $FUNGAP_DIR/external/  # Move your downloaded files to this directory
+cd $FUNGAP_DIR/external/
+tar -zxvf gm_et_linux_64.tar.gz
+gunzip gm_key_64.gz
+cp gm_key_64 ~/.gm_key
 ```
+
+### 4.2. Install required perl modules for GeneMark
+
+(if required) You may need to install certain Perl modules. Because GeneMark forces to use `/usr/bin/perl` instead of conda-installed perl, you should install the modules for `/usr/bin/perl` (i.e., not in conda environment). Alternatively, you can modify first lines of GeneMark perl scripts from `#!/usr/bin/perl` to `#!/usr/bin/env perl`
+
+```
+conda deactivate
+sudo apt-get update
+sudo apt-get install build-essential
+sudo cpan App::cpanminus  # Install cpanm if you do not have one
+sudo cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
+conda activate fungap
+```
+
+### 4.3 Check GeneMark and its dependencies are correctly installed.
+
+```
+cd $FUNGAP_DIR/external/gm_et_linux_64/gmes_petap
+./gmes_petap.pl
+```
+
+<br />
+
+### 5. RepeatModeler installation
+
+**Note: RepeatModerler is available in Anaconda2 (https://anaconda.org/bioconda/repeatmodeler), but I couldn't install working program at the moment. Installation seems okay, but no result is produced. I will update this whenever working RepeatModeler is available.**
+
+4-1. Check perl version.
+
+$ perl -v
+It should be > 5.8.8
+
+4-2. Install RECON 1.08
+
+$ wget http://www.repeatmasker.org/RepeatModeler/RECON-1.08.tar.gz
+$ tar -zxvf RECON-1.08.tar.gz
+$ cd RECON-1.08/src/
+$ make
+$ make install
+
+4-3. Install RepeatScout 1.0.5
+
+$ wget http://www.repeatmasker.org/RepeatScout-1.0.5.tar.gz
+$ tar -zxvf RepeatScout-1.0.5.tar.gz 
+$ cd RepeatScout-1
+$ make
+
+4-4. Install NSEG
+
+$ mkdir nseg
+$ cd nseg
+$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/genwin.c
+$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/genwin.h
+$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/lnfac.h
+$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/makefile
+$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nmerge.c
+$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nseg.c
+$ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/runnseg
+$ make
+
+4-5. Install RepeatMasker 4.0.7
+
+$ wget http://www.repeatmasker.org/RepeatMasker-open-4-0-8.tar.gz
+$ tar -zxvf RepeatMasker-open-4-0-8.tar.gz
+$ cd RepeatMasker
+$ perl ./configure
+
+* Note that trf and rmblastn is located at /home/XXXX/anaconda2/envs/fungap/bin
+
+4-6. Install RepeatModeler 1.0.11
+
+$ wget http://www.repeatmasker.org/RepeatModeler/RepeatModeler-open-1.0.11.tar.gz
+$ tar -zxvf RepeatModeler-open-1.0.11.tar.gz
+$ cd RepeatModeler-open-1.0.11/
+$ perl ./configure
+
+* Note that trf and rmblastn is located at /home/XXXX/anaconda2/envs/fungap/bin
+
+4-7. Check the installation
+
+$ cd $FUNGAP_DIR/external/RepeatModeler-open-1.0.11/
+$ ./BuildDatabase --help
+$ ./RepeatModeler --help
+
 
 Unzip maker2
 ```

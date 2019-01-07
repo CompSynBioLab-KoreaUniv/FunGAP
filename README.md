@@ -1,4 +1,6 @@
-# FunGAP: Fungal Genome Annotation Pipeline
+# FunGAP: Fungal Genome Annotation Pipeline v1.1.0
+
+### Last updated: Jan 7, 2019
 
 FunGAP performs gene prediction on given genome assembly and RNA-seq reads. See **INSTALL.md** and **USAGE.md** for installation and usage instruction, or you can go wiki tab for the same.
 
@@ -71,7 +73,7 @@ In the previous step, three gene predictors generated a set of predicted genes (
 
 **BLASTp**
 
-Sequence similarity with genes in phylogenetically close genomes can be an evidence for predicted genes being actual genes. Users provide the proteome of phylogenetically related organisms with the ```--sister_proteome``` argument. For convenience, FunGAP provides a script, download_sister_orgs.py, which downloads protein sequences from NCBI for a given taxon. To reduce computing time, FunGAP integrates the gene models from three gene predictions, and removes identical gene models to make nonredundant gene models. The resulting BLAST output is written in a pairwise format to calculate length coverages. 
+Sequence similarity with genes in phylogenetically close genomes can be an evidence for predicted genes being actual genes. Users provide the proteome of phylogenetically related organisms with the ```--sister_proteome``` argument. For convenience, FunGAP provides a script, download_sister_orgs.py, which downloads protein sequences from NCBI for a given taxon. To reduce computing time, FunGAP integrates the gene models from three gene predictions, and removes identical gene models to make nonredundant gene models.
 
 **BUSCO**
 
@@ -81,13 +83,17 @@ BUSCO provides hidden Markov models for single-copy orthologs conserved in all f
 
 Pfam provides a database of manually curated protein families. We assume that gene models annotated with a Pfam domain are more likely to be an actual gene. Evidence scores for Pfam are directly provided by the hmmer3-match score in the XML output of InterProScan (-f XML option). For multiple domains in one gene model, the sum of the scores is used.
 
+**BLASTn**
+
+Sequence similarity with assembled transcriptome can give the direct evidence for reliability of predicted genes. FunGAP runs BLASTn for each predicted gene against Trinity-assembled transcripts. Length 
+
 ****
 
 **Scoring function**
 
 Three bit scores gained from the above four sources are summed to provide evidence scores for each gene model. The equation of this scoring function is as follows:
 
-Evidence score (gene model) = BLASTscore*cov(query)*cov(target) + BUSCOscore + Pfamscores
+Evidence score (gene model) = BLASTp_score*cov(query)*cov(target) + BUSCO_score + Pfam_scores + BLASTn_score*cov(query)*cov(target)
 
 **Filtration**
 

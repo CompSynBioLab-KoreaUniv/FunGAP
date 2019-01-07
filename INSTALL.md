@@ -43,7 +43,7 @@ wget https://repo.continuum.io/archive/Anaconda2-2018.12-Linux-x86_64.sh
 bash Anaconda2-2018.12-Linux-x86_64.sh
 ```
 
-### 1.2. Set ```$PATH``` variable
+### 1.2. Set conda environment
 
 ```
 echo ". ~/anaconda2/etc/profile.d/conda.sh" >> ~/.bashrc
@@ -92,6 +92,8 @@ export FUNGAP_DIR=$(pwd)
 <br />
 
 ## 3. Download databases
+
+Download Pfam and BUSCO databases in your `$FUNGAP_DIR/db` directory.
 
 ### 3.1. Pfam DB download 
 

@@ -31,11 +31,11 @@ These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
 
 ## 1. Setup Anaconda environment
 
-For robust installation, we recommend to use Anaconda environment and install dependent programs and libraries as much as possible.
+For robust installation, we recommend to use Anaconda environment and install dependent programs and libraries as much as possible in the environment.
 
 ### 1.1. Install Anaconda2 (v4.5.12 tested)
 
-Download and install Anaconda2 (We assume that you install in ```$HOME/anaconda2```)
+Download and install Anaconda2 (We assume that you install it in ```$HOME/anaconda2```)
 
 ```
 cd $HOME

@@ -1,7 +1,7 @@
 # Installation of FunGAP v1.1.0
 
 Because FunGAP implements many dependent programs, you may encounter issues during
-installation. Please don't hesitate to contact me (mbnmbn00@gmail.com) for help.
+installation. Please don't hesitate to post on *Issues* or contact me (mbnmbn00@gmail.com) for help.
 
 These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
 

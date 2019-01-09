@@ -80,7 +80,7 @@ Final output will be located in `fungap_out` directory
 
 <a name="testdata"></a>
 ## 5. Test dataset
-You can download yeast genome assembly (FASTA) and RNA-seq reads (two FASTQs) from NCBI for testing FunGAP.
+You can download yeast (*S. cerevisiae*) genome assembly (FASTA) and RNA-seq reads (two FASTQs) from NCBI for testing FunGAP.
 
 ```
 # Download RNA-seq reads using SRA toolkit (https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/)

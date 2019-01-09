@@ -72,7 +72,7 @@ python $FUNGAP_DIR/fungap.py \
 
 <a name="output"></a>
 ## 4. Output
-Final output will be located in output directory you gave in the arguments
+Final output will be located in `fungap_out` directory you gave in the arguments
 
 - fungap_out_prot.faa
 - fungap_out.gff3

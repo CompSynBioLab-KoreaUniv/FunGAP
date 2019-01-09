@@ -1,6 +1,6 @@
 # FunGAP: Fungal Genome Annotation Pipeline v1.1.0
 
-**Last update: Jan 7, 2019**
+**Last updated: Jan 7, 2019**
 
 Citation: https://academic.oup.com/bioinformatics/article/33/18/2936/3861332
 

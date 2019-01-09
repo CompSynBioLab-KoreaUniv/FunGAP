@@ -32,8 +32,7 @@ python $FUNGAP_DIR/download_sister_orgs.py \
   --email_address mbnmbn00@gmail.com
 ```
 
-E-mail address is needed for NCBI Entrez. All taxon levels are allowed for `--taxon` argument, but *genus* level is appropriate.<br>
-Now make a protein database.
+E-mail address is needed for NCBI Entrez. All taxon levels are allowed for `--taxon` argument, but *genus* level is appropriate. Now make a protein database.
 
 ```
 cd sister_orgs/

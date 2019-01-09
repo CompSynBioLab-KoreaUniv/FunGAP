@@ -59,7 +59,7 @@ This will suggest *coprinus_cinereus* and *laccaria_bicolor*.
 <a name="runningfungap"></a>
 ## 3. Running FunGAP
 
-Usage (`$FUNGAP_DIR` is your FunGAP installation directory))
+Usage (`$FUNGAP_DIR` is your FunGAP installation directory):
 ```
 python $FUNGAP_DIR/fungap.py \
   --output_dir <output_directory> \

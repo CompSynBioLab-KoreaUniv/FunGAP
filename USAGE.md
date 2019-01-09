@@ -44,7 +44,7 @@ You can now input `prot_db.faa` in the `--sister_proteome` argument.
 <a name="augustusgenemodel"></a>
 ## 2. Augustus species model
 
-Augustus gene predictor requires to select pre-defined gene prediction model.
+Augustus gene predictor requires to select pre-defined species model.
 Run `augustus --species=help` to print out the model list. FunGAP provides a script `get_augustus_species.py` to help choose proper species model.
 
 Example command (`$FUNGAP_DIR` is your FunGAP installation directory):

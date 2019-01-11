@@ -93,7 +93,7 @@ Sequence similarity with assembled transcriptome can give the direct evidence fo
 
 Three bit scores gained from the above four sources are summed to provide evidence scores for each gene model. The equation of this scoring function is as follows:
 
-Evidence score (gene model) = BLASTp_score*cov(query)*cov(target) + BUSCO_score + Pfam_scores + BLASTn_score*cov(query)*cov(target)
+Evidence score (gene model) = BLASTp_score*cov(query)*cov(target) + BUSCO_score + Pfam_scores + BLASTn_score\*cov(query)\*cov(target)
 
 **Filtration**
 

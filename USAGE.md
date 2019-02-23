@@ -1,3 +1,12 @@
+# FunGAP: Fungal Genome Annotation Pipeline v1.1.0
+
+**Last updated: Jan 7, 2019**
+
+**FunGAP is freely available for academic use. For the commerical use or license of FunGAP, please contact In-Geol Choi (igchoi (at) korea.ac.kr). Please, cite the following reference**
+
+Reference: Byoungnam Min,  Igor V Grigoriev, and In-Geol Choi, **FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation (2017), Bioinformatics**, Volume 33, Issue 18, Pages 2936–2937, https://doi.org/10.1093/bioinformatics/btx353
+
+<hr>
 # Usage of FunGAP
 
 * [0. Prerequisites](#prerequisites)

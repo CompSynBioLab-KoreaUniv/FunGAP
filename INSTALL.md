@@ -1,5 +1,10 @@
 # Installation of FunGAP v1.1.0
 
+**Last updated: Jan 7, 2019**
+**FunGAP is freely available for academic use. For the commerical use or license of FunGAP, please contact In-Geol Choi (email: igchoi (at) korea.ac.kr). Please, cite the following reference**
+
+Reference: Byoungnam Min  Igor V Grigoriev  In-Geol Choi, FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation (2017), Bioinformatics, Volume 33, Issue 18, Pages 2936–2937, https://doi.org/10.1093/bioinformatics/btx353
+
 Because FunGAP implements many dependent programs, you may encounter issues during
 installation. Please don't hesitate to post on *Issues* or contact me (mbnmbn00@gmail.com) for help.
 

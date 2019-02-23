@@ -1,5 +1,5 @@
 # Installation of FunGAP v1.1.0
-<hr>
+
 **Last updated: Jan 7, 2019**
 
 **FunGAP is freely available for academic use. For the commerical use or license of FunGAP, please contact In-Geol Choi (email: igchoi (at) korea.ac.kr). Please, cite the following reference**

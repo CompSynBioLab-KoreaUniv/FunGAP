@@ -174,6 +174,8 @@ def run_hisat2(
 
         prefix = os.path.basename(os.path.splitext(read_file)[0])
         prefix = re.sub('_1$', '', prefix)
+        # for single-end read, removing underscored tag (_s) for formation of {prefix}.bam
+        prefix = re.sub('_s$', '', prefix)
         hisat2_output = os.path.join(
             output_dir, '{}.bam'.format(prefix)
         )

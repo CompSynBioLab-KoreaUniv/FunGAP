@@ -173,7 +173,7 @@ def run_hisat2(
             sys.exit(2)
 
         prefix = os.path.basename(os.path.splitext(read_file)[0])
-        prefix = re.sub('_1$', '', prefix)
+        prefix = re.sub('_[1s]$', '', prefix)
         hisat2_output = os.path.join(
             output_dir, '{}.bam'.format(prefix)
         )

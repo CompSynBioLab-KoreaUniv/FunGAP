@@ -79,7 +79,7 @@ conda config --add channels conda-forge/label/cf201901
 ### 1.5. Install dependencies
 
 ```
-conda install -c bioconda augustus rmblast maker trinity hisat2 braker busco blast pfam_scan
+conda install augustus rmblast maker trinity hisat2 braker busco blast pfam_scan
 pip install biopython bcbio-gff networkx markdown2 matplotlib
 cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
 ```

@@ -175,7 +175,7 @@ cd $FUNGAP_DIR/external/gm_et_linux_64/gmes_petap
 
 ### 5. RepeatModeler installation
 
-**Note: RepeatModerler is available in Anaconda2 (https://anaconda.org/bioconda/repeatmodeler), but conda-installed program did not work at the moment. Installation seemed okay, but no result was produced. I will update this whenever working RepeatModeler is available.**
+Note: RepeatModerler is available in Anaconda2 (https://anaconda.org/bioconda/repeatmodeler), but the conda-installed program does not work at the moment. Installation seemed okay, but when I ran, I got no results. I will update this whenever working RepeatModeler is available.
 
 ### 5.1. Check perl version.
 

@@ -157,15 +157,11 @@ cp gm_key_64 ~/.gm_key
 
 ### 4.2. Install required perl modules for GeneMark
 
-(if required) You may need to install certain Perl modules. Because GeneMark forces to use `/usr/bin/perl` instead of conda-installed perl, you should install the modules for `/usr/bin/perl` (i.e., not in conda environment). Alternatively, you can modify first lines of GeneMark perl scripts from `#!/usr/bin/perl` to `#!/usr/bin/env perl`
+GeneMark forces to use `/usr/bin/perl` instead of conda-installed perl. You can change this by running `change_path_in_perl_scripts.pl` script.
 
 ```
-conda deactivate
-sudo apt-get update
-sudo apt-get install build-essential
-sudo cpan App::cpanminus  # Install cpanm if you do not have one
-sudo cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
-conda activate fungap
+cd $FUNGAP_DIR/external/gm_et_linux_64/gmes_petap
+perl change_path_in_perl_scripts.pl "/usr/bin/env perl"
 ```
 
 ### 4.3 Check GeneMark and its dependencies are correctly installed.

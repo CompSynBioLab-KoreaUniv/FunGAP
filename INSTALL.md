@@ -67,7 +67,7 @@ conda activate fungap
 
 ### 1.4. Add channels
 
-**This step is important otherwise Maker will stop**
+This step is essential; otherwise, Maker will stop.
 
 ```
 conda config --remove channels bioconda

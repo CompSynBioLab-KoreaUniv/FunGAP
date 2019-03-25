@@ -89,7 +89,7 @@ def main(argv):
     )
 
     args = parser.parse_args()
-    genome_assembly = os.path.abspath(args.genome_assembly)
+    genome_assembly = os.path.abspath(args.genome_assembly[0])
     input_gff3s = [os.path.abspath(x) for x in args.input_gff3s]
     mapping_file = os.path.abspath(args.mapping_file[0])
     blastp_dict = os.path.abspath(args.blastp_dict[0])

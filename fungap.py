@@ -264,8 +264,8 @@ def main(argv):
     # Catch bad genes
     bad_dict = catch_bad_genes(gff3_files, genome_assembly, output_dir)
     filter_gff3s(
-        gff3_files, blastp_dict, busco_dict, pfam_dict, blastn_dict, bad_dict,
-        nr_prot_file, nr_prot_mapping_file, output_dir
+        genome_assembly, gff3_files, blastp_dict, busco_dict, pfam_dict,
+        blastn_dict, bad_dict, nr_prot_file, nr_prot_mapping_file, output_dir
     )
     gff3_postprocess(genome_assembly, output_dir)
 
@@ -668,20 +668,20 @@ def catch_bad_genes(gff3_files, genome_assembly, output_dir):
 
 
 def filter_gff3s(
-    gff3_files, blastp_dict, busco_dict, pfam_dict, blastn_dict, bad_dict,
-    nr_prot_file, nr_prot_mapping_file, output_dir
+    genome_assembly, gff3_files, blastp_dict, busco_dict, pfam_dict, blastn_dict,
+    bad_dict, nr_prot_file, nr_prot_mapping_file, output_dir
 ):
-    # filter_gff3s.py -i <input_gff3s> -m <mapping_file> -b <blastp_dict>
-    # -B <busco_dict> -p <pfam_dict> -N <blastn_dict> -g <bad_dict>
+    # filter_gff3s.py -a <genome_assembly> -i <input_gff3s> -m <mapping_file>
+    # -b <blastp_dict> -B <busco_dict> -p <pfam_dict> -N <blastn_dict> -g <bad_dict>
     # -n <nr_prot_file> -o <output_dir> -l <log_dir>
     gene_filtering_dir = os.path.join(output_dir, 'gene_filtering')
     log_dir = os.path.join(output_dir, 'logs')
     command = (
-        'python {} --input_gff3s {} --mapping_file {} --blastp_dict {} '
-        '--busco_dict {} --pfam_dict {} --blastn_dict {} --bad_dict {} '
-        '--nr_prot_file {} --output_dir {} --log_dir {}'
+        'python {} --genome_assembly {} --input_gff3s {} --mapping_file {} '
+        '--blastp_dict {} --busco_dict {} --pfam_dict {} --blastn_dict {} '
+        '--bad_dict {} --nr_prot_file {} --output_dir {} --log_dir {}'
     ).format(
-        filter_gff3s_path, ' '.join(gff3_files), nr_prot_mapping_file,
+        filter_gff3s_path, genome_assembly, ' '.join(gff3_files), nr_prot_mapping_file,
         blastp_dict, busco_dict, pfam_dict, blastn_dict, bad_dict, nr_prot_file,
         gene_filtering_dir, log_dir
     )

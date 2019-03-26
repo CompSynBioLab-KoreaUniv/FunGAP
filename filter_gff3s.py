@@ -148,7 +148,8 @@ def main(argv):
     D_prot = import_prot(nr_prot_file, D_mapping_rev)
     write_final_prots(final_gene_set, D_mapping, output_dir)
     write_files(
-        final_gene_set, D_gene, D_gff3, D_prot, D_exon, output_dir, D_cds
+        genome_assembly, final_gene_set, D_gene, D_gff3, D_prot, D_exon, output_dir,
+        D_cds
     )
 
     cds_len_final = 0

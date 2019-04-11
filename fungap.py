@@ -88,7 +88,7 @@ def main(argv):
     argparse_usage = (
         'fungap.py -g <genome_assembly> -12UA <trans_read_files> '
         '-o <output_dir> -a <augustus_species> '
-        '-O <org_id> -s <sister_proteome>'
+        '-s <sister_proteome>'
     )
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(

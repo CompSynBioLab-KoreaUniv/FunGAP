@@ -16,6 +16,7 @@ Reference: Byoungnam Min,  Igor V Grigoriev, and In-Geol Choi, **FunGAP: Fungal 
 * [3. Running FunGAP](#runningfungap)
 * [4. FunGAP output](#output)
 * [5. Test dataset](#testdata)
+* [6. After FunGAP](#afterfungap)
 
 <a name="prerequisites"></a>
 ## 0. Prerequisites
@@ -101,3 +102,12 @@ wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF_000146045.2_R64/GCF_000146045.2_
 ```
 
 It took about 9 hours by dual Intel(R) Xeon(R) CPU E5-2670 v3 with 40 CPU cores.
+
+<a name="afterfungap"></a>
+## 6. After FunGAP
+[Interproscan](https://www.ebi.ac.uk/interpro/search/sequence-search) can infer functions on predicted genes.
+
+Example command:
+```
+interproscan.sh -i <protein.fasta> -f tsv --goterms -pa --iprlookup -b <base_name> --tempdir <TEMP-DIR>
+```

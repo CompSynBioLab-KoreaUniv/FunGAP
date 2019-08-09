@@ -104,10 +104,12 @@ wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF_000146045.2_R64/GCF_000146045.2_
 It took about 9 hours by dual Intel(R) Xeon(R) CPU E5-2670 v3 with 40 CPU cores.
 
 <a name="afterfungap"></a>
-## 6. After FunGAP
-[Interproscan](https://www.ebi.ac.uk/interpro/search/sequence-search) can infer functions on predicted genes.
+## 6. Add Pfam annotation to FunGAP GFF3 output
+[Interproscan](https://www.ebi.ac.uk/interpro/search/sequence-search) can infer the functions of predicted genes.
+The ```gff3_add_pfam.py``` script adds the annotation to the GFF3 file.
 
-Example command:
+Example commands:
 ```
-interproscan.sh -i <protein.fasta> -f tsv --goterms -pa --iprlookup -b <base_name> --tempdir <TEMP-DIR>
+$ interproscan.sh -i <protein.fasta> -f tsv -appl Pfam --goterms -pa --iprlookup -b <base_name> --tempdir <TEMP-DIR>
+$ gff3_add_pfam.py --input_gff3 <fungap_out.gff3> --pfam_file <interproscan_output.tsv>
 ```

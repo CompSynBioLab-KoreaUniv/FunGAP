@@ -160,7 +160,8 @@ cp gm_key_64 ~/.gm_key
 GeneMark forces to use `/usr/bin/perl` instead of conda-installed perl. You can change this by running `change_path_in_perl_scripts.pl` script.
 
 ```
-cd $FUNGAP_DIR/external/gm_et_linux_64/gmes_petap
+cd $FUNGAP_DIR/external/gm_et_linux_64/
+ln -s other/reformat_fasta.pl .  # It is a bug in v4.46 (checked on Sep 4, 2019)
 perl change_path_in_perl_scripts.pl "/usr/bin/env perl"
 ```
 

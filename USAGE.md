@@ -74,7 +74,8 @@ Usage (`$FUNGAP_DIR` is your FunGAP installation directory):
 ```
 python $FUNGAP_DIR/fungap.py \
   --output_dir <output_directory> \
-  --trans_read_files <transcriptome_reads_fastqs> \
+  --trans_read_1 <transcriptome_reads_fastq_1> \
+  --trans_read_2 <transcriptome_reads_fastq_2> \
   --genome_assembly <genome_assembly_fasta> \
   --augustus_species <augustus_species> \
   --sister_proteome <sister_proteome> \

@@ -312,7 +312,7 @@ def run_hisat2(
     # Get output BAM file paths
     trans_bams = []
     for trans_read_file in trans_read_files:
-        prefix = re.sub(r'_[12s]', '',
+        prefix = re.sub(r'_[12s]$', '',
             os.path.basename(os.path.splitext(trans_read_file)[0])
         )
         hisat2_output = os.path.join(hisat2_output_dir, '{}.bam'.format(prefix))

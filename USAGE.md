@@ -98,7 +98,7 @@ You can download yeast (*S. cerevisiae*) genome assembly (FASTA) and RNA-seq rea
 fastq-dump -I --split-files SRR1198667
 
 # Download assembly
-wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz
+wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/146/045/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz
 ```
 
 It took about 9 hours by dual Intel(R) Xeon(R) CPU E5-2670 v3 with 40 CPU cores.

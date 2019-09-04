@@ -96,6 +96,8 @@ You can download yeast (*S. cerevisiae*) genome assembly (FASTA) and RNA-seq rea
 ```
 # Download RNA-seq reads using SRA toolkit (https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/)
 fastq-dump -I --split-files SRR1198667
+head -n 12000000 SRR1198667_1.fastq > SRR1198667_sampled_1.fastq
+head -n 12000000 SRR1198667_2.fastq > SRR1198667_sampled_2.fastq
 
 # Download assembly
 wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/146/045/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz

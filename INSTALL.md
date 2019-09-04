@@ -20,7 +20,7 @@ These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
 1. [Trinity](https://github.com/trinityrnaseq/trinityrnaseq) v2.6.6
 1. [RepeatModeler](http://www.repeatmasker.org/RepeatModeler/) v1.0.11
 1. [Maker](http://www.yandell-lab.org/software/maker.html) v2.31.10
-1. [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) v4.38
+1. [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) v4.46
 1. [Augustus](https://github.com/Gaius-Augustus/Augustus) v3.3
 1. [Braker](http://exon.gatech.edu/braker1.html) v1.9
 1. [BUSCO](https://busco.ezlab.org/) v3.0.2
@@ -168,7 +168,7 @@ perl change_path_in_perl_scripts.pl "/usr/bin/env perl"
 ### 4.3 Check GeneMark and its dependencies are correctly installed.
 
 ```
-cd $FUNGAP_DIR/external/gm_et_linux_64/gmes_petap
+cd $FUNGAP_DIR/external/gm_et_linux_64/
 ./gmes_petap.pl
 ```
 

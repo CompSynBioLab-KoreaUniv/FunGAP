@@ -19,7 +19,7 @@ https://gist.github.com/lmtani/d37343a40e143b59336e4606055d1723
 
 * This Docker container has been developed and maintained by [Lucas Taniguti](https://gist.github.com/lmtani)
 
-# Install FunGAP using _conda_
+# Install FunGAP using conda
 
 Although we recommend using Docker, some workspaces are not available for Docker (e.g., HPC). Please use the following instruction for conda-based FunGAP installation.
 

@@ -289,6 +289,8 @@ echo $FUNGAP_DIR/external/trinityrnaseq-Trinity-v2.8.5/ >> ~/.bashrc
 source ~/.bashrc
 ```
 
+<br />
+
 ## 7. Configure FunGAP
 
 This script allows users to set and test (by --help command) all the dependencies. If this script runs without any issue, you are ready to run FunGAP!

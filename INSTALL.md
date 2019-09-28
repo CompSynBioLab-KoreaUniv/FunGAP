@@ -12,6 +12,17 @@ installation. Please don't hesitate to post on *Issues* or contact me (mbnmbn00@
 
 These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
 
+# Insall FunGAP using Docker
+
+Using Docker is the most reliable and robust way to install FunGAP.
+https://gist.github.com/lmtani/d37343a40e143b59336e4606055d1723
+
+* This Docker container has been developed and maintained by [Lucas Taniguti](https://gist.github.com/lmtani)
+
+# Install FunGAP using _conda_
+
+Although we recommend using Docker, some workspaces are not available for Docker (e.g., HPC). Please use the following instruction for conda-based FunGAP installation.
+
 ## 0. FunGAP requirements
 
 ### 0.1. Required softwares (and tested versions)
@@ -79,7 +90,7 @@ conda config --add channels conda-forge/label/cf201901
 ### 1.5. Install dependencies
 
 ```
-conda install augustus rmblast maker trinity hisat2 braker busco blast pfam_scan
+conda install augustus rmblast maker hisat2 braker busco blast pfam_scan
 pip install biopython bcbio-gff networkx markdown2 matplotlib
 cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
 ```
@@ -259,7 +270,26 @@ cd $FUNGAP_DIR/external/RepeatModeler-open-1.0.11/
 
 <br />
 
-## 6. Configure FunGAP
+## 6. Trinity installation
+
+Download and compile Trinity
+
+```
+cd $FUNGAP_DIR/external
+wget https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.8.5.tar.gz
+tar -zxvf Trinity-v2.8.5.tar.gz 
+cd trinityrnaseq-Trinity-v2.8.5/
+make
+make plugins
+```
+
+Add to $PATH variable
+```
+echo $FUNGAP_DIR/external/trinityrnaseq-Trinity-v2.8.5/ >> ~/.bashrc
+source ~/.bashrc
+```
+
+## 7. Configure FunGAP
 
 This script allows users to set and test (by --help command) all the dependencies. If this script runs without any issue, you are ready to run FunGAP!
 

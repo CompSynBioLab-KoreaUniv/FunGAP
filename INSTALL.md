@@ -283,7 +283,7 @@ make
 make plugins
 ```
 
-Add to $PATH variable
+Add to `$PATH` variable
 ```
 echo "export PATH=$PATH:$FUNGAP_DIR/external/trinityrnaseq-Trinity-v2.8.5/" >> ~/.bashrc
 source ~/.bashrc

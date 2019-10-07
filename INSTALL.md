@@ -279,6 +279,7 @@ cd $FUNGAP_DIR/external
 wget https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.8.5.tar.gz
 tar -zxvf Trinity-v2.8.5.tar.gz 
 cd trinityrnaseq-Trinity-v2.8.5/
+sudo apt-get install cmake  # cmake is required to compile Trinity
 make
 make plugins
 ```

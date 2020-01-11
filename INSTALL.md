@@ -90,7 +90,7 @@ conda config --add channels conda-forge/label/cf201901
 ### 1.5. Install dependencies
 
 ```
-conda install augustus rmblast maker hisat2 braker busco blast pfam_scan salmon jellyfish bowtie2
+conda install augustus rmblast maker hisat2 braker busco blast pfam_scan jellyfish bowtie2 repeatmodeler
 pip install biopython bcbio-gff networkx markdown2 matplotlib
 cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
 ```

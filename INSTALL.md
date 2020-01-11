@@ -28,14 +28,14 @@ Although we recommend using Docker, some workspaces are not available for Docker
 ### 0.1. Required softwares (and tested versions)
 
 1. [Hisat2](https://ccb.jhu.edu/software/hisat2/index.shtml) v2.1.0
-1. [Trinity](https://github.com/trinityrnaseq/trinityrnaseq) v2.6.6
+1. [Trinity](https://github.com/trinityrnaseq/trinityrnaseq) v2.9.0
 1. [RepeatModeler](http://www.repeatmasker.org/RepeatModeler/) v1.0.11
 1. [Maker](http://www.yandell-lab.org/software/maker.html) v2.31.10
-1. [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) v4.46
+1. [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) v4.48_3.60_lic
 1. [Augustus](https://github.com/Gaius-Augustus/Augustus) v3.3
 1. [Braker](http://exon.gatech.edu/braker1.html) v1.9
 1. [BUSCO](https://busco.ezlab.org/) v3.0.2
-1. [Pfam_scan](https://www.ebi.ac.uk/seqdb/confluence/display/THD/PfamScan) v1.6
+1. [Pfam_scan](https://www.ebi.ac.uk/seqdb/confluence/display/THD/PfamScan) v1.6-2
 1. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download) v2.6.0+
 1. [Samtools](http://www.htslib.org/download/) v1.9
 1. [Bamtools](https://github.com/pezmaster31/bamtools) v2.4.1
@@ -51,14 +51,14 @@ Although we recommend using Docker, some workspaces are not available for Docker
 
 For robust installation, we recommend to use Anaconda environment and install dependent programs and libraries as much as possible in the environment.
 
-### 1.1. Install Anaconda2 (v4.5.12 tested)
+### 1.1. Install Anaconda2 (v4.8.1 tested)
 
 Download and install Anaconda2 (We assume that you install it in ```$HOME/anaconda2```)
 
 ```
 cd $HOME
-wget https://repo.continuum.io/archive/Anaconda2-2018.12-Linux-x86_64.sh
-bash Anaconda2-2018.12-Linux-x86_64.sh
+wget https://repo.anaconda.com/archive/Anaconda2-2019.10-Linux-x86_64.sh
+bash Anaconda2-2019.10-Linux-x86_64.sh
 ```
 
 ### 1.2. Set conda environment
@@ -90,7 +90,7 @@ conda config --add channels conda-forge/label/cf201901
 ### 1.5. Install dependencies
 
 ```
-conda install augustus rmblast maker hisat2 braker busco blast pfam_scan
+conda install augustus rmblast maker hisat2 braker busco blast pfam_scan salmon jellyfish bowtie2
 pip install biopython bcbio-gff networkx markdown2 matplotlib
 cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
 ```
@@ -139,9 +139,9 @@ There are various databases in BUSCO, so just download one of them fitted to you
 cd $FUNGAP_DIR
 mkdir -p db/busco
 cd db/busco
-wget https://busco.ezlab.org/datasets/fungi_odb9.tar.gz
-wget https://busco.ezlab.org/datasets/ascomycota_odb9.tar.gz
-wget https://busco.ezlab.org/datasets/basidiomycota_odb9.tar.gz
+wget https://busco-archive.ezlab.org/v3/datasets/fungi_odb9.tar.gz
+wget https://busco-archive.ezlab.org/v3/datasets/ascomycota_odb9.tar.gz
+wget https://busco-archive.ezlab.org/v3/datasets/basidiomycota_odb9.tar.gz
 tar -zxvf fungi_odb9.tar.gz
 tar -zxvf ascomycota_odb9.tar.gz
 tar -zxvf basidiomycota_odb9.tar.gz
@@ -172,7 +172,6 @@ GeneMark forces to use `/usr/bin/perl` instead of conda-installed perl. You can 
 
 ```
 cd $FUNGAP_DIR/external/gm_et_linux_64/
-ln -s other/reformat_fasta.pl .  # It is a bug in v4.46 (checked on Sep 4, 2019)
 perl change_path_in_perl_scripts.pl "/usr/bin/env perl"
 ```
 
@@ -231,6 +230,7 @@ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/makefile
 wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nmerge.c
 wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nseg.c
 wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/runnseg
+conda deactivate  # Compile outside conda environment
 make
 ```
 
@@ -279,6 +279,7 @@ cd $FUNGAP_DIR/external
 wget https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.8.5.tar.gz
 tar -zxvf Trinity-v2.8.5.tar.gz 
 cd trinityrnaseq-Trinity-v2.8.5/
+conda deactivate  # Compile outside conda environment
 sudo apt-get install cmake  # cmake is required to compile Trinity
 make
 make plugins

@@ -91,7 +91,8 @@ conda config --add channels conda-forge/label/cf201901
 
 ```
 conda install augustus rmblast maker hisat2 braker busco=3.0.2 blast pfam_scan bowtie2
-conda install -c bioconda/label/cf201901 jellyfish
+conda install -c bioconda/label/cf201901 jellyfish  # For Trinity
+conda install -c anaconda openjdk  # For Trinity
 pip install biopython bcbio-gff networkx markdown2 matplotlib
 cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
 ```

@@ -1,6 +1,6 @@
 # Installation of FunGAP v1.0.1
 
-**Last updated: Jan 7, 2019*
+**Last updated: Jan 12, 2020*
 
 **FunGAP is freely available for academic use. For the commerical use or license of FunGAP, please contact In-Geol Choi (email: igchoi (at) korea.ac.kr). Please, cite the following reference**
 
@@ -78,7 +78,7 @@ conda activate fungap
 
 ### 1.4. Add channels
 
-This step is essential; otherwise, Maker will stop.
+This step is **essential**; otherwise, Maker will stop.
 
 ```
 conda config --remove channels bioconda
@@ -90,7 +90,8 @@ conda config --add channels conda-forge/label/cf201901
 ### 1.5. Install dependencies
 
 ```
-conda install augustus rmblast maker hisat2 braker busco blast pfam_scan jellyfish bowtie2 repeatmodeler
+conda install augustus rmblast maker hisat2 braker busco=3.0.2 blast pfam_scan bowtie2
+conda install -c bioconda/label/cf201901 jellyfish
 pip install biopython bcbio-gff networkx markdown2 matplotlib
 cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
 ```
@@ -230,7 +231,7 @@ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/makefile
 wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nmerge.c
 wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nseg.c
 wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/runnseg
-conda deactivate  # Compile outside conda environment
+sudo apt-get install build-essential  # "make: cc: Command not found" error
 make
 ```
 
@@ -276,11 +277,11 @@ Download and compile Trinity
 
 ```
 cd $FUNGAP_DIR/external
-wget https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.8.5.tar.gz
-tar -zxvf Trinity-v2.8.5.tar.gz 
-cd trinityrnaseq-Trinity-v2.8.5/
+wget https://github.com/trinityrnaseq/trinityrnaseq/releases/download/v2.9.0/trinityrnaseq-v2.9.0.FULL.tar.gz
+tar -zxvf trinityrnaseq-v2.9.0.FULL.tar.gz
+cd trinityrnaseq-v2.9.0/
 conda deactivate  # Compile outside conda environment
-sudo apt-get install cmake  # cmake is required to compile Trinity
+sudo apt-get install cmake zlib1g-dev  # "zlib.h: No such file or directory" error
 make
 make plugins
 ```
@@ -288,6 +289,16 @@ make plugins
 Add to `$PATH` variable
 ```
 echo "export PATH=$PATH:$FUNGAP_DIR/external/trinityrnaseq-Trinity-v2.8.5/" >> ~/.bashrc
+source ~/.bashrc
+```
+
+### 6-1. Salmon installation
+
+```
+cd $FUNGAP_DIR/external
+wget https://github.com/COMBINE-lab/salmon/releases/download/v1.1.0/salmon-1.1.0_linux_x86_64.tar.gz
+tar -zxvf salmon-1.1.0_linux_x86_64.tar.gz 
+echo "export PATH=$PATH:$FUNGAP_DIR/external/salmon-latest_linux_x86_64/bin/" >> ~/.bashrc
 source ~/.bashrc
 ```
 
@@ -299,9 +310,10 @@ This script allows users to set and test (by --help command) all the dependencie
 
 ```
 cd $FUNGAP_DIR
+conda activate fungap
 python set_dependencies.py \
   --pfam_db_dir db/pfam \
   --busco_db_dir db/busco/basidiomycota_odb9/ \
-  --genemark_dir external/gm_et_linux_64/gmes_petap/ \
+  --genemark_dir external/gm_et_linux_64/ \
   --repeat_modeler_dir external/RepeatModeler-open-1.0.11
 ```

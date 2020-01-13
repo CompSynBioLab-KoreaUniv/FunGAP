@@ -318,3 +318,29 @@ python set_dependencies.py \
   --genemark_dir external/gm_et_linux_64/ \
   --repeat_modeler_dir external/RepeatModeler-open-1.0.11
 ```
+
+<br />
+
+## 8. Braker1 bug
+
+You have to fix this bug otherwise you will encounter this error.
+
+> ERROR: Number of good genes is 0, so the parameters cannot be optimized. Recomended are at least 300 genes <br />
+> WARNING: Number of good genes is low (0 <br />
+> ). Recomended are at least 300 genes
+
+```
+cd $HOME/anaconda2/envs/fungap/bin
+vim filterGenesIn_mRNAname.pl
+```
+
+Go to line 27, and add "?" character.
+
+From
+```
+if($_ =~ m/transcript_id \"(.*)\"/) {
+```
+to
+```
+if($_ =~ m/transcript_id \"(.*?)\"/) {
+```

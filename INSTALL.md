@@ -1,6 +1,6 @@
 # Installation of FunGAP v1.0.1
 
-**Last updated: Jan 12, 2020*
+**Last updated: Jan 13, 2020*
 
 **FunGAP is freely available for academic use. For the commerical use or license of FunGAP, please contact In-Geol Choi (email: igchoi (at) korea.ac.kr). Please, cite the following reference**
 
@@ -323,7 +323,7 @@ python set_dependencies.py \
 
 ## 8. Braker1 bug
 
-You have to fix this bug otherwise you will encounter this error.
+You have to fix this bug; otherwise, you will encounter this error.
 
 > ERROR: Number of good genes is 0, so the parameters cannot be optimized. Recomended are at least 300 genes <br />
 > WARNING: Number of good genes is low (0 <br />

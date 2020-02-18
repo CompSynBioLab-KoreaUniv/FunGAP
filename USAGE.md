@@ -79,7 +79,7 @@ python $FUNGAP_DIR/fungap.py \
   --genome_assembly <genome_assembly_fasta> \
   --augustus_species <augustus_species> \
   --sister_proteome <sister_proteome> \
-  --num_cores <number_of_cpus_to_be_used> \
+  --num_cores <number_of_cpus_to_be_used>
 ```
 
 <a name="output"></a>

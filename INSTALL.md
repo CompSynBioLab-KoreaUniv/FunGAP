@@ -12,12 +12,9 @@ installation. Please don't hesitate to post on *Issues* or contact me (mbnmbn00@
 
 These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
 
-# Insall FunGAP using Docker
+# Install FunGAP using Docker
 
-Using Docker is the most reliable and robust way to install FunGAP.
-https://gist.github.com/lmtani/d37343a40e143b59336e4606055d1723
-
-* This Docker container has been developed and maintained by [Lucas Taniguti](https://gist.github.com/lmtani)
+Using Docker is the most reliable and robust way to install FunGAP. [Please folow these instructions](docker/README.md).
 
 # Install FunGAP using conda
 

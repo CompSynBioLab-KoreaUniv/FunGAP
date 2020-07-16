@@ -5,7 +5,7 @@ This gist has instructions about runnig [FunGAP pipeline](https://github.com/Com
 Requirements:
   - Docker
   - 16Gb of available disk space
-  - GeneMark-ES/ET release and it's key (`gm_et_linux_64.tar.gz` and `gm_key_64.gz`)
+  - [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) release and it's key (`gmes_linux_64.tar.gz` and `gm_key_64.gz`)
   
 ## Steps
 
@@ -13,7 +13,7 @@ Requirements:
 
 Be sure you have the following files in the working directory:
 
-`Dockerfile  fungap.conf  gm_et_linux_64.tar.gz  gm_key_64.gz`
+`Dockerfile  fungap.conf  gmes_linux_64.tar.gz  gm_key_64.gz`
 
 > GeneMark is not free for everybody, so you need to register in order to have gm_* files. If was not for that I could have push FunGAP docker image ready for use in DockerHub.
 
@@ -24,7 +24,7 @@ cd fungap
 wget https://gist.githubusercontent.com/lmtani/d37343a40e143b59336e4606055d1723/raw/Dockerfile
 wget https://gist.githubusercontent.com/lmtani/d37343a40e143b59336e4606055d1723/raw/fungap.conf
 
-# 2. Download gm_et_linux_64.tar.gz and gm_key_64.gz and put it in same directory
+# 2. Download gmes_linux_64.tar.gz and gm_key_64.gz and put it in same directory
 # 3. Build the image
 docker build -t fungap .
 ```
@@ -65,3 +65,26 @@ docker build -t fungap .
     ```
 
 Now you can exit docker container. Your current working directory was mounted inside FunGAP container (on /fungap_workspace) so all output files will be available on your system.
+
+## BRAKER bug
+
+You have to fix this bug; otherwise, you will encounter this error.
+
+> ERROR: Number of good genes is 0, so the parameters cannot be optimized. Recomended are at least 300 genes <br />
+> WARNING: Number of good genes is low (0 <br />
+> ). Recomended are at least 300 genes
+
+```
+vim /opt/conda/bin/filterGenesIn_mRNAname.pl
+```
+
+Go to line 27, and add "?" character.
+
+From
+```
+if($_ =~ m/transcript_id \"(.*)\"/) {
+```
+to
+```
+if($_ =~ m/transcript_id \"(.*?)\"/) {
+```

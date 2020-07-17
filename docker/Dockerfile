@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y build-essential postgresql postgresql-c
 
 RUN conda config --add channels bioconda/label/cf201901 \
     && conda config --add channels conda-forge/label/cf201901 \
-    && conda install augustus rmblast maker hisat2 braker busco=3.0.2 blast pfam_scan \
-    && pip install biopython bcbio-gff networkx markdown2 matplotlib \
+    && conda install augustus rmblast maker hisat2 braker busco=3.0.2 blast pfam_scan biopython \
+    && pip install bcbio-gff networkx markdown2 matplotlib \
     && cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
 
 ENV FUNGAP_DIR=/workspace/FunGAP
@@ -35,16 +35,16 @@ RUN cd $FUNGAP_DIR \
     && tar -zxvf basidiomycota_odb9.tar.gz
 
 # Install GeneMark
-COPY gm_et_linux_64.tar.gz .
+COPY gmes_linux_64.tar.gz .
 COPY gm_key_64.gz .
 
 RUN mkdir $FUNGAP_DIR/external/ \
-    && mv gm_et_linux_64.tar.gz gm_key_64.gz $FUNGAP_DIR/external/  \
+    && mv gmes_linux_64.tar.gz gm_key_64.gz $FUNGAP_DIR/external/  \
     && cd $FUNGAP_DIR/external/ \
-    && tar -zxvf gm_et_linux_64.tar.gz \
+    && tar -zxvf gmes_linux_64.tar.gz \
     && gunzip gm_key_64.gz \
     && cp gm_key_64 ~/.gm_key \
-    && cd $FUNGAP_DIR/external/gm_et_linux_64/ \
+    && cd $FUNGAP_DIR/external/gmes_linux_64/ \
     && cp other/reformat_fasta.pl . \
     && perl change_path_in_perl_scripts.pl "/usr/bin/env perl"
 

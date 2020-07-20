@@ -90,7 +90,7 @@ conda config --add channels conda-forge/label/cf201901
 conda install augustus rmblast maker hisat2 braker busco=3.0.2 blast pfam_scan bowtie2
 conda install -c bioconda/label/cf201901 jellyfish  # For Trinity
 conda install -c anaconda openjdk  # For Trinity
-pip install biopython bcbio-gff networkx markdown2 matplotlib
+pip install biopython==1.76 bcbio-gff networkx markdown2 matplotlib
 cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
 ```
 
@@ -158,9 +158,9 @@ Don't forget to download the key, too.
 
 ```
 mkdir $FUNGAP_DIR/external/
-mv gm_et_linux_64.tar.gz gm_key_64.gz $FUNGAP_DIR/external/  # Move your downloaded files to this directory
+mv gmes_linux_64.tar.gz gm_key_64.gz $FUNGAP_DIR/external/  # Move your downloaded files to this directory
 cd $FUNGAP_DIR/external/
-tar -zxvf gm_et_linux_64.tar.gz
+tar -zxvf gmes_linux_64.tar.gz
 gunzip gm_key_64.gz
 cp gm_key_64 ~/.gm_key
 ```
@@ -170,14 +170,14 @@ cp gm_key_64 ~/.gm_key
 GeneMark forces to use `/usr/bin/perl` instead of conda-installed perl. You can change this by running `change_path_in_perl_scripts.pl` script.
 
 ```
-cd $FUNGAP_DIR/external/gm_et_linux_64/
+cd $FUNGAP_DIR/external/gmes_linux_64/
 perl change_path_in_perl_scripts.pl "/usr/bin/env perl"
 ```
 
 ### 4.3 Check GeneMark and its dependencies are correctly installed.
 
 ```
-cd $FUNGAP_DIR/external/gm_et_linux_64/
+cd $FUNGAP_DIR/external/gmes_linux_64/
 ./gmes_petap.pl
 ```
 
@@ -312,7 +312,7 @@ conda activate fungap
 python set_dependencies.py \
   --pfam_db_dir db/pfam \
   --busco_db_dir db/busco/basidiomycota_odb9/ \
-  --genemark_dir external/gm_et_linux_64/ \
+  --genemark_dir external/gmes_linux_64/ \
   --repeat_modeler_dir external/RepeatModeler-open-1.0.11
 ```
 

@@ -97,8 +97,7 @@ RUN cd $FUNGAP_DIR/external/ \
   && cd ..
 
 # Add fungap.conf
-ADD https://gist.githubusercontent.com/lmtani/d37343a40e143b59336e4606055d1723/raw/fungap.conf \
-    $FUNGAP_DIR/
+COPY fungap.conf $FUNGAP_DIR/
 
 ##########
 ## Trinity
@@ -127,15 +126,3 @@ RUN cd $FUNGAP_DIR/external \
   && tar xvf Salmon-0.9.1_linux_x86_64.tar.gz
 
 ENV PATH=${PATH}:$FUNGAP_DIR/external/trinityrnaseq:$FUNGAP_DIR/external/Salmon-latest_linux_x86_64/bin/:$FUNGAP_DIR/external/jellyfish-2.2.7/bin/
-
-
-# Need to enter container, configure RepeadMask and RepeatModeler manually.
-
-#python /workspace/FunGAP/fungap.py \
-#    --output_dir fungap_out \
-#    --trans_read_1 sscita_1.fastq \
-#    --trans_read_2 sscita_2.fastq \
-#    --genome_assembly genome/pilon.fasta  \
-#    --augustus_species ustilago_maydis  \
-#    --sister_proteome sister_prot/prot_db.faa  \
-#    --num_cores 10

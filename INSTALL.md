@@ -11,6 +11,8 @@ Reference: Byoungnam Min  Igor V Grigoriev  In-Geol Choi, FunGAP: Fungal Genome 
 Please don't hesitate to post on *Issues* or contact me (mbnmbn00@gmail.com) for help.
 These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
 
+<br />
+
 # Install FunGAP using Docker
 
 Using Docker is the most reliable and robust way to install FunGAP. [Please follow the instruction](docker/README.md).

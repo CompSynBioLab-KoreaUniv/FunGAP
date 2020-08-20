@@ -63,7 +63,7 @@ bash Anaconda3-2020.07-Linux-x86_64.sh
 ```
 echo ". $HOME/anaconda2/etc/profile.d/conda.sh" >> ~/.bashrc
 source $HOME/.bashrc
-which conda  # Check. It should be $HOME/anaconda3/condabin/conda
+which conda  # It should be $HOME/anaconda3/condabin/conda
 ```
 
 ### 1.3. Add channels
@@ -82,7 +82,7 @@ conda config --show channels
 #  - bioconda
 #  - defaults
   
-# Delete channels if you have unnecessary channels
+# Remove channels if you have unnecessary channels
 conda config --remove channels bioconda/label/cf201901
 conda config --remove channels conda-forge/label/cf201901
 ```

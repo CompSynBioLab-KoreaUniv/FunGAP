@@ -9,7 +9,7 @@ Reference: Byoungnam Min  Igor V Grigoriev  In-Geol Choi, FunGAP: Fungal Genome 
 <hr>
 
 Please don't hesitate to post on *Issues* or contact me (mbnmbn00@gmail.com) for help.
-These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
+These steps were tested in the freshly installed Ubuntu 18.04 LTS.
 
 <br />
 

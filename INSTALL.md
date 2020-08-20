@@ -7,12 +7,15 @@
 Reference: Byoungnam Min  Igor V Grigoriev  In-Geol Choi, FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation (2017), Bioinformatics, Volume 33, Issue 18, Pages 2936–2937, https://doi.org/10.1093/bioinformatics/btx353
 
 <hr>
+
 Please don't hesitate to post on *Issues* or contact me (mbnmbn00@gmail.com) for help.
 These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
 
 # Install FunGAP using Docker
 
 Using Docker is the most reliable and robust way to install FunGAP. [Please follow the instruction](docker/README.md).
+
+<br />
 
 # Install FunGAP using conda
 

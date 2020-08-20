@@ -63,42 +63,37 @@ bash Anaconda3-2020.07-Linux-x86_64.sh
 ```
 echo ". $HOME/anaconda2/etc/profile.d/conda.sh" >> ~/.bashrc
 source $HOME/.bashrc
-which conda  # Check
+which conda  # Check. It should be $HOME/anaconda3/condabin/conda
 ```
 
-### 1.3. Create and activate an environment
+### 1.3. Add channels
+
+Set up the channels.
+
+```
+# Add two channels
+conda config --add channels bioconda
+conda config --add channels conda-forge
+
+# Check the channels
+conda config --show channels
+# channels:
+#  - conda-forge
+#  - bioconda
+#  - defaults
+  
+# Delete channels if you have unnecessary channels
+conda config --remove channels bioconda/label/cf201901
+conda config --remove channels conda-forge/label/cf201901
+```
+
+### 1.4. Create and activate an environment
 
 ```
 conda update conda
 conda create -n fungap
 conda activate fungap
 ```
-
-### 1.4. Add channels
-
-Add two channels.
-
-```
-conda config --add channels bioconda
-conda config --add channels conda-forge
-```
-
-Check the channels
-
-```
-conda config --show channels
-```
-
-It should look like:
-```
- channels:
-  - conda-forge
-  - bioconda
-  - defaults
-```
-
-conda config --add channels bioconda/label/cf201901
-conda config --add channels conda-forge/label/cf201901
 
 ```
 

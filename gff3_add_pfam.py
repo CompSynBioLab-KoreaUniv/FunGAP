@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Add Pfam annotation to genbank
-Author Byongnam Min on Sep 12, 2015
+Last updated: Aug 12, 2020
 '''
 
 # Import modules
@@ -36,12 +36,13 @@ def main():
     d_pfam = parse_pfam(pfam_file)
     add_pfam_to_gff3(input_gff3, d_pfam)
 
-# Define functions
+
 def import_file(input_file):
     '''Import file'''
     with open(input_file) as f_in:
         txt = list(line.rstrip() for line in f_in)
     return txt
+
 
 def parse_pfam(pfam_file):
     '''Parse Pfam'''
@@ -57,9 +58,10 @@ def parse_pfam(pfam_file):
         pfam_desc = line_split[5]
         # GFF3 uses ';' as separator, so remove ';' if exist in pfam_desc
         pfam_desc = pfam_desc.replace(';', '')
-        pfam = '%s,%s' % (pfam_id, pfam_desc)
+        pfam = '{},{}'.format(pfam_id, pfam_desc)
         d_pfam[prot_id].append(pfam)
     return d_pfam
+
 
 def add_pfam_to_gff3(input_gff3, d_pfam):
     '''Add Pfam annotation to GFF3'''
@@ -79,9 +81,10 @@ def add_pfam_to_gff3(input_gff3, d_pfam):
             prot_id = cds_id.replace('.c1', '')
             prot_id = prot_id.replace('.cds', '')
             if d_pfam[prot_id] != []:
-                line = '%s;product=%s' % (line, '|'.join(d_pfam[prot_id]))
-        output_handle.write('%s\n' % (line))
+                line = '{};product={}'.format(line, '|'.join(d_pfam[prot_id]))
+        output_handle.write('{}\n'.format(line))
     output_handle.close()
+
 
 if __name__ == '__main__':
     main()

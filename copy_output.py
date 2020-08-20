@@ -1,18 +1,19 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Copy output to fungap_out directory
+Last updated: Jul 13, 2020
 '''
 
 # Import modules
 import os
 import sys
-from shutil import copyfile
 from argparse import ArgumentParser
+from shutil import copyfile
 
 
-# Main function
-def main(argv):
+def main():
+    '''Main function'''
     argparse_usage = 'copy_output.py -o <output_dir>'
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
@@ -29,12 +30,14 @@ def main(argv):
 
 
 def create_dir(output_dir):
+    '''Create the relevant directory'''
     fungap_outdir = os.path.join(output_dir, 'fungap_out')
     if not os.path.exists(fungap_outdir):
         os.mkdir(fungap_outdir)
 
 
 def copy_output(output_dir):
+    '''Copy output'''
     gff3_out = os.path.join(output_dir, 'gene_filtering/filtered_2.gff3')
     if not os.path.exists(gff3_out):
         sys.exit(
@@ -61,4 +64,4 @@ def copy_output(output_dir):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

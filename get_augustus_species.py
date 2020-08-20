@@ -1,19 +1,19 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Get Augustus species argument by taxon name
-Author Byoungnam Min on May 29, 2018
+Last updated: Aug 12, 2020
 '''
 
-# Import modules
 import re
 import sys
-from Bio import Entrez
-from collections import defaultdict
 from argparse import ArgumentParser
+from collections import defaultdict
+
+from Bio import Entrez
 
 # Parameter
-species_data = [
+SPECIES_DATA = [
     ('aspergillus_fumigatus', 'Aspergillus', 'Eurotiales', 'Eurotiomycetes',
      'Pezizomycotina', 'Ascomycota'),
     ('aspergillus_nidulans', 'Aspergillus', 'Eurotiales', 'Eurotiomycetes',
@@ -26,8 +26,8 @@ species_data = [
      'Pezizomycotina', 'Ascomycota'),
     ('candida_albicans', 'Candida', 'Saccharomycetales', 'Saccharomycetes',
      'Saccharomycotina', 'Ascomycota'),
-    ('candida_guilliermondii', 'Candida', 'Saccharomycetales', 'Saccharomycetes',
-     'Saccharomycotina', 'Ascomycota'),
+    ('candida_guilliermondii', 'Candida', 'Saccharomycetales',
+     'Saccharomycetes', 'Saccharomycotina', 'Ascomycota'),
     ('candida_tropicalis', 'Candida', 'Saccharomycetales', 'Saccharomycetes',
      'Saccharomycotina', 'Ascomycota'),
     ('chaetomium_globosum', 'Chaetomium', 'Sordariales', 'Sordariomycetes',
@@ -69,7 +69,7 @@ species_data = [
     ('rhizopus_oryzae', 'Rhizopus', 'Mucorales', '-', 'Mucoromycotina',
      'Mucoromycota'),
     ('saccharomyces_cerevisiae_S288C', 'Saccharomyces', 'Saccharomycetales',
-    'Saccharomycetes', 'Saccharomycotina', 'Ascomycota'),
+     'Saccharomycetes', 'Saccharomycotina', 'Ascomycota'),
     ('saccharomyces_cerevisiae_rm11-1a_1', 'Saccharomyces', 'Saccharomycetales',
      'Saccharomycetes', 'Saccharomycotina', 'Ascomycota'),
     ('schizosaccharomyces_pombe', 'Schizosaccharomyces',
@@ -82,32 +82,22 @@ species_data = [
 ]
 
 
-# Main function
-def main(argv):
+def main():
+    '''Main function'''
     argparse_usage = 'get_augustus_species.py -g <genus_name>'
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
-        "-g", "--genus_name", dest="genus_name", nargs=1,
-        help="Genus name"
+        '-g', '--genus_name', nargs=1, required=True,
+        help='Genus name'
     )
     parser.add_argument(
-        "-e", "--email_address", dest="email_address", nargs=1,
-        help="E-mail address for Entrez usage"
+        '-e', '--email_address', nargs=1, required=True,
+        help='E-mail address for Entrez usage'
     )
 
     args = parser.parse_args()
-    if args.genus_name:
-        genus_name = args.genus_name[0]
-    else:
-        print '[ERROR] Please provide INPUT FASTA'
-        parser.print_help()
-        sys.exit(2)
-
-    if args.email_address:
-        email_address = args.email_address[0]
-    else:
-        print '[ERROR] Please provide E-MAIL ADDRESS'
-        sys.exit(2)
+    genus_name = args.genus_name[0]
+    email_address = args.email_address[0]
 
     # Register E-mail address
     Entrez.email = email_address
@@ -117,45 +107,44 @@ def main(argv):
 
 
 def get_augustus_species(genus_name):
-    # Parse species data
-    D_species = defaultdict(list)
-    for tup in species_data:
-        augustus_species, genus, order, Class, subphylum, phylum = tup
-        for element in [genus, order, Class, subphylum, phylum]:
-            D_species[element].append(augustus_species)
+    '''Parse species data'''
+    d_species = defaultdict(list)
+    for tup in SPECIES_DATA:
+        augustus_species, genus, order, tax_class, subphylum, phylum = tup
+        for element in [genus, order, tax_class, subphylum, phylum]:
+            d_species[element].append(augustus_species)
 
     # Get taxonomic info for input genus name
-    print 'Validating input genus name...'
+    print('Validating input genus name...')
 
     # Get taxonomy info from NCBI taxonomy
     taxon2 = '"' + genus_name + '"'
     handle = Entrez.esearch(
-        db="taxonomy", term=taxon2, rettype="gb", retmode="text"
+        db='taxonomy', term=taxon2, rettype='gb', retmode='text'
     )
     record = Entrez.read(handle, validate=False)
     handle.close()
 
     if record['IdList'] != []:
         handle2 = Entrez.efetch(
-            db="taxonomy", id=record['IdList'][0], retmode="xml"
+            db='taxonomy', id=record['IdList'][0], retmode='xml'
         )
         record2 = Entrez.read(handle2, validate=False)
         handle2.close()
 
     else:
-        print (
-                "The taxon '%s' you provided is invalid. "
-                "Please check NCBI Taxonomy" % (genus)
+        sys.exit(
+            '[ERROR] The taxon "{}" you provided is invalid. Please check NCBI '
+            'Taxonomy'.format(genus)
         )
-        sys.exit(2)
 
-    rank = record2[0]["Rank"]
-    lineage = record2[0]["Lineage"]
+    rank = record2[0]['Rank']
+    lineage = record2[0]['Lineage']
     tax_list = record2[0]['LineageEx']
 
     # Initialization
     order = ''
-    Class = ''
+    tax_class = ''
     subphylum = ''
     phylum = ''
     for tax_element in tax_list:
@@ -169,34 +158,34 @@ def get_augustus_species(genus_name):
         ):
             subphylum = tax_element['ScientificName']
         elif tax_element['Rank'] == 'class':
-            Class = tax_element['ScientificName']
+            tax_class = tax_element['ScientificName']
         elif tax_element['Rank'] == 'order':
             order = tax_element['ScientificName']
 
-    print '\n==='
-    print 'Taxon: %s' % (genus_name)
-    print 'Rank: %s' % (rank)
-    print 'Lineage: %s' % (lineage)
-    print '===\n'
+    print('\n===')
+    print('Taxon: %s' % (genus_name))
+    print('Rank: %s' % (rank))
+    print('Lineage: %s' % (lineage))
+    print('===\n')
 
-    print 'Suggestions:'
-    if genus_name in D_species:
-        print 'We found them in genus level: {}'.format(genus_name)
-        print '\n'.join(D_species[genus_name])
-    elif order in D_species:
-        print 'We found them in order level: {}'.format(order)
-        print '\n'.join(D_species[order])
-    elif subphylum in D_species:
-        print 'We found them in subphylum level: {}'.format(subphylum)
-        print '\n'.join(D_species[subphylum])
-    elif phylum in D_species:
-        print 'We found them in phylum level: {}'.format(phylum)
-        print '\n'.join(D_species[phylum])
+    print('Suggestions:')
+    if genus_name in d_species:
+        print('We found them in genus level: {}'.format(genus_name))
+        print('\n'.join(d_species[genus_name]))
+    elif order in d_species:
+        print('We found them in order level: {}'.format(order))
+        print('\n'.join(d_species[order]))
+    elif subphylum in d_species:
+        print('We found them in subphylum level: {}'.format(subphylum))
+        print('\n'.join(d_species[subphylum]))
+    elif phylum in d_species:
+        print('We found them in phylum level: {}'.format(phylum))
+        print('\n'.join(d_species[phylum]))
     else:
-        print 'We did not find any augustus species for the input "{}"'.format(
+        print('We did not find any augustus species for the input "{}"'.format(
             genus_name
-        )
+        ))
 
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
+if __name__ == '__main__':
+    main()

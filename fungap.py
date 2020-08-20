@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Wrapper gene prediction pipeline
@@ -13,7 +13,7 @@ This script runs the pipeline with following order.
     2) Gene prediction
         run_augustus.py
         run_maker.py
-        run_braker1.py
+        run_braker.py
 
     3) Evaluation and filtering
         make_nr_prot.py
@@ -33,6 +33,7 @@ This script runs the pipeline with following order.
     4) Write output
         copy_output.py
         create_markdown.py
+Last updated: Jul 13, 2020
 '''
 
 # Version
@@ -41,53 +42,22 @@ __version__ = '1.1.0'
 # Import modules
 import os
 import re
-import sys
 import shlex
-from glob import glob
-from datetime import datetime
-from subprocess import check_call
 from argparse import ArgumentParser
+from datetime import datetime
+from glob import glob
+from subprocess import check_call
 
-# Get Logging
-this_path = os.path.realpath(__file__)
-this_dir = os.path.dirname(this_path)
-sys.path.append(this_dir)
-from set_logging import set_logging
 from check_inputs import check_inputs
-
-# File paths
-run_check_dependencies_path = os.path.join(this_dir, 'check_dependencies.py')
-run_hisat2_path = os.path.join(this_dir, 'run_hisat2.py')
-run_trinity_path = os.path.join(this_dir, 'run_trinity.py')
-run_repeat_modeler_path = os.path.join(this_dir, 'run_repeat_modeler.py')
-
-run_augustus_path = os.path.join(this_dir, 'run_augustus.py')
-run_maker_path = os.path.join(this_dir, 'run_maker.py')
-run_braker1_path = os.path.join(this_dir, 'run_braker1.py')
-
-run_busco_path = os.path.join(this_dir, 'run_busco.py')
-run_pfam_scan_path = os.path.join(this_dir, 'run_pfam_scan.py')
-make_nr_prot_path = os.path.join(this_dir, 'make_nr_prot.py')
-run_blastp_path = os.path.join(this_dir, 'run_blastp.py')
-make_transcripts_path = os.path.join(this_dir, 'make_transcripts.py')
-run_blastn_path = os.path.join(this_dir, 'run_blastn.py')
-import_blast_path = os.path.join(this_dir, 'import_blastp.py')
-import_busco_path = os.path.join(this_dir, 'import_busco.py')
-import_pfam_path = os.path.join(this_dir, 'import_pfam.py')
-import_blastn_path = os.path.join(this_dir, 'import_blastn.py')
-catch_bad_genes_path = os.path.join(this_dir, 'catch_bad_genes.py')
-filter_gff3s_path = os.path.join(this_dir, 'filter_gff3s.py')
-gff3_postprocess_path = os.path.join(this_dir, 'gff3_postprocess.py')
-
-copy_output_path = os.path.join(this_dir, 'copy_output.py')
-create_markdown_path = os.path.join(this_dir, 'create_markdown.py')
+from set_logging import set_logging
 
 
 # Main function
-def main(argv):
+def main():
+    '''Main function'''
     argparse_usage = (
         'fungap.py -g <genome_assembly> -12UA <trans_read_files> '
-        '-o <output_dir> -a <augustus_species> '
+        '-o <output_dir> -a <augustus_species> -b <busco_dataset> '
         '-s <sister_proteome>'
     )
     parser = ArgumentParser(usage=argparse_usage)
@@ -118,6 +88,14 @@ def main(argv):
     parser.add_argument(
         '-a', '--augustus_species', nargs=1, required=True,
         help='AUGUSTUS species'
+    )
+    parser.add_argument(
+        '-b', '--busco_dataset', nargs=1, required=True,
+        help=(
+            'BUSCO lineage dataset (run "busco --list-datasets" for the list). '
+            'Commonly used are fungi_odb10, ascomycota_odb10, and '
+            'basidiomycota_odb10'
+        )
     )
     parser.add_argument(
         '-s', '--sister_proteome', nargs=1, required=True,
@@ -151,6 +129,7 @@ def main(argv):
     )
 
     args = parser.parse_args()
+    d_path = get_paths()
     output_dir = os.path.abspath(args.output_dir)
     trans_read_1 = args.trans_read_1
     trans_read_2 = args.trans_read_2
@@ -158,6 +137,7 @@ def main(argv):
     trans_bam = args.trans_bam
     genome_assembly = os.path.abspath(args.genome_assembly[0])
     augustus_species = args.augustus_species[0]
+    busco_dataset = args.busco_dataset[0]
     sister_proteome = os.path.abspath(args.sister_proteome[0])
     num_cores = args.num_cores
     max_intron = args.max_intron
@@ -183,30 +163,31 @@ def main(argv):
 
     # Set logging
     log_file = os.path.join(output_dir, 'logs', 'fungap.log')
-    global logger_time, logger_txt
-    logger_time, logger_txt = set_logging(log_file)
+    logger = set_logging(log_file)
+    logger_time, logger_txt = logger
 
-    logger_txt.debug('\n============ New Run {} ============'.format(
-        datetime.now())
-    )
+    logger_txt.debug('\n============ New Run %s ============', datetime.now())
 
     # Run functions :) Slow is as good as Fast
     trans_read_files = check_inputs(
         trans_read_1, trans_read_2, trans_read_single, trans_bam,
-        genome_assembly, sister_proteome
+        genome_assembly, sister_proteome, busco_dataset
     )
     trans_bams = run_hisat2(
-        genome_assembly, trans_read_files, output_dir, num_cores, max_intron
+        genome_assembly, trans_read_files, output_dir, num_cores, max_intron,
+        d_path, logger
     )
     trinity_asms = run_trinity(
-        trans_bams, output_dir, num_cores, no_jaccard_clip, max_intron
+        trans_bams, output_dir, num_cores, no_jaccard_clip, max_intron, d_path,
+        logger
     )
     repeat_model_file = run_repeat_modeler(
-        genome_assembly, output_dir, num_cores
+        genome_assembly, output_dir, num_cores, d_path, logger
     )
     maker_gff3s, maker_faas = run_maker(
         genome_assembly, output_dir, augustus_species, sister_proteome,
-        num_cores, repeat_model_file, trinity_asms, no_genemark_fungus
+        num_cores, repeat_model_file, trinity_asms, no_genemark_fungus, d_path,
+        logger
     )
     # Get masked assembly
     masked_assembly = os.path.join(
@@ -215,68 +196,123 @@ def main(argv):
 
     # Run Augustus
     augustus_gff3, augustus_faa = run_augustus(
-        masked_assembly, output_dir, augustus_species
+        masked_assembly, output_dir, augustus_species, d_path, logger
     )
 
-    # Run Braker1
-    braker1_gff3s, braker1_faas = run_braker1(
-        masked_assembly, trans_bams, output_dir, num_cores, no_braker_fungus
+    # Run Braker
+    braker_gff3s, braker_faas = run_braker(
+        masked_assembly, trans_bams, output_dir, num_cores, no_braker_fungus,
+        d_path, logger
     )
 
     # Run BUSCO on each gene models
-    faa_files = [augustus_faa] + maker_faas + braker1_faas
+    faa_files = [augustus_faa] + maker_faas + braker_faas
     for faa_file in faa_files:
-        run_busco(faa_file, output_dir, num_cores)
+        run_busco(faa_file, output_dir, busco_dataset, d_path, logger)
     busco_out_dir = os.path.join(output_dir, 'busco_out')
 
     # Get protein nr by removing identical proteins
-    nr_prot_file, nr_prot_mapping_file = make_nr_prot(faa_files, output_dir)
+    nr_prot_file, nr_prot_mapping_file = make_nr_prot(
+        faa_files, output_dir, d_path, logger
+    )
 
     # Run BLASTp with nr prot file
     blastp_output = run_blastp(
-        nr_prot_file, output_dir, sister_proteome, num_cores
+        nr_prot_file, output_dir, sister_proteome, num_cores, d_path, logger
     )
 
     # Run Pfam_scan with nr prot file
-    pfam_scan_out = run_pfam_scan(nr_prot_file, output_dir, num_cores)
+    pfam_scan_out = run_pfam_scan(
+        nr_prot_file, output_dir, num_cores, d_path, logger
+    )
 
     # Concatenate all transcripts files
     gene_filtering_dir = os.path.join(output_dir, 'gene_filtering')
     trinity_asm = os.path.join(gene_filtering_dir, 'trinity_transcripts.fna')
     command = 'cat {} > {}'.format(' '.join(trinity_asms), trinity_asm)
     logger_time.debug('Create transcript')
-    logger_txt.debug('[Run] {}'.format(command))
+    logger_txt.debug('[Run] %s', command)
     os.system(command)
 
-    gff3_files = [augustus_gff3] + maker_gff3s + braker1_gff3s
+    gff3_files = [augustus_gff3] + maker_gff3s + braker_gff3s
     blastn_out_files = []
     for gff3_file in gff3_files:
-        transcript_file = make_transcripts(genome_assembly, gff3_file)
-        blastn_out_file = run_blastn(transcript_file, trinity_asm, output_dir)
+        transcript_file = make_transcripts(
+            genome_assembly, gff3_file, d_path, logger
+        )
+        blastn_out_file = run_blastn(
+            transcript_file, trinity_asm, output_dir, d_path, logger
+        )
         blastn_out_files.append(blastn_out_file)
 
     # Import BLAST, BUSCO and Pfam score
-    blastp_dict = import_blastp(blastp_output, nr_prot_mapping_file)
-    busco_dict = import_busco(busco_out_dir, output_dir)
-    pfam_dict = import_pfam(pfam_scan_out, nr_prot_mapping_file)
-    blastn_dict = import_blastn(blastn_out_files, output_dir)
+    blastp_dict = import_blastp(
+        blastp_output, nr_prot_mapping_file, d_path, logger
+    )
+    busco_dict = import_busco(busco_out_dir, output_dir, d_path, logger)
+    pfam_dict = import_pfam(pfam_scan_out, nr_prot_mapping_file, d_path, logger)
+    blastn_dict = import_blastn(blastn_out_files, output_dir, d_path, logger)
 
     # Catch bad genes
-    bad_dict = catch_bad_genes(gff3_files, genome_assembly, output_dir)
+    bad_dict = catch_bad_genes(
+        gff3_files, genome_assembly, output_dir, d_path, logger
+    )
     filter_gff3s(
         genome_assembly, gff3_files, blastp_dict, busco_dict, pfam_dict,
-        blastn_dict, bad_dict, nr_prot_file, nr_prot_mapping_file, output_dir
+        blastn_dict, bad_dict, nr_prot_file, nr_prot_mapping_file, output_dir,
+        d_path, logger
     )
-    gff3_postprocess(genome_assembly, output_dir)
+    gff3_postprocess(genome_assembly, output_dir, d_path, logger)
 
     # Copy output files
-    copy_output(output_dir)
+    copy_output(output_dir, d_path, logger)
 
     # Create markdown
-    create_markdown(genome_assembly, output_dir, trans_bams, trinity_asms)
+    create_markdown(
+        genome_assembly, output_dir, trans_bams, trinity_asms, d_path, logger
+    )
+
+
+def get_paths():
+    '''Get program paths'''
+    this_path = os.path.realpath(__file__)
+    this_dir = os.path.dirname(this_path)
+
+    d_path = {}
+    d_path['check_dependencies'] = os.path.join(
+        this_dir, 'check_dependencies.py'
+    )
+    d_path['run_hisat2'] = os.path.join(this_dir, 'run_hisat2.py')
+    d_path['run_trinity'] = os.path.join(this_dir, 'run_trinity.py')
+    d_path['run_repeat_modeler'] = os.path.join(
+        this_dir, 'run_repeat_modeler.py'
+    )
+
+    d_path['run_augustus'] = os.path.join(this_dir, 'run_augustus.py')
+    d_path['run_maker'] = os.path.join(this_dir, 'run_maker.py')
+    d_path['run_braker'] = os.path.join(this_dir, 'run_braker.py')
+
+    d_path['run_busco'] = os.path.join(this_dir, 'run_busco.py')
+    d_path['run_pfam_scan'] = os.path.join(this_dir, 'run_pfam_scan.py')
+    d_path['make_nr_prot'] = os.path.join(this_dir, 'make_nr_prot.py')
+    d_path['run_blastp'] = os.path.join(this_dir, 'run_blastp.py')
+    d_path['make_transcripts'] = os.path.join(this_dir, 'make_transcripts.py')
+    d_path['run_blastn'] = os.path.join(this_dir, 'run_blastn.py')
+    d_path['import_blast'] = os.path.join(this_dir, 'import_blastp.py')
+    d_path['import_busco'] = os.path.join(this_dir, 'import_busco.py')
+    d_path['import_pfam'] = os.path.join(this_dir, 'import_pfam.py')
+    d_path['import_blastn'] = os.path.join(this_dir, 'import_blastn.py')
+    d_path['catch_bad_genes'] = os.path.join(this_dir, 'catch_bad_genes.py')
+    d_path['filter_gff3s'] = os.path.join(this_dir, 'filter_gff3s.py')
+    d_path['gff3_postprocess'] = os.path.join(this_dir, 'gff3_postprocess.py')
+
+    d_path['copy_output'] = os.path.join(this_dir, 'copy_output.py')
+    d_path['create_markdown'] = os.path.join(this_dir, 'create_markdown.py')
+    return d_path
 
 
 def create_dir(output_dir):
+    '''Create directory'''
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
@@ -286,8 +322,9 @@ def create_dir(output_dir):
 
 
 def run_hisat2(
-    genome_assembly, trans_read_files, output_dir, num_cores, max_intron
-):
+        genome_assembly, trans_read_files, output_dir, num_cores, max_intron,
+        d_path, logger):
+    '''Run HISAT2'''
     if len(trans_read_files) == 1 and trans_read_files[0].endswith('.bam'):
         return trans_read_files
 
@@ -298,13 +335,15 @@ def run_hisat2(
     # -o <output_dir> -l <log_dir> -f <ref_fasta> -c <num_cores>
     # -m <max_intron>
     command = (
-        'python {} --read_files {} --output_dir {} --log_dir {} --ref_fasta {} '
+        '{} --read_files {} --output_dir {} --log_dir {} --ref_fasta {} '
         '--num_cores {} --max_intron {}'.format(
-            run_hisat2_path, ' '.join(trans_read_files), hisat2_output_dir,
+            d_path['run_hisat2'], ' '.join(trans_read_files), hisat2_output_dir,
             log_dir, genome_assembly, num_cores, max_intron
-    ))
+        )
+    )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_run_hisat2')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_run_hisat2\n')
@@ -312,7 +351,8 @@ def run_hisat2(
     # Get output BAM file paths
     trans_bams = []
     for trans_read_file in trans_read_files:
-        prefix = re.sub(r'_[12s]$', '',
+        prefix = re.sub(
+            r'_[12s]$', '',
             os.path.basename(os.path.splitext(trans_read_file)[0])
         )
         hisat2_output = os.path.join(hisat2_output_dir, '{}.bam'.format(prefix))
@@ -322,47 +362,51 @@ def run_hisat2(
 
 
 def run_trinity(
-    trans_bams, output_dir, num_cores, no_jaccard_clip, max_intron
-):
+        trans_bams, output_dir, num_cores, no_jaccard_clip, max_intron, d_path,
+        logger):
+    '''Run Trinity'''
     trinity_output_dir = os.path.join(output_dir, 'trinity_out')
     log_dir = os.path.join(output_dir, 'logs')
     # run_trinity.py -b <bam_files> -o <output_dir> -l <log_dir> -c <num_cores>
     # -m <max_intron> --jaccard_clip
     command = (
-        'python {} --bam_files {} --output_dir {} --log_dir {} --num_cores {} '
+        '{} --bam_files {} --output_dir {} --log_dir {} --num_cores {} '
         '--max_intron {} {}'.format(
-            run_trinity_path, ' '.join(trans_bams), trinity_output_dir,
+            d_path['run_trinity'], ' '.join(trans_bams), trinity_output_dir,
             log_dir, num_cores, max_intron,
             no_jaccard_clip
         )
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_run_trinity')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_run_trinity\n')
 
     # Get output transcriptome assembly files
-    trinity_asms = glob(os.path.join(
-        output_dir, 'trinity_out', '*/Trinity_*.fasta')
+    trinity_asms = glob(
+        os.path.join(output_dir, 'trinity_out', '*/Trinity_*.fasta')
     )
     return trinity_asms
 
 
-def run_repeat_modeler(genome_assembly, output_dir, num_cores):
+def run_repeat_modeler(genome_assembly, output_dir, num_cores, d_path, logger):
+    '''Run RepeatModeler'''
     # run_repeat_modeler.py -g <genome_assembly> -o <output_dir> -l <log_dir>
     # -c <num_cores>
     rm_output_dir = os.path.join(output_dir, 'repeat_modeler_out')
     log_dir = os.path.join(output_dir, 'logs')
     command = (
-        'python {} --genome_assembly {} --output_dir {} --log_dir {} '
+        '{} --genome_assembly {} --output_dir {} --log_dir {} '
         '--num_cores {}'.format(
-            run_repeat_modeler_path, genome_assembly, rm_output_dir, log_dir,
-            num_cores
+            d_path['run_repeat_modeler'], genome_assembly, rm_output_dir,
+            log_dir, num_cores
         )
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_run_repeat_modeler')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_run_repeat_modeler\n')
@@ -374,25 +418,27 @@ def run_repeat_modeler(genome_assembly, output_dir, num_cores):
 
 
 def run_maker(
-    genome_assembly, output_dir, augustus_species, sister_proteome, num_cores,
-    repeat_model_file, trinity_asms, no_genemark_fungus
-):
+        genome_assembly, output_dir, augustus_species, sister_proteome,
+        num_cores, repeat_model_file, trinity_asms, no_genemark_fungus, d_path,
+        logger):
+    '''Run Maker'''
     maker_out_dir = os.path.join(output_dir, 'maker_out')
     # run_maker.py -i <input_fasta> -a <augustus_species> -p <protein_db_fasta>
     # -R <repeat_model> -e <est_files> -o <output_dir> -c <num_cores>
     # -l <log_dir> --gmes_fungus
     log_dir = os.path.join(output_dir, 'logs')
     command = (
-        'python {} --input_fasta {} --augustus_species {} --protein_db_fasta {}'
+        '{} --input_fasta {} --augustus_species {} --protein_db_fasta {}'
         ' --repeat_model {} --est_files {} --output_dir {} --num_cores {} '
         '--log_dir {} {}'.format(
-            run_maker_path, genome_assembly, augustus_species, sister_proteome,
-            repeat_model_file, ' '.join(trinity_asms), maker_out_dir, num_cores,
-            log_dir, no_genemark_fungus
+            d_path['run_maker'], genome_assembly, augustus_species,
+            sister_proteome, repeat_model_file, ' '.join(trinity_asms),
+            maker_out_dir, num_cores, log_dir, no_genemark_fungus
         )
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_run_maker')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_run_maker\n')
@@ -404,20 +450,22 @@ def run_maker(
     return maker_gff3s, maker_faas
 
 
-def run_augustus(masked_assembly, output_dir, augustus_species):
+def run_augustus(masked_assembly, output_dir, augustus_species, d_path, logger):
+    '''Run Augustus'''
     # run_augustus.py -m <masked_assembly> -s <species> -o <output_dir>
     # -l <log_dir>
     output_dir = os.path.join(output_dir, 'augustus_out')
     log_dir = os.path.join(output_dir, 'logs')
     command = (
-        'python {} --masked_assembly {} --species {} --output_dir {} '
+        '{} --masked_assembly {} --species {} --output_dir {} '
         '--log_dir {}'.format(
-            run_augustus_path, masked_assembly, augustus_species, output_dir,
-            log_dir
+            d_path['run_augustus'], masked_assembly, augustus_species,
+            output_dir, log_dir
         )
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_run_augustus')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_run_augustus\n')
@@ -426,69 +474,75 @@ def run_augustus(masked_assembly, output_dir, augustus_species):
     return augustus_gff3, augustus_faa
 
 
-def run_braker1(
-    masked_assembly, trans_bams, output_dir, num_cores, no_braker_fungus
-):
-    braker1_output_dir = os.path.join(output_dir, 'braker1_out')
+def run_braker(
+        masked_assembly, trans_bams, output_dir, num_cores, no_braker_fungus,
+        d_path, logger):
+    '''Run BRAKER'''
+    braker_output_dir = os.path.join(output_dir, 'braker_out')
     log_dir = os.path.join(output_dir, 'logs')
-    # run_braker1.py -m <masked_assembly> -b <bam_files> -o <output_dir>
+    # run_braker.py -m <masked_assembly> -b <bam_files> -o <output_dir>
     # -l <log_dir> -c <num_cores> --fungus
     command = (
-        'python {} --masked_assembly {} --bam_files {} --output_dir {} '
+        '{} --masked_assembly {} --bam_files {} --output_dir {} '
         '--log_dir {} --num_cores {} {}'.format(
-            run_braker1_path, masked_assembly, ' '.join(trans_bams),
-            braker1_output_dir, log_dir, num_cores, no_braker_fungus
+            d_path['run_braker'], masked_assembly, ' '.join(trans_bams),
+            braker_output_dir, log_dir, num_cores, no_braker_fungus
         )
     )
-    logger_time.debug('START: wrapper_run_braker1')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_time, logger_txt = logger
+    logger_time.debug('START: wrapper_run_braker')
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
-    logger_time.debug('DONE : wrapper_run_braker1\n')
+    logger_time.debug('DONE : wrapper_run_braker\n')
 
     prefixes = [os.path.basename(os.path.splitext(x)[0]) for x in trans_bams]
     prefixes_u = list(set(prefixes))
 
-    braker1_gff3s = []
-    braker1_faas = []
+    braker_gff3s = []
+    braker_faas = []
     for prefix in prefixes_u:
-        braker1_gff3 = os.path.join(
-            output_dir, 'braker1_out', prefix, 'braker1_{}.gff3'.format(prefix)
+        braker_gff3 = os.path.join(
+            output_dir, 'braker_out', prefix, 'braker_{}.gff3'.format(prefix)
         )
-        braker1_gff3s.append(braker1_gff3)
-        braker1_faa = os.path.join(
-            output_dir, 'braker1_out', prefix, 'braker1_{}.faa'.format(prefix)
+        braker_gff3s.append(braker_gff3)
+        braker_faa = os.path.join(
+            output_dir, 'braker_out', prefix, 'braker_{}.faa'.format(prefix)
         )
-        braker1_faas.append(braker1_faa)
+        braker_faas.append(braker_faa)
+    return braker_gff3s, braker_faas
 
-    return braker1_gff3s, braker1_faas
 
-
-def run_busco(input_faa, output_dir, num_cores):
+def run_busco(input_faa, output_dir, busco_dataset, d_path, logger):
+    '''Run BUSCO'''
     busco_output_dir = os.path.join(output_dir, 'busco_out')
     log_dir = os.path.join(output_dir, 'logs')
-    # run_busco.py -i <input_fasta> -o <output_dir> -l <log_dir> -c <num_cores>
+    # run_busco.py -i <input_fasta> -d <lineage_dataset> -o <output_dir>
+    # -l <log_dir>
     command = (
-        'python {} --input_fasta {} --output_dir {} --log_dir {} '
-        '--num_cores {}'.format(
-            run_busco_path, input_faa, busco_output_dir, log_dir, num_cores
-        )
+        '{} --input_fasta {} --lineage_dataset {} --output_dir {} --log_dir {}'
+    ).format(
+        d_path['run_busco'], input_faa, busco_dataset, busco_output_dir,
+        log_dir
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_run_busco')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_run_busco\n')
 
 
-def make_nr_prot(faa_files, output_dir):
+def make_nr_prot(faa_files, output_dir, d_path, logger):
+    '''Make non-redundant protein sequences'''
     gene_filtering_dir = os.path.join(output_dir, 'gene_filtering')
     # make_nr_prot.py -i <faa_files> -o <output_dir>
-    command = 'python {} --faa_files {} --output_dir {}'.format(
-        make_nr_prot_path, ' '.join(faa_files), gene_filtering_dir
+    command = '{} --faa_files {} --output_dir {}'.format(
+        d_path['make_nr_prot'], ' '.join(faa_files), gene_filtering_dir
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_make_nr_prot')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_make_nr_prot\n')
@@ -497,39 +551,42 @@ def make_nr_prot(faa_files, output_dir):
     nr_prot_mapping_file = os.path.join(
         gene_filtering_dir, 'nr_prot_mapping.txt'
     )
-
     return nr_prot_file, nr_prot_mapping_file
 
 
-def run_blastp(nr_prot_file, output_dir, sister_proteome, num_cores):
+def run_blastp(
+        nr_prot_file, output_dir, sister_proteome, num_cores, d_path, logger):
+    '''Run BLASTp against sister protein sequences'''
     # run_blastp.py -q <query_fasta> -d <db_fasta> -l <log_dir> -c <num_cores>
     log_dir = os.path.join(output_dir, 'logs')
     command = (
-        'python {} --query_fasta {} --db_fasta {} --log_dir {} '
+        '{} --query_fasta {} --db_fasta {} --log_dir {} '
         '--num_cores {}'.format(
-            run_blastp_path, nr_prot_file, sister_proteome, log_dir,
+            d_path['run_blastp'], nr_prot_file, sister_proteome, log_dir,
             num_cores
         )
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_run_blastp')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_run_blastp\n')
 
     blastp_output = os.path.join(output_dir, 'gene_filtering', 'nr_prot.blastp')
-
     return blastp_output
 
 
-def run_pfam_scan(nr_prot_file, output_dir, num_cores):
+def run_pfam_scan(nr_prot_file, output_dir, num_cores, d_path, logger):
+    '''Run pfam_scan'''
     # run_pfam_scan.py -i <input_fasta> -l <log_dir> -c <num_cores>
     log_dir = os.path.join(output_dir, 'logs')
-    command = 'python {} --input_fasta {} --log_dir {} --num_cores {}'.format(
-        run_pfam_scan_path, nr_prot_file, log_dir, num_cores
+    command = '{} --input_fasta {} --log_dir {} --num_cores {}'.format(
+        d_path['run_pfam_scan'], nr_prot_file, log_dir, num_cores
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_run_pfam_scan')
-    logger_txt.debug('[Wapper] {}'.format(command))
+    logger_txt.debug('[Wapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_run_pfam_scan\n')
@@ -540,13 +597,15 @@ def run_pfam_scan(nr_prot_file, output_dir, num_cores):
     return pfam_scan_out
 
 
-def make_transcripts(genome_assembly, gff3_file):
+def make_transcripts(genome_assembly, gff3_file, d_path, logger):
+    '''Make transcript'''
     # make_transcripts.py -f <input_fasta> -g <input_gff3>
-    command = 'python {} --input_fasta {} --input_gff3 {}'.format(
-        make_transcripts_path, genome_assembly, gff3_file
+    command = '{} --input_fasta {} --input_gff3 {}'.format(
+        d_path['make_transcripts'], genome_assembly, gff3_file
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_make_transcripts')
-    logger_txt.debug('[Wapper] {}'.format(command))
+    logger_txt.debug('[Wapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_make_transcripts\n')
@@ -556,7 +615,10 @@ def make_transcripts(genome_assembly, gff3_file):
     return transcript_file
 
 
-def run_blastn(predicted_transcript, assembled_transcript, output_dir):
+def run_blastn(
+        predicted_transcript, assembled_transcript, output_dir, d_path,
+        logger):
+    '''Run BLASTn against transcripts'''
     gene_filtering_dir = os.path.join(output_dir, 'gene_filtering')
     prefix = re.sub(
         r'_transcript\.fna', '', os.path.basename(predicted_transcript)
@@ -566,14 +628,15 @@ def run_blastn(predicted_transcript, assembled_transcript, output_dir):
     # run_blastn.py -q <query_fasta> -d <db_fasta> -o <output_prefix>
     # -l <log_dir> -c <num_cores>
     command = (
-        'python {} --query_fasta {} --db_fasta {} --output_prefix {} '
+        '{} --query_fasta {} --db_fasta {} --output_prefix {} '
         '--log_dir {}'.format(
-            run_blastn_path, predicted_transcript, assembled_transcript,
+            d_path['run_blastn'], predicted_transcript, assembled_transcript,
             out_prefix, log_dir
         )
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_run_blastn')
-    logger_txt.debug('[Wapper] {}'.format(command))
+    logger_txt.debug('[Wapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_run_blastn\n')
@@ -582,144 +645,160 @@ def run_blastn(predicted_transcript, assembled_transcript, output_dir):
     return blastn_out
 
 
-def import_blastp(blastp_output, nr_prot_mapping_file):
+def import_blastp(blastp_output, nr_prot_mapping_file, d_path, logger):
+    '''Import BLASTp output'''
     # import_blastp.py -b <blastp_out_file> -n <nr_prot_mapping>
     blastp_out_dir = os.path.dirname(blastp_output)
-    command = 'python {} --blastp_out_file {} --nr_prot_mapping {}'.format(
-        import_blast_path, blastp_output, nr_prot_mapping_file
+    command = '{} --blastp_out_file {} --nr_prot_mapping {}'.format(
+        d_path['import_blast'], blastp_output, nr_prot_mapping_file
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_import_blastp')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     os.system(command)
     logger_time.debug('DONE : wrapper_import_blastp\n')
 
     # Return files
-    blastp_dict= os.path.join(blastp_out_dir, 'blastp_score.p')
-
+    blastp_dict = os.path.join(blastp_out_dir, 'blastp_score.p')
     return blastp_dict
 
 
-def import_busco(busco_out_dir, output_dir):
+def import_busco(busco_out_dir, output_dir, d_path, logger):
+    '''Import BUSCO output'''
     # import_busco.py -b <busco_dir> -o <output_dir>
     gene_filtering_dir = os.path.join(output_dir, 'gene_filtering')
-    command = 'python {} --busco_dir {} --output_dir {}'.format(
-        import_busco_path, busco_out_dir, gene_filtering_dir
+    command = '{} --busco_dir {} --output_dir {}'.format(
+        d_path['import_busco'], busco_out_dir, gene_filtering_dir
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_import_busco')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     os.system(command)
     logger_time.debug('DONE : wrapper_import_busco\n')
 
     # Return files
     busco_dict = os.path.join(gene_filtering_dir, 'busco_score.p')
-
     return busco_dict
 
 
-def import_pfam(pfam_scan_out, nr_prot_mapping_file):
+def import_pfam(pfam_scan_out, nr_prot_mapping_file, d_path, logger):
+    '''Import Pfam'''
     # import_pfam.py -p <pfam_scan_out_file> -n <nr_prot_mapping>
-    command = 'python {} --pfam_scan_out_file {} --nr_prot_mapping {}'.format(
-        import_pfam_path, pfam_scan_out, nr_prot_mapping_file
+    command = '{} --pfam_scan_out_file {} --nr_prot_mapping {}'.format(
+        d_path['import_pfam'], pfam_scan_out, nr_prot_mapping_file
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_import_pfam')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     os.system(command)
     logger_time.debug('DONE : wrapper_import_pfam\n')
 
     # Return files
     pfam_scan_out_dir = os.path.dirname(pfam_scan_out)
     pfam_dict = os.path.join(pfam_scan_out_dir, 'pfam_score.p')
-
     return pfam_dict
 
 
-def import_blastn(blastn_out_files, output_dir):
+def import_blastn(blastn_out_files, output_dir, d_path, logger):
+    '''Import BLASTn output'''
     gene_filtering_dir = os.path.join(output_dir, 'gene_filtering')
     # import_blastn.py -b <blastn_out_files> -o <output_dir>
-    command = 'python {} --blastn_out_files {} --output_dir {}'.format(
-        import_blastn_path, ' '.join(blastn_out_files), gene_filtering_dir
+    command = '{} --blastn_out_files {} --output_dir {}'.format(
+        d_path['import_blastn'], ' '.join(blastn_out_files), gene_filtering_dir
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_import_blastn')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     os.system(command)
     logger_time.debug('DONE : wrapper_import_blastn\n')
     blastn_dict = os.path.join(gene_filtering_dir, 'blastn_score.p')
-
     return blastn_dict
 
 
-def catch_bad_genes(gff3_files, genome_assembly, output_dir):
+def catch_bad_genes(gff3_files, genome_assembly, output_dir, d_path, logger):
+    '''Catch bad genes'''
     # catch_bad_genes.py -g <gff3_files> -a <genome_assembly> -o <output_dir>
     gene_filtering_dir = os.path.join(output_dir, 'gene_filtering')
     command = (
-        'python {} --gff3_files {} --genome_assembly {} --output_dir {}'.format(
-            catch_bad_genes_path, ' '.join(gff3_files), genome_assembly,
+        '{} --gff3_files {} --genome_assembly {} --output_dir {}'.format(
+            d_path['catch_bad_genes'], ' '.join(gff3_files), genome_assembly,
             gene_filtering_dir
         )
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_catch_bad_genes')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_catch_bad_genes\n')
 
-    bad_dict = os.path.join(gene_filtering_dir, 'D_bad.p')
+    bad_dict = os.path.join(gene_filtering_dir, 'd_bad.p')
     return bad_dict
 
 
 def filter_gff3s(
-    genome_assembly, gff3_files, blastp_dict, busco_dict, pfam_dict, blastn_dict,
-    bad_dict, nr_prot_file, nr_prot_mapping_file, output_dir
-):
+        genome_assembly, gff3_files, blastp_dict, busco_dict, pfam_dict,
+        blastn_dict, bad_dict, nr_prot_file, nr_prot_mapping_file, output_dir,
+        d_path, logger):
+    '''Filter GFF3s'''
     # filter_gff3s.py -a <genome_assembly> -i <input_gff3s> -m <mapping_file>
-    # -b <blastp_dict> -B <busco_dict> -p <pfam_dict> -N <blastn_dict> -g <bad_dict>
-    # -n <nr_prot_file> -o <output_dir> -l <log_dir>
+    # -b <blastp_dict> -B <busco_dict> -p <pfam_dict> -N <blastn_dict>
+    # -g <bad_dict> -n <nr_prot_file> -o <output_dir> -l <log_dir>
     gene_filtering_dir = os.path.join(output_dir, 'gene_filtering')
     log_dir = os.path.join(output_dir, 'logs')
     command = (
-        'python {} --genome_assembly {} --input_gff3s {} --mapping_file {} '
+        '{} --genome_assembly {} --input_gff3s {} --mapping_file {} '
         '--blastp_dict {} --busco_dict {} --pfam_dict {} --blastn_dict {} '
         '--bad_dict {} --nr_prot_file {} --output_dir {} --log_dir {}'
     ).format(
-        filter_gff3s_path, genome_assembly, ' '.join(gff3_files), nr_prot_mapping_file,
-        blastp_dict, busco_dict, pfam_dict, blastn_dict, bad_dict, nr_prot_file,
-        gene_filtering_dir, log_dir
+        d_path['filter_gff3s'], genome_assembly, ' '.join(gff3_files),
+        nr_prot_mapping_file, blastp_dict, busco_dict, pfam_dict, blastn_dict,
+        bad_dict, nr_prot_file, gene_filtering_dir, log_dir
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_filter_gff3s')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_filter_gff3s\n')
 
 
-def gff3_postprocess(genome_assembly, output_dir):
+def gff3_postprocess(genome_assembly, output_dir, d_path, logger):
+    '''GFF3 post-processing'''
     # gff3_postprocess.py -g <genome_assembly> -i <input_gff3> -o <output_gff3>
     input_gff3 = os.path.join(output_dir, 'gene_filtering', 'filtered_1.gff3')
     output_gff3 = os.path.join(output_dir, 'gene_filtering', 'filtered_2.gff3')
     command = (
-        'python {} --genome_assembly {} --input_gff3 {} --output_gff3 {}'
+        '{} --genome_assembly {} --input_gff3 {} --output_gff3 {}'
     ).format(
-        gff3_postprocess_path, genome_assembly, input_gff3, output_gff3
+        d_path['gff3_postprocess'], genome_assembly, input_gff3, output_gff3
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_gff3_postprocess')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE : wrapper_gff3_postprocess\n')
 
 
-def copy_output(output_dir):
+def copy_output(output_dir, d_path, logger):
+    '''Copy output'''
     # copy_output.py -o <output_dir>
-    command = 'python {} --output_dir {}'.format(copy_output_path, output_dir)
+    command = '{} --output_dir {}'.format(
+        d_path['copy_output'], output_dir
+    )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_copy_output')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE: wrapper_copy_output\n')
 
 
-def create_markdown(genome_assembly, output_dir, trans_bams, trinity_asms):
-    # python create_markdown.py -f <input_fasta> -g <input_gff3>
+def create_markdown(
+        genome_assembly, output_dir, trans_bams, trinity_asms, d_path, logger):
+    '''Create markdown output summary'''
+    # create_markdown.py -f <input_fasta> -g <input_gff3>
     # -t <trinity_assembly> -b <bam_file> -o <output_dir>
     fungap_gff3 = os.path.join(output_dir, 'gene_filtering/filtered_2.gff3')
     trans_bam = trans_bams[0]
@@ -727,14 +806,15 @@ def create_markdown(genome_assembly, output_dir, trans_bams, trinity_asms):
     markdown_out_dir = os.path.join(output_dir, 'fungap_out')
 
     command = (
-        'python {} --input_fasta {} --input_gff3 {} --trinity_assembly {} '
+        '{} --input_fasta {} --input_gff3 {} --trinity_assembly {} '
         '--bam_file {} --output_dir {}'
     ).format(
-        create_markdown_path, genome_assembly, fungap_gff3, trinity_asm,
+        d_path['create_markdown'], genome_assembly, fungap_gff3, trinity_asm,
         trans_bam, markdown_out_dir
     )
+    logger_time, logger_txt = logger
     logger_time.debug('START: wrapper_create_markdown')
-    logger_txt.debug('[Wrapper] {}'.format(command))
+    logger_txt.debug('[Wrapper] %s', command)
     command_args = shlex.split(command)
     check_call(command_args)
     logger_time.debug('DONE: wrapper_create_markdown\n')
@@ -743,4 +823,4 @@ def create_markdown(genome_assembly, output_dir, trans_bams, trinity_asms):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

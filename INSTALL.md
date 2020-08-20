@@ -21,7 +21,7 @@ Using Docker is the most reliable and robust way to install FunGAP. [Please foll
 
 # Install FunGAP using conda
 
-You may not have superuser privilege (e.g., HPC) required for Docker. Please use the following instruction for conda-based FunGAP installation.
+You may not have superuser privilege (e.g., HPC) required for Docker. To install dependencies, we recommend using the Anaconda.
 
 ## 0. FunGAP requirements
 
@@ -47,8 +47,6 @@ You may not have superuser privilege (e.g., HPC) required for Docker. Please use
 <br/>
 
 ## 1. Setup Anaconda environment
-
-To install dependencies, we recommend using the Anaconda.
 
 ### 1.1. Install Anaconda3 (v4.8.3 tested)
 

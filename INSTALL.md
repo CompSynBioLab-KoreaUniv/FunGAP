@@ -1,68 +1,66 @@
-# Installation of FunGAP v1.0.1
+# Installation of FunGAP v1.1.0
 
-**Last updated: Jan 13, 2020*
+**Last updated: Aug 20, 2020*
 
 **FunGAP is freely available for academic use. For the commerical use or license of FunGAP, please contact In-Geol Choi (email: igchoi (at) korea.ac.kr). Please, cite the following reference**
 
 Reference: Byoungnam Min  Igor V Grigoriev  In-Geol Choi, FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation (2017), Bioinformatics, Volume 33, Issue 18, Pages 2936–2937, https://doi.org/10.1093/bioinformatics/btx353
 
 <hr>
-Because FunGAP implements many dependent programs, you may encounter issues during
-installation. Please don't hesitate to post on *Issues* or contact me (mbnmbn00@gmail.com) for help.
-
+Please don't hesitate to post on *Issues* or contact me (mbnmbn00@gmail.com) for help.
 These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
 
 # Install FunGAP using Docker
 
-Using Docker is the most reliable and robust way to install FunGAP. [Please folow these instructions](docker/README.md).
+Using Docker is the most reliable and robust way to install FunGAP. [Please follow the instruction](docker/README.md).
 
 # Install FunGAP using conda
 
-Although we recommend using Docker, some workspaces are not available for Docker (e.g., HPC). Please use the following instruction for conda-based FunGAP installation.
+You may not have superuser privilege (e.g., HPC) required for Docker. Please use the following instruction for conda-based FunGAP installation.
 
 ## 0. FunGAP requirements
 
 ### 0.1. Required softwares (and tested versions)
 
-1. [Hisat2](https://ccb.jhu.edu/software/hisat2/index.shtml) v2.1.0
-1. [Trinity](https://github.com/trinityrnaseq/trinityrnaseq) v2.9.0
-1. [RepeatModeler](http://www.repeatmasker.org/RepeatModeler/) v1.0.11
+1. [Hisat2](https://ccb.jhu.edu/software/hisat2/index.shtml) v2.2.0
+1. [Trinity](https://github.com/trinityrnaseq/trinityrnaseq) v2.11.0
+1. [RepeatModeler](http://www.repeatmasker.org/RepeatModeler/) v2.0.1
 1. [Maker](http://www.yandell-lab.org/software/maker.html) v2.31.10
-1. [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) v4.48_3.60_lic
-1. [Augustus](https://github.com/Gaius-Augustus/Augustus) v3.3
-1. [Braker](http://exon.gatech.edu/braker1.html) v1.9
-1. [BUSCO](https://busco.ezlab.org/) v3.0.2
-1. [Pfam_scan](https://www.ebi.ac.uk/seqdb/confluence/display/THD/PfamScan) v1.6-2
-1. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download) v2.6.0+
-1. [Samtools](http://www.htslib.org/download/) v1.9
-1. [Bamtools](https://github.com/pezmaster31/bamtools) v2.4.1
+1. [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) v4.59_lic
+1. [Augustus](https://github.com/Gaius-Augustus/Augustus) v3.3.3
+1. [Braker](http://exon.gatech.edu/braker1.html) v2.1.5
+1. [BUSCO](https://busco.ezlab.org/) v4.1.2
+1. [Pfam_scan](https://www.ebi.ac.uk/seqdb/confluence/display/THD/PfamScan) v1.6
+1. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download) v2.9.0+
+1. [Samtools](http://www.htslib.org/download/) v1.10
+1. [Bamtools](https://github.com/pezmaster31/bamtools) v2.5.1
 
 ### 0.2. Required databases
 
-1. [BUSCO](https://busco.ezlab.org/) odb9
-1. [Pfam](https://pfam.xfam.org/) release 32.0
+1. [Pfam](https://pfam.xfam.org/) release 33.1
 
 <br/>
 
 ## 1. Setup Anaconda environment
 
-For robust installation, we recommend to use Anaconda environment and install dependent programs and libraries as much as possible in the environment.
+To install dependencies, we recommend using the Anaconda.
 
-### 1.1. Install Anaconda2 (v4.8.1 tested)
+### 1.1. Install Anaconda3 (v4.8.3 tested)
 
-Download and install Anaconda2 (We assume that you install it in ```$HOME/anaconda2```)
+Download and install Anaconda3 (We assume that you install it in `$HOME/anaconda3`)
 
 ```
 cd $HOME
-wget https://repo.anaconda.com/archive/Anaconda2-2019.10-Linux-x86_64.sh
-bash Anaconda2-2019.10-Linux-x86_64.sh
+wget https://repo.anaconda.com/archive/Anaconda3-2020.07-Linux-x86_64.sh
+bash Anaconda3-2020.07-Linux-x86_64.sh
 ```
 
 ### 1.2. Set conda environment
 
 ```
-echo ". ~/anaconda2/etc/profile.d/conda.sh" >> ~/.bashrc
-source ~/.bashrc
+echo ". $HOME/anaconda2/etc/profile.d/conda.sh" >> ~/.bashrc
+source $HOME/.bashrc
+which conda  # Check
 ```
 
 ### 1.3. Create and activate an environment
@@ -75,13 +73,30 @@ conda activate fungap
 
 ### 1.4. Add channels
 
-This step is **essential**; otherwise, Maker will stop.
+Add two channels.
 
 ```
-conda config --remove channels bioconda
-conda config --remove channels conda-forge
+conda config --add channels bioconda
+conda config --add channels conda-forge
+```
+
+Check the channels
+
+```
+conda config --show channels
+```
+
+It should look like:
+```
+ channels:
+  - conda-forge
+  - bioconda
+  - defaults
+```
+
 conda config --add channels bioconda/label/cf201901
 conda config --add channels conda-forge/label/cf201901
+
 ```
 
 ### 1.5. Install dependencies

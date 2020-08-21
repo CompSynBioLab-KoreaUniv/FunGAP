@@ -192,7 +192,16 @@ cd $FUNGAP_DIR/external/gmes_linux_64/
 ## 5. RepeatMasker download database
 
 ```
-cd 
+conda activate fungap
+cd $(dirname $(which RepeatMasker))/../share/RepeatMasker
+# ./configure downloads required databases
+echo -e "\n2\n$(dirname $(which rmblastn))\n\n5\n" > tmp && ./configure < tmp
+
+# It should look like this
+ls $(dirname $(which RepeatMasker))/../share/RepeatMasker/Libraries
+# Artefacts.embl  Dfam.hmm       RepeatAnnotationData.pm  RepeatMasker.lib.nin  RepeatPeps.lib      RepeatPeps.lib.psq
+# CONS-Dfam_3.0   README.meta    RepeatMasker.lib         RepeatMasker.lib.nsq  RepeatPeps.lib.phr  RepeatPeps.readme
+# Dfam.embl       RMRBMeta.embl  RepeatMasker.lib.nhr     RepeatMaskerLib.embl  RepeatPeps.lib.pin  taxonomy.dat
 ```
 
 <br />
@@ -204,16 +213,15 @@ This script allows users to set and test (by --help command) all the dependencie
 ```
 cd $FUNGAP_DIR
 conda activate fungap
-python set_dependencies.py \
-  --pfam_db_dir db/pfam \
-  --busco_db_dir db/busco/basidiomycota_odb9/ \
-  --genemark_dir external/gmes_linux_64/ \
-  --repeat_modeler_dir external/RepeatModeler-open-1.0.11
+./set_dependencies.py \
+  --pfam_db_path db/pfam/ \
+  --genemark_path external/gmes_linux_64/ \
+  --maker_path $MAKER_DIR
 ```
 
 <br />
 
-## 8. Braker1 bug
+## 8. Braker bug
 
 You have to fix this bug; otherwise, you will encounter this error.
 
@@ -222,17 +230,18 @@ You have to fix this bug; otherwise, you will encounter this error.
 > ). Recomended are at least 300 genes
 
 ```
-cd $HOME/anaconda2/envs/fungap/bin
+conda activate fungap
+cd $(dirname $(which braker.pl))
 vim filterGenesIn_mRNAname.pl
 ```
 
-Go to line 27, and add "?" character.
+Go to line 38, and add "?" character.
 
 From
 ```
-if($_ =~ m/transcript_id \"(.*)\"/) {
+    if ( $_ =~ m/transcript_id \"(.*)\"/ ) {
 ```
 to
 ```
-if($_ =~ m/transcript_id \"(.*?)\"/) {
+    if ( $_ =~ m/transcript_id \"(.*?)\"/ ) {
 ```

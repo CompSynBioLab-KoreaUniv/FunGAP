@@ -221,7 +221,7 @@ conda activate fungap
 
 <br />
 
-## 8. Braker bug
+## 7. Braker bug
 
 You have to fix this bug; otherwise, you will encounter this error.
 
@@ -235,7 +235,7 @@ cd $(dirname $(which braker.pl))
 vim filterGenesIn_mRNAname.pl
 ```
 
-Go to line 38, and add "?" character.
+Go to line 38, and add a "?" character.
 
 From
 ```

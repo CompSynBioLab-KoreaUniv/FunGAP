@@ -95,16 +95,27 @@ conda create -n fungap
 conda activate fungap
 ```
 
-```
-
 ### 1.5. Install dependencies
 
 ```
-conda install augustus rmblast maker hisat2 braker busco=3.0.2 blast pfam_scan bowtie2
-conda install -c bioconda/label/cf201901 jellyfish  # For Trinity
-conda install -c anaconda openjdk  # For Trinity
-pip install biopython==1.76 bcbio-gff networkx markdown2 matplotlib
+conda install braker2=2.1.5 trinity=2.11.0 repeatmodeler=2.0.1 hisat2=2.2.0 pfam_scan=1.6 busco=4.1.2
+pip install biopython bcbio-gff networkx markdown2 matplotlib
 cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
+```
+
+### 1.6. Install Maker
+
+Because Maker is incompatible with other dependencies (it requires Python2), we will make a new environment and install the Maker in it.
+
+```
+conda deactivate
+conda create -n maker
+conda activate maker
+conda install -c bioconda maker=2.31.10
+
+# We need this for set_dependencies.py
+export MAKER_DIR=$(dirname $(which maker))
+conda deactivate
 ```
 
 <br />
@@ -116,26 +127,24 @@ cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
 Download FunGAP using GitHub clone. Suppose we are installing FunGAP in your `$HOME` directory, but you are free to change the location. `$FUNGAP_DIR` is going to be your FunGAP installation directory.
 
 ```
-cd $HOME
+cd $HOME  # or wherever you want
 git clone https://github.com/CompSynBioLab-KoreaUniv/FunGAP.git
-cd FunGAP/
-export FUNGAP_DIR=$(pwd)
+export FUNGAP_DIR=$(realpath FunGAP/)
 ```
 
 <br />
 
-## 3. Download databases
+## 3. Download Pfam
 
-Download Pfam and BUSCO databases in your `$FUNGAP_DIR/db` directory.
+Download Pfam databases in your `$FUNGAP_DIR/db` directory.
 
 ### 3.1. Pfam DB download 
 
 ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release
 
 ```
-cd $FUNGAP_DIR  # Change directory to FunGAP installation directory
-mkdir -p db/pfam
-cd db/pfam
+mkdir -p $FUNGAP_DIR/db/pfam
+cd $FUNGAP_DIR/db/pfam
 wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
 wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.dat.gz
 gunzip Pfam-A.hmm.gz
@@ -143,27 +152,11 @@ gunzip Pfam-A.hmm.dat.gz
 hmmpress Pfam-A.hmm  # HMMER package (would be automatically installed in the above Anaconda step)
 ```
 
-### 3.2. BUSCO DB download
-
-There are various databases in BUSCO, so just download one of them fitted to your target genome. Here are example commands.
-
-```
-cd $FUNGAP_DIR
-mkdir -p db/busco
-cd db/busco
-wget https://busco-archive.ezlab.org/v3/datasets/fungi_odb9.tar.gz
-wget https://busco-archive.ezlab.org/v3/datasets/ascomycota_odb9.tar.gz
-wget https://busco-archive.ezlab.org/v3/datasets/basidiomycota_odb9.tar.gz
-tar -zxvf fungi_odb9.tar.gz
-tar -zxvf ascomycota_odb9.tar.gz
-tar -zxvf basidiomycota_odb9.tar.gz
-```
-
 <br />
 
 ## 4. Install GeneMark
 
-Go to this site and download GeneMark-ES/ET.
+Go to the below site and download GeneMark-ES/ET.
 http://topaz.gatech.edu/GeneMark/license_download.cgi
 Don't forget to download the key, too.
 
@@ -196,126 +189,15 @@ cd $FUNGAP_DIR/external/gmes_linux_64/
 
 <br />
 
-## 5. RepeatModeler installation
-
-Note: RepeatModerler is available in Anaconda2 (https://anaconda.org/bioconda/repeatmodeler), but the conda-installed program does not work at the moment. Installation seemed okay, but when I ran, I got no results. I will update this whenever working RepeatModeler is available.
-
-### 5.1. Check perl version.
+## 5. RepeatMasker download database
 
 ```
-perl -v
-```
-
-It should be > 5.8.8
-
-### 5.2. Install RECON 1.08
-
-```
-cd $FUNGAP_DIR/external/
-wget http://www.repeatmasker.org/RepeatModeler/RECON-1.08.tar.gz
-tar -zxvf RECON-1.08.tar.gz
-cd RECON-1.08/src/
-make
-make install
-```
-
-### 5.3. Install RepeatScout 1.0.5
-
-```
-cd $FUNGAP_DIR/external/
-wget http://www.repeatmasker.org/RepeatScout-1.0.5.tar.gz
-tar -zxvf RepeatScout-1.0.5.tar.gz 
-cd RepeatScout-1
-make
-```
-
-### 5.4. Install NSEG
-
-```
-cd $FUNGAP_DIR/external/
-mkdir nseg
-cd nseg
-wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/genwin.c
-wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/genwin.h
-wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/lnfac.h
-wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/makefile
-wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nmerge.c
-wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nseg.c
-wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/runnseg
-sudo apt-get install build-essential  # "make: cc: Command not found" error
-make
-```
-
-### 5.5. Install RepeatMasker 4.0.8
-
-I could not use conda-installed RepeatMasker for RepeatModeler installation. So I manually installed.
-
-```
-cd $FUNGAP_DIR/external/
-wget http://www.repeatmasker.org/RepeatMasker-open-4-0-8.tar.gz
-tar -zxvf RepeatMasker-open-4-0-8.tar.gz
-cd RepeatMasker
-perl ./configure
-```
-
-- Note: `trf` and `rmblastn` are located at `~/anaconda2/envs/fungap/bin`.
-
-### 5.6. Install RepeatModeler 1.0.11
-
-```
-cd $FUNGAP_DIR/external/
-wget http://www.repeatmasker.org/RepeatModeler/RepeatModeler-open-1.0.11.tar.gz
-tar -zxvf RepeatModeler-open-1.0.11.tar.gz
-cd RepeatModeler-open-1.0.11/
-perl ./configure
-```
-
- - Note: `trf` and `rmblastn` is located at `~/anaconda2/envs/fungap/bin`
-
-### 5.7. Check the installation
-
-```
-cd $FUNGAP_DIR/external/RepeatModeler-open-1.0.11/
-./BuildDatabase --help
-./RepeatModeler --help
+cd 
 ```
 
 <br />
 
-## 6. Trinity installation
-
-Download and compile Trinity
-
-```
-cd $FUNGAP_DIR/external
-wget https://github.com/trinityrnaseq/trinityrnaseq/releases/download/v2.9.0/trinityrnaseq-v2.9.0.FULL.tar.gz
-tar -zxvf trinityrnaseq-v2.9.0.FULL.tar.gz
-cd trinityrnaseq-v2.9.0/
-conda deactivate  # Compile outside conda environment
-sudo apt-get install cmake zlib1g-dev  # "zlib.h: No such file or directory" error
-make
-make plugins
-```
-
-Add to `$PATH` variable
-```
-echo "export PATH=$PATH:$FUNGAP_DIR/external/trinityrnaseq-Trinity-v2.8.5/" >> ~/.bashrc
-source ~/.bashrc
-```
-
-### 6-1. Salmon installation
-
-```
-cd $FUNGAP_DIR/external
-wget https://github.com/COMBINE-lab/salmon/releases/download/v1.1.0/salmon-1.1.0_linux_x86_64.tar.gz
-tar -zxvf salmon-1.1.0_linux_x86_64.tar.gz 
-echo "export PATH=$PATH:$FUNGAP_DIR/external/salmon-latest_linux_x86_64/bin/" >> ~/.bashrc
-source ~/.bashrc
-```
-
-<br />
-
-## 7. Configure FunGAP
+## 6. Configure FunGAP
 
 This script allows users to set and test (by --help command) all the dependencies. If this script runs without any issue, you are ready to run FunGAP!
 

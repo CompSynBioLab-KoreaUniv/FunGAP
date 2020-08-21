@@ -40,7 +40,7 @@ You may not have superuser privilege (e.g., HPC) required for Docker. To install
 1. [Samtools](http://www.htslib.org/download/) v1.10
 1. [Bamtools](https://github.com/pezmaster31/bamtools) v2.5.1
 
-### 0.2. Required databases
+### 0.2. Required database
 
 1. [Pfam](https://pfam.xfam.org/) release 33.1
 

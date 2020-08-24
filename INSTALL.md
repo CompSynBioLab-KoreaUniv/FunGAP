@@ -246,11 +246,11 @@ to
 
 <br />
 
-## 8. Test run
+# Test run
 
 <a name="testdata"></a>
 
-### 8.1. Download test dataset
+### 1. Download test dataset
 
 You can download yeast (*Saccharomyces cerevisiae*) genome assembly (FASTA) and RNA-seq reads (two FASTQs) from NCBI for testing FunGAP.
 
@@ -264,7 +264,7 @@ wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/146/045/GCF_000146045.2_R64/
 gunzip GCF_000146045.2_R64_genomic.fna.gz
 ```
 
-### 8.2. Download protein sequences of related species
+### 2. Download protein sequences of related species
 
 ```
 $FUNGAP_DIR/download_sister_orgs.py \
@@ -273,7 +273,7 @@ $FUNGAP_DIR/download_sister_orgs.py \
 zcat sister_orgs/*faa.gz > prot_db.faa
 ```
 
-### 8.3. Get Augustus species
+### 3. Get Augustus species
 
 ```
 $FUNGAP_DIR/get_augustus_species.py \
@@ -283,7 +283,7 @@ $FUNGAP_DIR/get_augustus_species.py \
 
  - saccharomyces_cerevisiae_S288C
  
-### 8.4. Run FunGAP
+### 4. Run FunGAP
 
 ```
 $FUNGAP_DIR/fungap.py \

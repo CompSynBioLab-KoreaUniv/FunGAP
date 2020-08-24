@@ -61,7 +61,7 @@ bash Anaconda3-2020.07-Linux-x86_64.sh
 ### 1.2. Set conda environment
 
 ```
-echo ". $HOME/anaconda2/etc/profile.d/conda.sh" >> ~/.bashrc
+echo ". $HOME/anaconda3/etc/profile.d/conda.sh" >> ~/.bashrc
 source $HOME/.bashrc
 which conda  # It should be $HOME/anaconda3/condabin/conda
 ```

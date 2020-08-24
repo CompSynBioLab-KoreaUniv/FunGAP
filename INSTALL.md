@@ -150,6 +150,7 @@ wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
 wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.dat.gz
 gunzip Pfam-A.hmm.gz
 gunzip Pfam-A.hmm.dat.gz
+conda activate fungap
 hmmpress Pfam-A.hmm  # HMMER package (would be automatically installed in the above Anaconda step)
 ```
 

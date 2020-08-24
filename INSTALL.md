@@ -109,14 +109,7 @@ Because Maker is incompatible with other dependencies (it requires Python2), we 
 
 ```
 conda deactivate
-conda create -n maker
-conda activate maker
-conda install -c bioconda maker=2.31.10
-
-# We need this for set_dependencies.py
-export MAKER_DIR=$(dirname $(which maker))
-echo $MAKER_DIR  # It is like /home/ubuntu/anaconda3/envs/maker/bin
-conda deactivate
+conda create -n maker -c bioconda maker=2.31.10
 ```
 
 <br />
@@ -214,6 +207,9 @@ This script allows users to set and test (by --help command) all the dependencie
 
 ```
 cd $FUNGAP_DIR
+conda activate maker
+export MAKER_DIR=$(dirname $(which maker))
+echo $MAKER_DIR  # /home/ubuntu/anaconda3/envs/maker/bin
 conda activate fungap
 ./set_dependencies.py \
   --pfam_db_path db/pfam/ \

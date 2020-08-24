@@ -115,6 +115,7 @@ conda install -c bioconda maker=2.31.10
 
 # We need this for set_dependencies.py
 export MAKER_DIR=$(dirname $(which maker))
+echo $MAKER_DIR  # It is like /home/ubuntu/anaconda3/envs/maker/bin
 conda deactivate
 ```
 

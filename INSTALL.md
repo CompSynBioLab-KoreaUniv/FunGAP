@@ -255,7 +255,7 @@ to
 You can download yeast (*Saccharomyces cerevisiae*) genome assembly (FASTA) and RNA-seq reads (two FASTQs) from NCBI for testing FunGAP.
 
 ```
-# Download RNA-seq reads using SRA toolkit (https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/)
+# Download RNA-seq reads using SRA toolkit (https://ncbi.github.io/sra-tools/install_config.html)
 # Parameter -X indicates that we only need <int> pairs from the dataset.
 fastq-dump -X 3000000 -I --split-files SRR1198667
 

@@ -244,6 +244,54 @@ to
     if ( $_ =~ m/transcript_id \"(.*?)\"/ ) {
 ```
 
-## 8. Test dataset
+## 8. Test run
 
+<a name="testdata"></a>
 
+### 8.1. Download test dataset
+
+You can download yeast (*Saccharomyces cerevisiae*) genome assembly (FASTA) and RNA-seq reads (two FASTQs) from NCBI for testing FunGAP.
+
+```
+# Download RNA-seq reads using SRA toolkit (https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/)
+# Parameter -X indicates that we only need <int> pairs from the dataset.
+fastq-dump -X 3000000 -I --split-files SRR1198667
+
+# Download assembly
+wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/146/045/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz
+gunzip GCF_000146045.2_R64_genomic.fna.gz
+```
+
+### 8.2. Download protein sequences of related species
+
+```
+$FUNGAP_DIR/download_sister_orgs.py \
+  --taxon "Saccharomyces cerevisiae" \
+  --email_address <your_email_address>
+zcat sister_orgs/*faa.gz > prot_db.faa
+```
+
+### 8.3. Get Augustus species
+
+```
+$FUNGAP_DIR/get_augustus_species.py \
+  --genus_name "Saccharomyces" \
+  --email_address byoungnammin@lbl.gov
+```
+
+ - saccharomyces_cerevisiae_S288C
+ 
+### 8.4. Run FunGAP
+
+```
+$FUNGAP_DIR/fungap.py \
+  --genome_assembly GCF_000146045.2_R64_genomic.fna \
+  --trans_read_1 SRR1198667_1.fastq \
+  --trans_read_2 SRR1198667_2.fastq \
+  --augustus_species saccharomyces_cerevisiae_S288C \
+  --busco_dataset ascomycota_odb10 \
+  --sister_proteome prot_db.faa \
+  --num_cores 8
+  ```
+  
+It took about 9 hours by dual Intel(R) Xeon(R) CPU E5-2670 v3 with 40 CPU cores.

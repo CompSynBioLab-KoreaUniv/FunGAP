@@ -33,3 +33,15 @@ RUN wget https://busco-archive.ezlab.org/v3/datasets/fungi_odb9.tar.gz \
     && tar -zxvf fungi_odb9.tar.gz \
     && tar -zxvf ascomycota_odb9.tar.gz \
     && tar -zxvf basidiomycota_odb9.tar.gz
+
+WORKDIR /tmp
+RUN git clone https://github.com/Gaius-Augustus/BRAKER.git \
+    && cp BRAKER/scripts/*.pl  BRAKER/scripts/*.py /opt/conda/bin/ \
+    && git clone https://github.com/Gaius-Augustus/Augustus.git \
+    && cp Augustus/scripts/*.pl Augustus/scripts/*.py /opt/conda/bin/ \
+    && cpan Math::Utils
+
+# For unknown reason, diamon stop working. New install
+RUN wget http://github.com/bbuchfink/diamond/releases/download/v0.9.24/diamond-linux64.tar.gz \
+    && tar -xf diamond-linux64.tar.gz \
+    && mv diamond /opt/conda/bin/diamond

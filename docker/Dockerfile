@@ -1,4 +1,4 @@
-FROM taniguti/fungap-v1.1.0-base:v1.1.0
+FROM taniguti/fungap-base:v1.1.0
 
 ENV FUNGAP_DIR=/workspace/FunGAP
 

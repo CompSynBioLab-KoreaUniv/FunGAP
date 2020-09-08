@@ -89,7 +89,7 @@ def main(argv):
     )
 
     args = parser.parse_args()
-    genome_assembly = os.path.abspath(args.genome_assembly)
+    genome_assembly = os.path.abspath(args.genome_assembly[0])
     input_gff3s = [os.path.abspath(x) for x in args.input_gff3s]
     mapping_file = os.path.abspath(args.mapping_file[0])
     blastp_dict = os.path.abspath(args.blastp_dict[0])
@@ -148,7 +148,8 @@ def main(argv):
     D_prot = import_prot(nr_prot_file, D_mapping_rev)
     write_final_prots(final_gene_set, D_mapping, output_dir)
     write_files(
-        final_gene_set, D_gene, D_gff3, D_prot, D_exon, output_dir, D_cds
+        genome_assembly, final_gene_set, D_gene, D_gff3, D_prot, D_exon, output_dir,
+        D_cds
     )
 
     cds_len_final = 0

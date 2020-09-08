@@ -1,13 +1,12 @@
 # FunGAP: Fungal Genome Annotation Pipeline v1.0.1
 
-**Last updated: Jan 7, 2019**
+**Last updated: Sep 4, 2019**
 
-**FunGAP is freely available for academic use. For the commerical use or license of FunGAP, please contact In-Geol Choi (igchoi (at) korea.ac.kr). Please, cite the following reference**
+**FunGAP is freely available for academic use. For the commerical use or licensing of FunGAP, please contact In-Geol Choi (igchoi (at) korea.ac.kr). Please, cite the following reference**
 
 Reference: Byoungnam Min,  Igor V Grigoriev, and In-Geol Choi, **FunGAP: Fungal Genome Annotation Pipeline using evidence-based gene model evaluation (2017), Bioinformatics**, Volume 33, Issue 18, Pages 2936–2937, https://doi.org/10.1093/bioinformatics/btx353
 
-<hr>
-FunGAP performs gene prediction on given genome assembly and RNA-seq reads. See **INSTALL.md** and **USAGE.md** for installation and usage instruction, or you can go to wiki tab for the same.
+#### FunGAP performs gene prediction on given genome assembly and RNA-seq reads. See [INSTALL.md](INSTALL.md) and [USAGE.md](USAGE.md) for installation and usage instruction, or you can go to [wiki](../wiki) tab for the same.
 
 * [FunGAP INPUT & OUTPUT](#inputoutput)
 * [Pipeline description](#pipedesc)

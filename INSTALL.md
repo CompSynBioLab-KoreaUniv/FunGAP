@@ -1,6 +1,6 @@
 # Installation of FunGAP v1.0.1
 
-**Last updated: Jan 7, 2019*
+**Last updated: Jan 13, 2020*
 
 **FunGAP is freely available for academic use. For the commerical use or license of FunGAP, please contact In-Geol Choi (email: igchoi (at) korea.ac.kr). Please, cite the following reference**
 
@@ -12,19 +12,27 @@ installation. Please don't hesitate to post on *Issues* or contact me (mbnmbn00@
 
 These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
 
+# Install FunGAP using Docker
+
+Using Docker is the most reliable and robust way to install FunGAP. [Please folow these instructions](docker/README.md).
+
+# Install FunGAP using conda
+
+Although we recommend using Docker, some workspaces are not available for Docker (e.g., HPC). Please use the following instruction for conda-based FunGAP installation.
+
 ## 0. FunGAP requirements
 
 ### 0.1. Required softwares (and tested versions)
 
 1. [Hisat2](https://ccb.jhu.edu/software/hisat2/index.shtml) v2.1.0
-1. [Trinity](https://github.com/trinityrnaseq/trinityrnaseq) v2.6.6
+1. [Trinity](https://github.com/trinityrnaseq/trinityrnaseq) v2.9.0
 1. [RepeatModeler](http://www.repeatmasker.org/RepeatModeler/) v1.0.11
 1. [Maker](http://www.yandell-lab.org/software/maker.html) v2.31.10
-1. [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) v4.38
+1. [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) v4.48_3.60_lic
 1. [Augustus](https://github.com/Gaius-Augustus/Augustus) v3.3
 1. [Braker](http://exon.gatech.edu/braker1.html) v1.9
 1. [BUSCO](https://busco.ezlab.org/) v3.0.2
-1. [Pfam_scan](https://www.ebi.ac.uk/seqdb/confluence/display/THD/PfamScan) v1.6
+1. [Pfam_scan](https://www.ebi.ac.uk/seqdb/confluence/display/THD/PfamScan) v1.6-2
 1. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download) v2.6.0+
 1. [Samtools](http://www.htslib.org/download/) v1.9
 1. [Bamtools](https://github.com/pezmaster31/bamtools) v2.4.1
@@ -40,14 +48,14 @@ These steps were tested and confirmed in freshly installed Ubuntu 18.04 LTS.
 
 For robust installation, we recommend to use Anaconda environment and install dependent programs and libraries as much as possible in the environment.
 
-### 1.1. Install Anaconda2 (v4.5.12 tested)
+### 1.1. Install Anaconda2 (v4.8.1 tested)
 
 Download and install Anaconda2 (We assume that you install it in ```$HOME/anaconda2```)
 
 ```
 cd $HOME
-wget https://repo.continuum.io/archive/Anaconda2-2018.12-Linux-x86_64.sh
-bash Anaconda2-2018.12-Linux-x86_64.sh
+wget https://repo.anaconda.com/archive/Anaconda2-2019.10-Linux-x86_64.sh
+bash Anaconda2-2019.10-Linux-x86_64.sh
 ```
 
 ### 1.2. Set conda environment
@@ -67,7 +75,7 @@ conda activate fungap
 
 ### 1.4. Add channels
 
-**This step is important otherwise Maker will stop**
+This step is **essential**; otherwise, Maker will stop.
 
 ```
 conda config --remove channels bioconda
@@ -79,8 +87,10 @@ conda config --add channels conda-forge/label/cf201901
 ### 1.5. Install dependencies
 
 ```
-conda install -c bioconda augustus rmblast maker trinity hisat2 braker busco blast pfam_scan
-pip install biopython bcbio-gff networkx markdown2 matplotlib
+conda install augustus rmblast maker hisat2 braker busco=3.0.2 blast pfam_scan bowtie2
+conda install -c bioconda/label/cf201901 jellyfish  # For Trinity
+conda install -c anaconda openjdk  # For Trinity
+pip install biopython==1.76 bcbio-gff networkx markdown2 matplotlib
 cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
 ```
 
@@ -128,9 +138,9 @@ There are various databases in BUSCO, so just download one of them fitted to you
 cd $FUNGAP_DIR
 mkdir -p db/busco
 cd db/busco
-wget https://busco.ezlab.org/datasets/fungi_odb9.tar.gz
-wget https://busco.ezlab.org/datasets/ascomycota_odb9.tar.gz
-wget https://busco.ezlab.org/datasets/basidiomycota_odb9.tar.gz
+wget https://busco-archive.ezlab.org/v3/datasets/fungi_odb9.tar.gz
+wget https://busco-archive.ezlab.org/v3/datasets/ascomycota_odb9.tar.gz
+wget https://busco-archive.ezlab.org/v3/datasets/basidiomycota_odb9.tar.gz
 tar -zxvf fungi_odb9.tar.gz
 tar -zxvf ascomycota_odb9.tar.gz
 tar -zxvf basidiomycota_odb9.tar.gz
@@ -148,38 +158,34 @@ Don't forget to download the key, too.
 
 ```
 mkdir $FUNGAP_DIR/external/
-mv gm_et_linux_64.tar.gz gm_key_64.gz $FUNGAP_DIR/external/  # Move your downloaded files to this directory
+mv gmes_linux_64.tar.gz gm_key_64.gz $FUNGAP_DIR/external/  # Move your downloaded files to this directory
 cd $FUNGAP_DIR/external/
-tar -zxvf gm_et_linux_64.tar.gz
+tar -zxvf gmes_linux_64.tar.gz
 gunzip gm_key_64.gz
 cp gm_key_64 ~/.gm_key
 ```
 
-### 4.2. Install required perl modules for GeneMark
+### 4.2. Change perl path
 
-(if required) You may need to install certain Perl modules. Because GeneMark forces to use `/usr/bin/perl` instead of conda-installed perl, you should install the modules for `/usr/bin/perl` (i.e., not in conda environment). Alternatively, you can modify first lines of GeneMark perl scripts from `#!/usr/bin/perl` to `#!/usr/bin/env perl`
+GeneMark forces to use `/usr/bin/perl` instead of conda-installed perl. You can change this by running `change_path_in_perl_scripts.pl` script.
 
 ```
-conda deactivate
-sudo apt-get update
-sudo apt-get install build-essential
-sudo cpan App::cpanminus  # Install cpanm if you do not have one
-sudo cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
-conda activate fungap
+cd $FUNGAP_DIR/external/gmes_linux_64/
+perl change_path_in_perl_scripts.pl "/usr/bin/env perl"
 ```
 
 ### 4.3 Check GeneMark and its dependencies are correctly installed.
 
 ```
-cd $FUNGAP_DIR/external/gm_et_linux_64/gmes_petap
+cd $FUNGAP_DIR/external/gmes_linux_64/
 ./gmes_petap.pl
 ```
 
 <br />
 
-### 5. RepeatModeler installation
+## 5. RepeatModeler installation
 
-**Note: RepeatModerler is available in Anaconda2 (https://anaconda.org/bioconda/repeatmodeler), but conda-installed program did not work at the moment. Installation seemed okay, but no result was produced. I will update this whenever working RepeatModeler is available.**
+Note: RepeatModerler is available in Anaconda2 (https://anaconda.org/bioconda/repeatmodeler), but the conda-installed program does not work at the moment. Installation seemed okay, but when I ran, I got no results. I will update this whenever working RepeatModeler is available.
 
 ### 5.1. Check perl version.
 
@@ -223,6 +229,7 @@ wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/makefile
 wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nmerge.c
 wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/nseg.c
 wget ftp://ftp.ncbi.nih.gov/pub/seg/nseg/runnseg
+sudo apt-get install build-essential  # "make: cc: Command not found" error
 make
 ```
 
@@ -262,15 +269,75 @@ cd $FUNGAP_DIR/external/RepeatModeler-open-1.0.11/
 
 <br />
 
-## 6. Configure FunGAP
+## 6. Trinity installation
+
+Download and compile Trinity
+
+```
+cd $FUNGAP_DIR/external
+wget https://github.com/trinityrnaseq/trinityrnaseq/releases/download/v2.9.0/trinityrnaseq-v2.9.0.FULL.tar.gz
+tar -zxvf trinityrnaseq-v2.9.0.FULL.tar.gz
+cd trinityrnaseq-v2.9.0/
+conda deactivate  # Compile outside conda environment
+sudo apt-get install cmake zlib1g-dev  # "zlib.h: No such file or directory" error
+make
+make plugins
+```
+
+Add to `$PATH` variable
+```
+echo "export PATH=$PATH:$FUNGAP_DIR/external/trinityrnaseq-Trinity-v2.8.5/" >> ~/.bashrc
+source ~/.bashrc
+```
+
+### 6-1. Salmon installation
+
+```
+cd $FUNGAP_DIR/external
+wget https://github.com/COMBINE-lab/salmon/releases/download/v1.1.0/salmon-1.1.0_linux_x86_64.tar.gz
+tar -zxvf salmon-1.1.0_linux_x86_64.tar.gz 
+echo "export PATH=$PATH:$FUNGAP_DIR/external/salmon-latest_linux_x86_64/bin/" >> ~/.bashrc
+source ~/.bashrc
+```
+
+<br />
+
+## 7. Configure FunGAP
 
 This script allows users to set and test (by --help command) all the dependencies. If this script runs without any issue, you are ready to run FunGAP!
 
 ```
 cd $FUNGAP_DIR
+conda activate fungap
 python set_dependencies.py \
   --pfam_db_dir db/pfam \
   --busco_db_dir db/busco/basidiomycota_odb9/ \
-  --genemark_dir external/gm_et_linux_64/gmes_petap/ \
+  --genemark_dir external/gmes_linux_64/ \
   --repeat_modeler_dir external/RepeatModeler-open-1.0.11
+```
+
+<br />
+
+## 8. Braker1 bug
+
+You have to fix this bug; otherwise, you will encounter this error.
+
+> ERROR: Number of good genes is 0, so the parameters cannot be optimized. Recomended are at least 300 genes <br />
+> WARNING: Number of good genes is low (0 <br />
+> ). Recomended are at least 300 genes
+
+```
+cd $HOME/anaconda2/envs/fungap/bin
+vim filterGenesIn_mRNAname.pl
+```
+
+Go to line 27, and add "?" character.
+
+From
+```
+if($_ =~ m/transcript_id \"(.*)\"/) {
+```
+to
+```
+if($_ =~ m/transcript_id \"(.*?)\"/) {
 ```

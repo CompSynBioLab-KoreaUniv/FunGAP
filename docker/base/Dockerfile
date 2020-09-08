@@ -30,4 +30,3 @@ RUN conda create -n maker maker=2.31.10
 RUN wget https://github.com/bbuchfink/diamond/releases/download/v2.0.0/diamond-linux64.tar.gz \
     && tar -xf diamond-linux64.tar.gz \
     && mv diamond /opt/conda/bin/diamond
-

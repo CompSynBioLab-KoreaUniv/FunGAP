@@ -7,14 +7,14 @@ Requirements:
 - Docker
 - 16Gb of available disk space
 - [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) release and it's key (`gmes_linux_64.tar.gz` and `gm_key_64.gz`)
-  
+
 ## Steps
 
 ### Build FunGAP docker image
 
 Be sure you have the following files in the working directory:
 
-`Dockerfile  fungap.conf  gmes_linux_64.tar.gz  gm_key_64.gz`
+`Dockerfile  fungap.conf  gmes_linux_64.tar.gz  gm_key_64.gz  patch_braker.pl`
 
 > GeneMark is not free for everybody, so you need to register in order to have gm_* files. If was not for that I could have push FunGAP docker image ready for use in DockerHub. The Dcoker image will have about 13Gb.
 
@@ -27,12 +27,6 @@ cd FunGAP/docker
 # 4. Build the image
 docker build -t fungap .
 ```
-
-### [Bug] Fix the BRAKER bug
-
-Please follow these instructions to make it work.
-
-- [Braker1 bug](../INSTALL.md#8-braker1-bug)
 
 ### Enter Docker image and execute FunGAP pipeline
 

@@ -1,40 +1,36 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Create Markedown document
+Last updated: Jul 13, 2020
 '''
 
-# Import modules
-import re
-import os
-import sys
 import datetime
+import os
+import re
 import subprocess
+from argparse import ArgumentParser
+from collections import defaultdict
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
 from Bio import SeqIO
+from Bio.Alphabet import IUPAC, generic_dna
 from Bio.Seq import Seq
 from Bio.SeqUtils import GC
-from markdown2 import markdown
-from Bio.Alphabet import IUPAC
-import matplotlib as mpl
-mpl.use('Agg')
-import matplotlib.pyplot as plt
-from collections import defaultdict
-from argparse import ArgumentParser
-from Bio.Alphabet import generic_dna
 
-# Get Logging
-this_path = os.path.realpath(__file__)
-this_dir = os.path.dirname(this_path)
-sys.path.append(this_dir)
 from import_config import import_config
+from markdown2 import markdown
+
+mpl.use('Agg')
 
 # Parameters
-D_conf = import_config(this_dir)
+D_CONF = import_config()
 
 
-# Main function
-def main(argv):
+def main():
+    '''Main function'''
     argparse_usage = (
         'create_markdown.py -f <input_fasta> -g <input_gff3> '
         '-t <trinity_assembly> -b <bam_file> -o <output_dir>'
@@ -70,44 +66,46 @@ def main(argv):
 
     # Run functions :) Slow is as good as Fast
     create_dir(output_dir)
-    D_fasta = SeqIO.to_dict(SeqIO.parse(input_fasta, 'fasta', generic_dna))
-    D_gff3 = parse_gff3(input_gff3)
-    D_cds_coords, protein_lengths, D_stat = get_stats(D_fasta, D_gff3)
-    D_stat = get_stats2(D_fasta, D_cds_coords, D_stat)
-    D_trinity = get_stats_trinity(trinity_assembly, bam_file)
-    trans_len_dist_png = draw_trans_len_dist(D_trinity, output_dir)
+    d_fasta = SeqIO.to_dict(SeqIO.parse(input_fasta, 'fasta', generic_dna))
+    d_gff3 = parse_gff3(input_gff3)
+    protein_lengths, d_stat = get_stats(d_fasta, d_gff3)
+    d_stat = get_stats2(d_fasta, d_stat)
+    d_trinity = get_stats_trinity(trinity_assembly, bam_file)
+    trans_len_dist_png = draw_trans_len_dist(d_trinity, output_dir)
     prot_len_dist_png = draw_prot_len_dist(protein_lengths, output_dir)
     create_markdown(
-        D_stat, D_trinity, trans_len_dist_png, prot_len_dist_png, output_dir
+        d_stat, d_trinity, trans_len_dist_png, prot_len_dist_png, output_dir
     )
 
 
 def import_file(input_file):
+    '''Import file'''
     with open(input_file) as f_in:
-        txt = (line.rstrip() for line in f_in)
-        txt = list(line for line in txt if line)
+        txt = list(line.rstrip() for line in f_in)
     return txt
 
 
 def get_reverse_complement(nuc_seq):
+    '''Get reverse complement sequence'''
     my_dna = Seq(nuc_seq, generic_dna)
     rev_comp_dna = str(my_dna.reverse_complement())
     return rev_comp_dna
 
 
 def create_dir(output_dir):
+    '''Create directory'''
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
 
 def parse_gff3(input_gff3):
-    # Parse gff3
+    '''Parse GFF3'''
     gff3 = import_file(input_gff3)
 
-    regex_id = re.compile('ID=(\S+?);')
+    regex_id = re.compile(r'ID=(\S+?);')
     regex_parent = re.compile(r'Parent=([^;]+)')
-    D_prot = {}
-    D_gff3 = defaultdict(list)
+    d_prot = {}
+    d_gff3 = defaultdict(list)
     for line in gff3:
         if not re.search('\t', line):
             continue
@@ -122,25 +120,25 @@ def parse_gff3(input_gff3):
         if entry_type in ('mRNA', 'transcript'):
             mrna_entry_id = regex_id.search(line).group(1)
             prot_id = regex_parent.search(line).group(1)
-            D_prot[mrna_entry_id] = prot_id
+            d_prot[mrna_entry_id] = prot_id
 
         elif entry_type == 'CDS':
             phase = int(line_split[7])
             parent = regex_parent.search(line).group(1)
             prot_id = parent
-            D_gff3[prot_id].append((scaffold, start, end, strand, phase))
+            d_gff3[prot_id].append((scaffold, start, end, strand, phase))
 
     # Sort dictionary
-    D_gff3_sorted = {}
-    for prot_id, feature_list in D_gff3.items():
-        D_gff3_sorted[prot_id] = sorted(feature_list, key=lambda x: int(x[1]))
+    d_gff3_sorted = {}
+    for prot_id, feature_list in d_gff3.items():
+        d_gff3_sorted[prot_id] = sorted(feature_list, key=lambda x: int(x[1]))
 
-    return D_gff3_sorted
+    return d_gff3_sorted
 
 
-def get_stats(D_fasta, D_gff3):
-    # Get stats
-    D_stat = {}
+def get_stats(d_fasta, d_gff3):
+    '''Get stats'''
+    d_stat = {}
     cds_lengths = []
     protein_lengths = []
     exon_lengths = []
@@ -151,11 +149,10 @@ def get_stats(D_fasta, D_gff3):
     num_spliced = 0
     single_exon_genes = 0
     total_genes = 0
-    D_cds_seq = {}
-    D_cds_coords = defaultdict(list)
+    d_cds_seq = {}
 
     sorted_genes = sorted(
-        D_gff3.items(), key=lambda x: (
+        d_gff3.items(), key=lambda x: (
             int(re.findall(r'\d+', x[0])[0]),
             x[1][0][1]
         )
@@ -178,14 +175,12 @@ def get_stats(D_fasta, D_gff3):
             tmp_prot_len += end - start + 1
             exon_lengths.append(end - start + 1)
             # Get sequence
-            cds_seq += str(D_fasta[scaffold][start - 1:end].seq)
-            # Store in dictionary
-            D_cds_coords[scaffold].append((start, end))
+            cds_seq += str(d_fasta[scaffold][start - 1:end].seq)
 
         if strand == '-':
             cds_seq = get_reverse_complement(cds_seq)
 
-        D_cds_seq[prot_id] = cds_seq
+        d_cds_seq[prot_id] = cds_seq
         cds_length = tmp_prot_len
         cds_lengths.append(cds_length)
         protein_length = tmp_prot_len / 3
@@ -221,16 +216,16 @@ def get_stats(D_fasta, D_gff3):
     transcript_average = np.average(np.array(transcript_lengths))
     num_exons_median = np.median(np.array(num_exons))
 
-    # Guitar
+    # Others
     percent_splice = round(float(num_spliced) / total_genes * 100, 2)
-    total_bases_lst = [len(str(x.seq)) for x in D_fasta.values()]
+    total_bases_lst = [len(str(x.seq)) for x in d_fasta.values()]
     total_bases = sum(total_bases_lst)
     gene_density = float(total_genes) / total_bases
     gene_density = gene_density * 1000000
     gene_density = round(gene_density, 2)
 
     # Get GC content of CDS seq
-    full_cds_seq = ''.join(D_cds_seq.values())
+    full_cds_seq = ''.join(d_cds_seq.values())
     my_seq = Seq(full_cds_seq, IUPAC.unambiguous_dna)
     cds_gc_percent = GC(my_seq)
     # Percent coding
@@ -238,38 +233,39 @@ def get_stats(D_fasta, D_gff3):
     coding_percent = coding_percent * 100
     coding_percent = round(coding_percent, 2)
 
-    D_stat['Total genes'] = total_genes
-    D_stat['Transcript length'] = (
+    d_stat['Total genes'] = total_genes
+    d_stat['Transcript length'] = (
         round(transcript_average, 1), transcript_median
     )
-    D_stat['CDS length'] = (round(cds_average, 1), cds_median)
-    D_stat['Protein length'] = (round(protein_average, 1), protein_median)
-    D_stat['Exon length'] = (round(exon_len_average, 1), exon_median)
-    D_stat['Intron length'] = (round(intron_len_average, 1), intron_median)
-    D_stat['Spliced'] = (num_spliced, percent_splice)
-    D_stat['Gene density'] = gene_density
-    D_stat['Num introns'] = sum(num_introns)
-    D_stat['Num introns per gene'] = num_introns_median
-    D_stat['Num exons'] = sum(num_exons)
-    D_stat['Num exons per gene'] = num_exons_median
-    D_stat['Num single exon genes'] = single_exon_genes
-    D_stat['Percent coding region'] = (len(full_cds_seq), coding_percent)
-    D_stat['Coding region GC'] = round(cds_gc_percent, 2)
+    d_stat['CDS length'] = (round(cds_average, 1), cds_median)
+    d_stat['Protein length'] = (round(protein_average, 1), protein_median)
+    d_stat['Exon length'] = (round(exon_len_average, 1), exon_median)
+    d_stat['Intron length'] = (round(intron_len_average, 1), intron_median)
+    d_stat['Spliced'] = (num_spliced, percent_splice)
+    d_stat['Gene density'] = gene_density
+    d_stat['Num introns'] = sum(num_introns)
+    d_stat['Num introns per gene'] = num_introns_median
+    d_stat['Num exons'] = sum(num_exons)
+    d_stat['Num exons per gene'] = num_exons_median
+    d_stat['Num single exon genes'] = single_exon_genes
+    d_stat['Percent coding region'] = (len(full_cds_seq), coding_percent)
+    d_stat['Coding region GC'] = round(cds_gc_percent, 2)
 
-    return D_cds_coords, protein_lengths, D_stat
+    return protein_lengths, d_stat
 
 
-def get_stats2(D_fasta, D_cds_coords, D_stat):
+def get_stats2(d_fasta, d_stat):
+    '''Get stats2'''
     non_coding_seq = ''
     scaffolds_with_gene = []
 
     # Handle scaffolds without genes
-    for scaffold, seq in D_fasta.items():
+    for scaffold, seq in d_fasta.items():
         if scaffold in scaffolds_with_gene:
             continue
-        non_coding_seq += str(D_fasta[scaffold].seq)
+        non_coding_seq += str(seq.seq)
 
-    total_bases_lst = [len(str(x.seq)) for x in D_fasta.values()]
+    total_bases_lst = [len(str(x.seq)) for x in d_fasta.values()]
     total_bases = sum(total_bases_lst)
     non_coding_percent = float(len(non_coding_seq)) / total_bases
     non_coding_percent = non_coding_percent * 100
@@ -277,65 +273,63 @@ def get_stats2(D_fasta, D_cds_coords, D_stat):
     my_seq = Seq(non_coding_seq, IUPAC.unambiguous_dna)
     non_coding_gc = GC(my_seq)
 
-    D_stat['Percent non-coding region'] = (non_coding_percent)
-    D_stat['Non-coding region GC'] = round(non_coding_gc, 2)
+    d_stat['Percent non-coding region'] = (non_coding_percent)
+    d_stat['Non-coding region GC'] = round(non_coding_gc, 2)
 
-    return D_stat
+    return d_stat
 
 
 def get_stats_trinity(trinity_assembly, bam_file):
+    '''Get stats from Trinity output'''
     trinity_txt = import_file(trinity_assembly)
-    D_contig = defaultdict(int)
+    d_contig = defaultdict(int)
     for line in trinity_txt:
         if line.startswith('>'):
             contig_name = line.split(' ')[0].replace('>', '')
         else:
-            D_contig[contig_name] += len(line)
+            d_contig[contig_name] += len(line)
 
-    num_contigs = len(D_contig)
-    total_size = sum(D_contig.values())
-    long_contigs = sum(1 for x in D_contig.values() if x > 1000)
+    num_contigs = len(d_contig)
+    total_size = sum(d_contig.values())
+    long_contigs = sum(1 for x in d_contig.values() if x > 1000)
 
-
-    samtools_bin = D_conf['SAMTOOLS_PATH']
+    samtools_bin = D_CONF['SAMTOOLS_PATH']
     command = '{} view -c {}'.format(samtools_bin, bam_file)
     process1 = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
     output1 = int(process1.communicate()[0])
 
-    D_trinity = {}
-    D_trinity['Total contigs'] = num_contigs
-    D_trinity['Total size'] = total_size
-    D_trinity['Long contigs'] = long_contigs
-    D_trinity['Num mapped reads'] = output1
-    D_trinity['Length dist'] = D_contig.values()
-    return D_trinity
+    d_trinity = {}
+    d_trinity['Total contigs'] = num_contigs
+    d_trinity['Total size'] = total_size
+    d_trinity['Long contigs'] = long_contigs
+    d_trinity['Num mapped reads'] = output1
+    d_trinity['Length dist'] = d_contig.values()
+    return d_trinity
 
 
-def draw_trans_len_dist(D_trinity, output_dir):
-    trans_lengths = D_trinity['Length dist']
+def draw_trans_len_dist(d_trinity, output_dir):
+    '''Draw transcripts length distribution'''
+    trans_lengths = d_trinity['Length dist']
 
     fig = plt.figure()
-    ax = fig.add_subplot(111)
-    plt.hist(
-        trans_lengths, facecolor='#fdc50c', alpha=1,
-        bins=150
-    )
+    axes = fig.add_subplot(111)
+    plt.hist(trans_lengths, facecolor='#fdc50c', alpha=1, bins=150)
     plt.title('Transcript length distribution')
     plt.xlabel('Transcript length (nt)')
     plt.ylabel('Frequency')
-    ax.set_xlim(0, 5000)
+    axes.set_xlim(0, 5000)
     outpng = os.path.join(output_dir, 'fungap_out_trans_len_dist.png')
     plt.savefig(
-        outpng, dpi=500, facecolor='w', edgecolor='w',
-        orientation='portrait', papertype=None, format=None,
-        transparent=False, bbox_inches=None, pad_inches=0.1
+        outpng, dpi=500, facecolor='w', edgecolor='w', orientation='portrait',
+        format=None, transparent=False, bbox_inches=None, pad_inches=0.1
     )
     return outpng
 
 
 def draw_prot_len_dist(protein_lengths, output_dir):
+    '''Draw protein length distribution'''
     fig = plt.figure()
-    ax = fig.add_subplot(111)
+    axis = fig.add_subplot(111)
     plt.hist(
         protein_lengths, facecolor='#4b85c5', alpha=1,
         bins=150
@@ -343,36 +337,35 @@ def draw_prot_len_dist(protein_lengths, output_dir):
     plt.title('Protein length distribution')
     plt.xlabel('Amino acids (aa)')
     plt.ylabel('Frequency')
-    ax.set_xlim(0, 2000)
+    axis.set_xlim(0, 2000)
     outpng = os.path.join(output_dir, 'fungap_out_prot_len_dist.png')
     plt.savefig(
-        outpng, dpi=500, facecolor='w', edgecolor='w',
-        orientation='portrait', papertype=None, format=None,
-        transparent=False, bbox_inches=None, pad_inches=0.1
+        outpng, dpi=500, facecolor='w', edgecolor='w', orientation='portrait',
+        format=None, transparent=False, bbox_inches=None, pad_inches=0.1
     )
     return outpng
 
 
 def create_markdown(
-    D_stat, D_trinity, trans_len_dist_png, prot_len_dist_png, output_dir
-):
+        d_stat, d_trinity, trans_len_dist_png, prot_len_dist_png, output_dir):
+    '''Create MarkDown'''
     # Header
     header_txt = '# FunGAP report'
-    md = markdown(header_txt)
+    markd = markdown(header_txt)
 
     # Date
     date_txt = '_Created at {}_'.format(datetime.date.today())
-    md += markdown(date_txt)
+    markd += markdown(date_txt)
 
     # Number of genes
     num_genes_txt = 'The **{}** genes were predicted in this genome.'.format(
-        '{:,}'.format(D_stat['Total genes'])
+        '{:,}'.format(d_stat['Total genes'])
     )
-    md += markdown(num_genes_txt)
+    markd += markdown(num_genes_txt)
 
     # Gene structure summary
     gene_structure_txt = '### 1. Gene structure'
-    md += markdown(gene_structure_txt)
+    markd += markdown(gene_structure_txt)
 
     gene_structure_table = '''
 || *Attributes* || *Values* ||
@@ -389,32 +382,32 @@ def create_markdown(
 || Number of exons || {} ||
 || Number of exons per gene (med) || {} ||
     '''.format(
-        '{:,}'.format(D_stat['Total genes']),
-        '{:,}'.format(D_stat['Transcript length'][0]),
-        '{:,}'.format(D_stat['Transcript length'][1]),
-        '{:,}'.format(D_stat['CDS length'][0]),
-        '{:,}'.format(D_stat['CDS length'][1]),
-        '{:,}'.format(D_stat['Protein length'][0]),
-        '{:,}'.format(D_stat['Protein length'][1]),
-        '{:,}'.format(D_stat['Exon length'][0]),
-        '{:,}'.format(D_stat['Exon length'][1]),
-        '{:,}'.format(D_stat['Intron length'][0]),
-        '{:,}'.format(D_stat['Intron length'][1]),
-        '{:,}'.format(D_stat['Spliced'][0]),
-        D_stat['Spliced'][1],
-        '{:,}'.format(D_stat['Gene density']),
-        '{:,}'.format(D_stat['Num introns']),
-        D_stat['Num introns per gene'],
-        '{:,}'.format(D_stat['Num exons']),
-        D_stat['Num exons per gene'],
+        '{:,}'.format(d_stat['Total genes']),
+        '{:,}'.format(d_stat['Transcript length'][0]),
+        '{:,}'.format(d_stat['Transcript length'][1]),
+        '{:,}'.format(d_stat['CDS length'][0]),
+        '{:,}'.format(d_stat['CDS length'][1]),
+        '{:,}'.format(d_stat['Protein length'][0]),
+        '{:,}'.format(d_stat['Protein length'][1]),
+        '{:,}'.format(d_stat['Exon length'][0]),
+        '{:,}'.format(d_stat['Exon length'][1]),
+        '{:,}'.format(d_stat['Intron length'][0]),
+        '{:,}'.format(d_stat['Intron length'][1]),
+        '{:,}'.format(d_stat['Spliced'][0]),
+        d_stat['Spliced'][1],
+        '{:,}'.format(d_stat['Gene density']),
+        '{:,}'.format(d_stat['Num introns']),
+        d_stat['Num introns per gene'],
+        '{:,}'.format(d_stat['Num exons']),
+        d_stat['Num exons per gene'],
 
     )
-    md += markdown(gene_structure_table, extras=['wiki-tables'])
+    markd += markdown(gene_structure_table, extras=['wiki-tables'])
 
     # Transcript assembly summary
     transcript_header = '### 2. Transcriptome reads assembly'
-    md += '<br>'
-    md += markdown(transcript_header)
+    markd += '<br>'
+    markd += markdown(transcript_header)
 
     transcript_stats_table = '''
 || *Attributes* || *Values* ||
@@ -423,28 +416,28 @@ def create_markdown(
 || Number of contigs > 1 kbp || {} ||
 || Total transcript size (Mbp) || {} ||
 '''.format(
-        '{:,}'.format(D_trinity['Num mapped reads']),
-        '{:,}'.format(D_trinity['Total contigs']),
-        '{:,}'.format(D_trinity['Long contigs']),
-        '{:,}'.format(D_trinity['Total size'])
+        '{:,}'.format(d_trinity['Num mapped reads']),
+        '{:,}'.format(d_trinity['Total contigs']),
+        '{:,}'.format(d_trinity['Long contigs']),
+        '{:,}'.format(d_trinity['Total size'])
     )
-    md += markdown(transcript_stats_table, extras=['wiki-tables'])
+    markd += markdown(transcript_stats_table, extras=['wiki-tables'])
 
     # Transscript length distribution
     trans_len_txt = '### 3. Transcript length distribution'
-    md += '<br>'
-    md += markdown(trans_len_txt)
-    md += markdown('![Transcript length distribution]({})'.format(
+    markd += '<br>'
+    markd += markdown(trans_len_txt)
+    markd += markdown('![Transcript length distribution]({})'.format(
         os.path.basename(trans_len_dist_png)
     ))
 
     # Protein length distribution
     prot_len_txt = '### 4. Protein length distribution'
-    md += '<br>'
-    md += markdown(prot_len_txt)
-    md += markdown('![Protein length distribution]({})'.format(
-        os.path.basename(prot_len_dist_png))
-    )
+    markd += '<br>'
+    markd += markdown(prot_len_txt)
+    markd += markdown('![Protein length distribution]({})'.format(
+        os.path.basename(prot_len_dist_png)
+    ))
 
     outfile = os.path.join(output_dir, 'fungap_out.html')
 
@@ -467,7 +460,7 @@ td {
 '''
     outhandle = open(outfile, 'w')
     outhandle.write(header_txt)
-    outhandle.write(md)
+    outhandle.write(markd)
 
     footer_txt = '''
 </body>'''
@@ -476,4 +469,4 @@ td {
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

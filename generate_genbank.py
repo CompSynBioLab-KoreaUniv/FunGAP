@@ -1,37 +1,30 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Generate Genbank file using GFF3 and annotations
+Last updated: Aug 12, 2020
 '''
 
 # Import modeuls
 from __future__ import with_statement
-import os
-import sys
-import re
+
 import gzip
-import urllib
-from datetime import datetime
+import os
+import re
+from urllib.parse import unquote
 from argparse import ArgumentParser
-from collections import namedtuple, defaultdict
+from collections import defaultdict, namedtuple
+from datetime import datetime
 
 from Bio import SeqIO
 from Bio.Alphabet import generic_dna, generic_protein
-
 from Bio.Seq import Seq
+from Bio.SeqFeature import CompoundLocation, FeatureLocation, SeqFeature
 from Bio.SeqRecord import SeqRecord
-from Bio.SeqFeature import SeqFeature
-from Bio.SeqFeature import FeatureLocation, CompoundLocation
-
-# Initialized values
-gffInfoFields = [
-    'seqid', 'source', 'type', 'start', 'end', 'score', 'strand',
-    'phase', 'attributes'
-]
-GFFRecord = namedtuple('GFFRecord', gffInfoFields)
 
 
-def main(argv):
+def main():
+    '''Main function'''
     argparse_usage = (
         'generate_genbank.py -f <input_fna> -g <input_gff3> -a <input_faa> '
     )
@@ -88,87 +81,92 @@ def main(argv):
 # https://techoverflow.net/blog/2013/11/30/parsing-gff3-in-python/
 # because I don't think the parser from Biopython is working well
 def import_file(input_file):
+    '''Import file'''
     with open(input_file) as f_in:
-        txt = (line.rstrip() for line in f_in)
-        txt = list(line for line in txt if line)
+        txt = list(line.rstrip() for line in f_in)
     return txt
 
 
-def parseGFFAttributes(attributeString):
-    # Parse the GFF3 attribute column and return a dict
-    if attributeString == '.':
+def parse_gff_attributes(attribute_string):
+    '''Parse the GFF3 attribute column and return a dict'''
+    if attribute_string == '.':
         return {}
     ret = {}
-    for attribute in attributeString.split(';'):
+    for attribute in attribute_string.split(';'):
         key, value = attribute.split('=')
-        ret[urllib.unquote(key)] = urllib.unquote(value)
+        ret[unquote(key)] = unquote(value)
     return ret
 
 
-def parseGFF3(filename):
-    # A minimalistic GFF3 format parser.
+def parse_gff3(filename):
+    '''A minimalistic GFF3 format parser'''
     # Yields objects that contain info about a single GFF3 feature.
     # Supports transparent gzip decompression.
 
     # Parse with transparent decompression
-    openFunc = gzip.open if filename.endswith('.gz') else open
-    with openFunc(filename) as infile:
+    gff_info_fields = [
+        'seqid', 'source', 'type', 'start', 'end', 'score', 'strand',
+        'phase', 'attributes'
+    ]
+    gff_record = namedtuple('GFFRecord', gff_info_fields)
+    open_func = gzip.open if filename.endswith('.gz') else open
+    with open_func(filename) as infile:
         for line in infile:
             if line.startswith('#'):
                 continue
             parts = line.strip().split('\t')
             # If this fails, the file format is not standard-compatible
-            assert len(parts) == len(gffInfoFields)
+            assert len(parts) == len(gff_info_fields)
             # Normalize data
-            normalizedInfo = {
-                'seqid': None if parts[0] == '.' else urllib.unquote(parts[0]),
+            normalized_info = {
+                'seqid': None if parts[0] == '.' else unquote(parts[0]),
                 'source':
-                    None if parts[1] == '.' else urllib.unquote(parts[1]),
-                'type': None if parts[2] == '.' else urllib.unquote(parts[2]),
+                    None if parts[1] == '.' else unquote(parts[1]),
+                'type': None if parts[2] == '.' else unquote(parts[2]),
                 'start': None if parts[3] == '.' else int(parts[3]),
                 'end': None if parts[4] == '.' else int(parts[4]),
                 'score': None if parts[5] == '.' else float(parts[5]),
                 'strand':
-                    None if parts[6] == '.' else urllib.unquote(parts[6]),
-                'phase': None if parts[7] == '.' else urllib.unquote(parts[7]),
-                'attributes': parseGFFAttributes(parts[8])
+                    None if parts[6] == '.' else unquote(parts[6]),
+                'phase': None if parts[7] == '.' else unquote(parts[7]),
+                'attributes': parse_gff_attributes(parts[8])
             }
             # Alternatively, you can emit the dictionary here,
             # if you need mutability:
             # yield normalizedInfo
-            yield GFFRecord(**normalizedInfo)
+            yield gff_record(**normalized_info)
 
 
 def generate_genbank(
-    input_fna, input_gff3, input_faa, output_prefix,
-    organism_name, data_file_division, taxonomy
-):
+        input_fna, input_gff3, input_faa, output_prefix, organism_name,
+        data_file_division, taxonomy):
+    '''Generate GenBank format'''
     # Output file name
-    outfile = '%s.gb' % (output_prefix)
+    outfile = '{}.gb'.format(output_prefix)
 
     # First, import input_fna in dictionary
-    D_fna = SeqIO.to_dict(SeqIO.parse(input_fna, 'fasta', generic_dna))
-    D_faa = SeqIO.to_dict(SeqIO.parse(input_faa, 'fasta', generic_protein))
+    d_fna = SeqIO.to_dict(SeqIO.parse(input_fna, 'fasta', generic_dna))
+    d_faa = SeqIO.to_dict(SeqIO.parse(input_faa, 'fasta', generic_protein))
 
-    D_fna_sorted = sorted(
-        D_fna.items(),
+    d_fna_sorted = sorted(
+        d_fna.items(),
         key=lambda x: int(re.findall(r'\d+', x[0])[0])
     )
 
     # Make dictionary for CDS
-    D_cds = defaultdict(list)
-    D_exon = defaultdict(list)
-    for record in parseGFF3(input_gff3):
+    d_cds = defaultdict(list)
+    d_exon = defaultdict(list)
+    for record in parse_gff3(input_gff3):
         if record.type == 'exon':
             exon_parent = record.attributes['Parent']
-            D_exon[exon_parent].append(record)
+            d_exon[exon_parent].append(record)
 
         elif record.type == 'CDS':
             cds_parent = record.attributes['Parent']
-            D_cds[cds_parent].append(record)
+            d_cds[cds_parent].append(record)
 
     my_seq_records = []
-    for scaffold, seq in D_fna_sorted:
+    for scaffold, seq in d_fna_sorted:
         my_seq = Seq(str(seq.seq))
         my_seq_record = SeqRecord(my_seq)
         my_seq_record.seq.alphabet = generic_dna
@@ -184,7 +182,7 @@ def generate_genbank(
         my_seq_record.annotations['taxonomy'] = taxonomy.split('; ')
         my_seq_record.annotations['source'] = organism_name
 
-        for record in parseGFF3(input_gff3):
+        for record in parse_gff3(input_gff3):
             if scaffold != record.seqid:
                 continue
 
@@ -226,10 +224,10 @@ def generate_genbank(
 
             elif my_feature_type == 'mRNA':
                 sorted_exon_records = sorted(
-                    D_exon[record.attributes['ID']], key=lambda x: x.start
+                    d_exon[record.attributes['ID']], key=lambda x: x.start
                 )
                 sorted_cds_records = sorted(
-                    D_cds[record.attributes['ID']], key=lambda x: x.start
+                    d_cds[record.attributes['ID']], key=lambda x: x.start
                 )
 
                 # Feature locations
@@ -277,7 +275,7 @@ def generate_genbank(
                 elif my_strand == -1:
                     phase = int(sorted_cds_records[-1].phase) + 1
                 cds_qualifiers['codon_start'] = phase
-                cds_qualifiers['translation'] = str(D_faa[mrna_locus_tag].seq)
+                cds_qualifiers['translation'] = str(d_faa[mrna_locus_tag].seq)
 
                 mrna_feature = SeqFeature(
                     mrna_feature_location, type='mRNA',
@@ -285,8 +283,7 @@ def generate_genbank(
                 )
 
                 cds_feature = SeqFeature(
-                    cds_feature_location, type='CDS',
-                    qualifiers=cds_qualifiers
+                    cds_feature_location, type='CDS', qualifiers=cds_qualifiers
                 )
                 # Append my feature to seq_record
                 my_seq_record.features.append(mrna_feature)
@@ -297,4 +294,4 @@ def generate_genbank(
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

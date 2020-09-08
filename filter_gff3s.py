@@ -1,9 +1,9 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Filter multiple gff3 files based on evidence score
 
- FunGAP finds "gene blocks" defined as a set of gene models that overlap
+ FunGAP finds 'gene blocks' defined as a set of gene models that overlap
 with at least one base pair. FunGAP gets all combinations of gene models
 in a gene block and calculates the sum of the evidence scores. Gene models
 in the block with the highest evidence score are selected as final genes of
@@ -13,30 +13,26 @@ is allowed.
 Input: multiple GFF3 files, Blast score file, Busco score file, Pfam score
        file, bad genes file
 Output: filtered gene featrue file in GFF3
+Last updated: Jul 13, 2020
 '''
 
-# Import modules
-import sys
 import os
+import pickle
 import re
-import cPickle
-from collections import defaultdict
 from argparse import ArgumentParser
+from collections import defaultdict
+
 import networkx as nx
 
-# Get Logging
-this_path = os.path.realpath(__file__)
-this_dir = os.path.dirname(this_path)
-sys.path.append(this_dir)
 from set_logging import set_logging
 
 # Parameters
-evalue_zero = 2.225074e-308
-blast_cutoff = 0.00001  # -1 * log(evalue, 10)
+EVALUE_ZERO = 2.225074e-308
+BLAST_CUTOFF = 0.00001  # -1 * log(evalue, 10)
 
 
-# Main function
-def main(argv):
+def main():
+    '''Main function'''
     argparse_usage = (
         'filter_gff3s.py -a <genome_assembly> -i <input_gff3s> '
         '-m <mapping_file> -b <blastp_dict> -B <busco_dict> -p <pfam_dict> '
@@ -44,52 +40,52 @@ def main(argv):
     )
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
-        "-a", "--genome_assembly", nargs=1, required=True,
-        help="Genome assembly file"
+        '-a', '--genome_assembly', nargs=1, required=True,
+        help='Genome assembly file'
     )
     parser.add_argument(
-        "-i", "--input_gff3s", nargs='+', required=True,
-        help="Multiple gff3 files"
+        '-i', '--input_gff3s', nargs='+', required=True,
+        help='Multiple gff3 files'
     )
     parser.add_argument(
-        "-m", "--mapping_file", nargs=1, required=True,
-        help="Mapping txt file (make_nr_prot.py)"
+        '-m', '--mapping_file', nargs=1, required=True,
+        help='Mapping txt file (make_nr_prot.py)'
     )
     parser.add_argument(
-        "-b", "--blastp_dict", nargs=1, required=True,
-        help="Parsed blastp output in dictionary (import_blastp.py)"
+        '-b', '--blastp_dict', nargs=1, required=True,
+        help='Parsed blastp output in dictionary (import_blastp.py)'
     )
     parser.add_argument(
-        "-B", "--busco_dict", nargs=1, required=True,
-        help="Parsed BUSCO output in dictionary (import_busco.py)"
+        '-B', '--busco_dict', nargs=1, required=True,
+        help='Parsed BUSCO output in dictionary (import_busco.py)'
     )
     parser.add_argument(
-        "-p", "--pfam_dict", nargs=1, required=True,
-        help="Parsed Pfam_scan output in dictionary (import_pfam.py)"
+        '-p', '--pfam_dict', nargs=1, required=True,
+        help='Parsed Pfam_scan output in dictionary (import_pfam.py)'
     )
     parser.add_argument(
-        "-N", "--blastn_dict", nargs=1, required=True,
-        help="Parsed BLASTn output in dictionary (import_blastn.py)"
+        '-N', '--blastn_dict', nargs=1, required=True,
+        help='Parsed BLASTn output in dictionary (import_blastn.py)'
     )
     parser.add_argument(
-        "-g", "--bad_dict", nargs=1, required=True,
-        help="Parsed IPRscan output in dictionary"
+        '-g', '--bad_dict', nargs=1, required=True,
+        help='Parsed IPRscan output in dictionary'
     )
     parser.add_argument(
-        "-n", "--nr_prot_file", nargs=1, required=True,
-        help="nr_prot.faa file (make_nr_prot.py)"
+        '-n', '--nr_prot_file', nargs=1, required=True,
+        help='nr_prot.faa file (make_nr_prot.py)'
     )
     parser.add_argument(
-        "-o", "--output_dir", nargs='?', default='gene_filtering',
-        help="Output directory"
+        '-o', '--output_dir', nargs='?', default='gene_filtering',
+        help='Output directory'
     )
     parser.add_argument(
-        "-l", "--log_dir", nargs='?', default='log_dir',
-        help="Log directory"
+        '-l', '--log_dir', nargs='?', default='log_dir',
+        help='Log directory'
     )
 
     args = parser.parse_args()
-    genome_assembly = os.path.abspath(args.genome_assembly)
+    genome_assembly = os.path.abspath(args.genome_assembly[0])
     input_gff3s = [os.path.abspath(x) for x in args.input_gff3s]
     mapping_file = os.path.abspath(args.mapping_file[0])
     blastp_dict = os.path.abspath(args.blastp_dict[0])
@@ -97,7 +93,7 @@ def main(argv):
     pfam_dict = os.path.abspath(args.pfam_dict[0])
     blastn_dict = os.path.abspath(args.blastn_dict[0])
     bad_dict = os.path.abspath(args.bad_dict[0])
-    D_bad = cPickle.load(open(bad_dict, 'rb'))
+    d_bad = pickle.load(open(bad_dict, 'rb'))
     nr_prot_file = os.path.abspath(args.nr_prot_file[0])
     output_dir = os.path.abspath(args.output_dir)
     log_dir = os.path.abspath(args.log_dir)
@@ -107,25 +103,24 @@ def main(argv):
 
     # Set logging
     log_file = os.path.join(log_dir, 'filter_gff3s.log')
-    global logger_time, logger_txt
-    logger_time, logger_txt = set_logging(log_file)
+    logger_time = set_logging(log_file)[0]
 
     # Run functions :) Slow is as good as Fast
     logger_time.debug('START: Filtering GFF3')
-    D_mapping, D_mapping_rev = import_mapping(mapping_file)
+    d_mapping, d_mapping_rev = import_mapping(mapping_file)
 
     # Import dictionaries
-    D_blastp = cPickle.load(open(blastp_dict, 'rb'))
-    D_busco = cPickle.load(open(busco_dict, 'rb'))
-    D_pfam = cPickle.load(open(pfam_dict, 'rb'))
-    D_blastn = cPickle.load(open(blastn_dict, 'rb'))
+    d_blastp = pickle.load(open(blastp_dict, 'rb'))
+    d_busco = pickle.load(open(busco_dict, 'rb'))
+    d_pfam = pickle.load(open(pfam_dict, 'rb'))
+    d_blastn = pickle.load(open(blastn_dict, 'rb'))
 
     # Self-filtering
     for input_gff3 in input_gff3s:
         prefix = re.sub(r'\.gff3$', '', os.path.basename(input_gff3))
-        D_gff3, D_gene, D_cds, D_cds_len, D_exon = import_gff3([input_gff3])
+        d_gff3, d_gene, d_cds, d_cds_len, d_exon = import_gff3([input_gff3])
         self_filtered = filtering(
-            D_cds, D_cds_len, D_blastp, D_busco, D_pfam, D_blastn, D_bad,
+            d_cds, d_cds_len, d_blastp, d_busco, d_pfam, d_blastn, d_bad,
             output_dir
         )
         outfile_self = os.path.join(
@@ -136,63 +131,66 @@ def main(argv):
         cds_len_filtered = 0
         for tup in self_filtered:
             outhandle_self.write('{}\n'.format(tup[1]))
-            cds_len_filtered += D_cds_len[tup]
+            cds_len_filtered += d_cds_len[tup]
         outhandle_self.close()
 
     # Filtering
-    D_gff3, D_gene, D_cds, D_cds_len, D_exon = import_gff3(input_gff3s)
+    d_gff3, d_gene, d_cds, d_cds_len, d_exon = import_gff3(input_gff3s)
     final_gene_set = filtering(
-        D_cds, D_cds_len, D_blastp, D_busco, D_pfam, D_blastn, D_bad,
+        d_cds, d_cds_len, d_blastp, d_busco, d_pfam, d_blastn, d_bad,
         output_dir
     )
-    D_prot = import_prot(nr_prot_file, D_mapping_rev)
-    write_final_prots(final_gene_set, D_mapping, output_dir)
+    d_prot = import_prot(nr_prot_file, d_mapping_rev)
+    write_final_prots(final_gene_set, d_mapping, output_dir)
     write_files(
-        final_gene_set, D_gene, D_gff3, D_prot, D_exon, output_dir, D_cds
+        genome_assembly, final_gene_set, d_gene, d_gff3, d_prot, d_exon,
+        output_dir, d_cds
     )
 
     cds_len_final = 0
     for tup in final_gene_set:
-        cds_len_final += D_cds_len[tup]
+        cds_len_final += d_cds_len[tup]
 
     logger_time.debug('DONE : Filtering GFF3')
 
 
 def import_file(path):
+    '''Import file'''
     with open(path) as f_in:
-        txt = (line.rstrip() for line in f_in)
-        txt = list(line for line in txt if line)
+        txt = list(line.rstrip() for line in f_in)
     return txt
 
 
 def create_dir(output_dir, log_dir):
+    '''Create directory'''
     if not os.path.exists(log_dir):
         os.mkdir(log_dir)
-
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
 
 def import_mapping(mapping_file):
+    '''Import mapping'''
     mapping_txt = import_file(mapping_file)
-    D_mapping = {}  # Key: each prediction, value: nr ID
-    D_mapping_rev = defaultdict(list)  # Key: nr ID, value: each prediction
+    d_mapping = {}  # Key: each prediction, value: nr ID
+    d_mapping_rev = defaultdict(list)  # Key: nr ID, value: each prediction
     for line in mapping_txt[1:]:
         line_split = line.split('\t')
         prot_name, prefix, prefix_id = line_split
-        D_mapping[(prefix, prefix_id)] = prot_name
-        D_mapping_rev[prot_name].append((prefix, prefix_id))
+        d_mapping[(prefix, prefix_id)] = prot_name
+        d_mapping_rev[prot_name].append((prefix, prefix_id))
 
-    return D_mapping, D_mapping_rev
+    return d_mapping, d_mapping_rev
 
 
 def import_gff3(gff3_files):
+    '''Import GFF3'''
     # Define empty dictionaries
-    D_gff3 = defaultdict(list)
-    D_exon = defaultdict(list)
-    D_gene = {}
-    D_cds = defaultdict(lambda: (0, 100000000000, 0))
-    D_cds_len = defaultdict(int)
+    d_gff3 = defaultdict(list)
+    d_exon = defaultdict(list)
+    d_gene = {}
+    d_cds = defaultdict(lambda: (0, 100000000000, 0))
+    d_cds_len = defaultdict(int)
 
     # Regular expressions
     reg_id = re.compile(r'ID=([^;]+)')
@@ -201,16 +199,15 @@ def import_gff3(gff3_files):
         prefix = os.path.basename(gff3_file).split('.')[0]
         gff3_txt = import_file(gff3_file)
 
-        D_parent = {}
+        d_parent = {}
         for line in gff3_txt:
             if not re.search('\t', line):
                 continue  # Only consider line containing tabs
 
             line_split = line.split('\t')
-            (
-                scaffold, source, feat_type, start, end, score,
-                strand, phase, attr
-            ) = line_split
+            scaffold, source, feat_type, start, end, score, strand, phase = (
+                line_split[:8]
+            )
 
             m_id = reg_id.search(line)
             if m_id:
@@ -229,10 +226,10 @@ def import_gff3(gff3_files):
                     mrna_id = entry_id
                     mrna_parent = parent_id
                     if mrna_parent != '':
-                        D_parent[mrna_id] = mrna_parent
+                        d_parent[mrna_id] = mrna_parent
 
                 new_mrna_id = (prefix, mrna_id)
-                D_gene[new_mrna_id] = (
+                d_gene[new_mrna_id] = (
                     scaffold, source, feat_type, int(start), int(end), score,
                     strand, phase
                 )
@@ -245,19 +242,19 @@ def import_gff3(gff3_files):
                     max([int(start), int(end)]) -
                     min([int(start), int(end)]) + 1
                 )
-                D_cds_len[new_cds_gene] += cds_len
+                d_cds_len[new_cds_gene] += cds_len
 
-                if max([int(start), int(end)]) > D_cds[new_cds_gene][2]:
-                    D_cds[new_cds_gene] = (
-                        scaffold, D_cds[new_cds_gene][1],
+                if max([int(start), int(end)]) > d_cds[new_cds_gene][2]:
+                    d_cds[new_cds_gene] = (
+                        scaffold, d_cds[new_cds_gene][1],
                         max([int(start), int(end)])
                     )
-                if min([int(start), int(end)]) < D_cds[new_cds_gene][1]:
-                    D_cds[new_cds_gene] = (
+                if min([int(start), int(end)]) < d_cds[new_cds_gene][1]:
+                    d_cds[new_cds_gene] = (
                         scaffold, min([int(start), int(end)]),
-                        D_cds[new_cds_gene][2]
+                        d_cds[new_cds_gene][2]
                     )
-                D_gff3[new_cds_gene].append((
+                d_gff3[new_cds_gene].append((
                     scaffold, source, feat_type, int(start), int(end),
                     score, strand, phase
                 ))
@@ -266,27 +263,27 @@ def import_gff3(gff3_files):
                 exon_gene = parent_id # mRNA ID
                 new_exon_gene = (prefix, exon_gene)
 
-                D_exon[new_exon_gene].append((
+                d_exon[new_exon_gene].append((
                     scaffold, source, feat_type, int(start), int(end),
                     score, strand, phase
                 ))
 
-    return D_gff3, D_gene, D_cds, D_cds_len, D_exon
+    return d_gff3, d_gene, d_cds, d_cds_len, d_exon
 
 
 def filtering(
-    D_cds, D_cds_len, D_blastp, D_busco, D_pfam, D_blastn, D_bad, output_dir
-):
-    # Filter good gene models
-    D_cds_filtered = {}
-    for gene_tup, value in D_cds.items():
-        if D_bad[gene_tup]:
+        d_cds, d_cds_len, d_blastp, d_busco, d_pfam, d_blastn, d_bad,
+        output_dir):
+    '''Filter good gene models'''
+    d_cds_filtered = {}
+    for gene_tup, value in d_cds.items():
+        if d_bad[gene_tup]:
             continue
-        D_cds_filtered[gene_tup] = value
+        d_cds_filtered[gene_tup] = value
 
     # Sort CDS: three keys used - scaffold, start, and end
-    D_cds_sorted = sorted(
-        D_cds_filtered.items(), key=lambda x: (x[1][0], x[1][1], x[1][2])
+    d_cds_sorted = sorted(
+        d_cds_filtered.items(), key=lambda x: (x[1][0], x[1][1], x[1][2])
     )
 
     # Write score table
@@ -297,14 +294,14 @@ def filtering(
         'pfam_score', 'blastn_score', 'score_sum'
     )
     outhandle_score.write(header_txt)
-    for tup in D_cds_sorted:
+    for tup in d_cds_sorted:
         gene_tup = tup[0]
         software = gene_tup[0]
         software_id = gene_tup[1]
-        blast_score = D_blastp[gene_tup]
-        busco_score = D_busco[gene_tup]
-        pfam_score = D_pfam[gene_tup]
-        blastn_score = D_blastn[gene_tup]
+        blast_score = d_blastp[gene_tup]
+        busco_score = d_busco[gene_tup]
+        pfam_score = d_pfam[gene_tup]
+        blastn_score = d_blastn[gene_tup]
         score_sum = sum([blast_score, busco_score, pfam_score, blastn_score])
         row_txt = '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
             software, software_id, round(blast_score, 1),
@@ -317,12 +314,12 @@ def filtering(
 
     # Find chunks
     model_chunks = []  # It will be list of list
-    tmp_list = [D_cds_sorted[0][0]]  # Initialize
+    tmp_list = [d_cds_sorted[0][0]]  # Initialize
     i = 1
-    max_cds_end = D_cds_sorted[0][1][2]
-    while i < len(D_cds_sorted):
-        previous_gene_name, previous_tup = D_cds_sorted[i - 1]
-        current_gene_name, current_tup = D_cds_sorted[i]
+    max_cds_end = d_cds_sorted[0][1][2]
+    while i < len(d_cds_sorted):
+        previous_tup = d_cds_sorted[i - 1][1]
+        current_gene_name, current_tup = d_cds_sorted[i]
 
         previous_scaffold = previous_tup[0]
         current_scaffold = current_tup[0]
@@ -351,20 +348,20 @@ def filtering(
     for model_chunk in model_chunks:
         i += 1
         # Build Graph
-        G = nx.Graph()
+        graph = nx.Graph()
         for gene_name1 in model_chunk:
             for gene_name2 in model_chunk:
-                G.add_node(gene_name1)
-                scaffold1, start1, end1 = D_cds[gene_name1]
-                scaffold2, start2, end2 = D_cds[gene_name2]
+                graph.add_node(gene_name1)
+                start1, end1 = d_cds[gene_name1][1:]
+                start2, end2 = d_cds[gene_name2][1:]
                 if start1 == start2 and end1 == end2:
                     continue
                 overlap = min(end1, end2) - max(start1, start2)
                 condition1 = overlap < (end1 - start1 + 1) * 0.1
                 condition2 = overlap < (end2 - start2 + 1) * 0.1
                 if overlap == 0 or condition1 and condition2:
-                    G.add_edge(gene_name1, gene_name2)
-        all_combs = list(nx.find_cliques(G))
+                    graph.add_edge(gene_name1, gene_name2)
+        all_combs = list(nx.find_cliques(graph))
 
         # Get score and pick best one
         max_score = 0
@@ -372,10 +369,10 @@ def filtering(
         for comb in all_combs:
             score = 0
             for element in comb:
-                blast_score = D_blastp[element]
-                busco_score = D_busco[element]
-                pfam_score = D_pfam[element]
-                blastn_score = D_blastn[element]
+                blast_score = d_blastp[element]
+                busco_score = d_busco[element]
+                pfam_score = d_pfam[element]
+                blastn_score = d_blastn[element]
 
                 score += sum(
                     [blast_score, pfam_score, busco_score, blastn_score]
@@ -391,7 +388,7 @@ def filtering(
         if max_score == 0 and len(final_chunk) > 1:
             max_cds_len = 0
             for comb in final_chunk:
-                total_cds_len = sum(D_cds_len[x] for x in comb)
+                total_cds_len = sum(d_cds_len[x] for x in comb)
                 if total_cds_len > max_cds_len:
                     final_chunk2 = comb
                     max_cds_len = total_cds_len
@@ -404,26 +401,27 @@ def filtering(
     return final_gene_set
 
 
-def import_prot(nr_prot, D_mapping_rev):
-    D_prot = defaultdict(str)
+def import_prot(nr_prot, d_mapping_rev):
+    '''Import protein'''
+    d_prot = defaultdict(str)
     prot_txt = import_file(nr_prot)
     for line in prot_txt:
         if re.search('^>', line):
             prot_id = line.split(' ')[0].replace('>', '')
-            lst = D_mapping_rev[prot_id]
+            lst = d_mapping_rev[prot_id]
 
         else:
             for element in lst:
                 prefix, prefix_id = element
-                D_prot[(prefix, prefix_id)] += line
+                d_prot[(prefix, prefix_id)] += line
+    return d_prot
 
-    return D_prot
 
-
-def write_final_prots(final_gene_set, D_mapping, output_dir):
+def write_final_prots(final_gene_set, d_mapping, output_dir):
+    '''Write final protein sequences'''
     prot_names = []
     for final_gene in final_gene_set:
-        prot_name = D_mapping[final_gene]
+        prot_name = d_mapping[final_gene]
         prot_names.append(prot_name)
 
     # Write to file
@@ -434,29 +432,27 @@ def write_final_prots(final_gene_set, D_mapping, output_dir):
 
 
 def write_files(
-    genome_assembly, final_gene_set, D_gene, D_gff3, D_prot, D_exon, output_dir,
-    D_cds
-):
-    D_scaffold = {}
+        genome_assembly, final_gene_set, d_gene, d_gff3, d_prot, d_exon,
+        output_dir, d_cds):
+    '''Write outputs'''
+    d_scaffold = {}
     scaffold_i = 0
     genome_assembly_txt = import_file(genome_assembly)
     for line in genome_assembly_txt:
         if not line.startswith('>'):
             continue
         scaffold_name = line.split(' ')[0].replace('>', '')
-        D_scaffold[scaffold_name] = scaffold_i
+        d_scaffold[scaffold_name] = scaffold_i
         scaffold_i += 1
     final_gene_set_sorted = sorted(
-        final_gene_set, key=lambda x: (D_scaffold[D_gene[x][0]], D_cds[x][1])
+        final_gene_set, key=lambda x: (d_scaffold[d_gene[x][0]], d_cds[x][1])
     )
     output_gff3 = open(os.path.join(output_dir, 'filtered_1.gff3'), 'w')
     output_gff3.write('##gff-version 3\n')  # gff3 Header
     i = 1
     for gene in final_gene_set_sorted:
-        (
-            gscaffold, gsource, gfeat_type, gstart, gend, gscore,
-            gstrand, gphase
-        ) = D_gene[gene]
+        gscaffold, gsource = d_gene[gene][:2]
+        gstart, gend, gscore, gstrand, gphase = d_gene[gene][3:]
         gid = 'ID={}_{};prediction_source={}:{}'.format(
             'gene', str(i).zfill(5), gene[0], gene[1]
         )
@@ -473,13 +469,11 @@ def write_files(
             gphase, mid
         ))
 
-        if gene in D_exon:
+        if gene in d_exon:
             j = 1
-            for exon in D_exon[gene]:
-                (
-                    escaffold, esource, efeat_type, estart, eend, escore,
-                    estrand, ephase
-                ) = exon
+            for exon in d_exon[gene]:
+                escaffold, esource = exon[:2]
+                estart, eend, escore, estrand, ephase = exon[3:]
                 eid = 'ID={}_{}.t1.e{};Parent={}_{}.t1'.format(
                     'gene', str(i).zfill(5), j, 'gene', str(i).zfill(5)
                 )
@@ -491,11 +485,9 @@ def write_files(
                 j += 1
         else:
             j = 1
-            for cds in D_gff3[gene]:
-                (
-                    cscaffold, csource, cfeat_type, cstart, cend, cscore,
-                    cstrand, cphase
-                ) = cds
+            for cds in d_gff3[gene]:
+                cscaffold, csource = cds[:2]
+                cstart, cend, cscore, cstrand, cphase = cds[3:]
                 cid = 'ID={}_{}.t1.e{};Parent={}_{}.t1'.format(
                     'gene', str(i).zfill(5), j, 'gene', str(i).zfill(5)
                 )
@@ -506,11 +498,9 @@ def write_files(
                 j += 1
 
         j = 1
-        for cds in D_gff3[gene]:
-            (
-                cscaffold, csource, cfeat_type, cstart, cend, cscore,
-                cstrand, cphase
-            ) = cds
+        for cds in d_gff3[gene]:
+            cscaffold, csource = cds[:2]
+            cstart, cend, cscore, cstrand, cphase = cds[3:]
             cid = 'ID={}_{}.t1.c{};Parent={}_{}.t1'.format(
                 'gene', str(i).zfill(5), j, 'gene', str(i).zfill(5)
             )
@@ -531,12 +521,12 @@ def write_files(
             'gene', str(gene_num).zfill(5), gene[0], gene[1]
         ))
         i = 0
-        while i < len(D_prot[gene]):
-            output_prot.write('{}\n'.format(D_prot[gene][i:i + 60]))
+        while i < len(d_prot[gene]):
+            output_prot.write('{}\n'.format(d_prot[gene][i:i + 60]))
             i += 60
 
     output_prot.close()
 
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
+if __name__ == '__main__':
+    main()

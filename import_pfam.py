@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Import pfam_scan output and store in dictionary
@@ -6,20 +6,20 @@ Pfam evidence score is HMM alignment bit score. If there are multiple Pfam
     domains, sum of scores is used
 
 Input: Pfam_scan output in .tsv
-Output: cPickle file containing dict object
+Output: pickle file containing dict object
+Last updated: Aug 12, 2020
 '''
 
-# Import module
-import re
 import os
-import sys
-import cPickle
-from collections import defaultdict
+import pickle
+import re
 from argparse import ArgumentParser
+from collections import defaultdict
 
 
 # Define main function
-def main(argv):
+def main():
+    '''Main function'''
     argparse_usage = (
         'import_pfam.py -p <pfam_scan_out_file> -n <nr_prot_mapping>'
     )
@@ -38,47 +38,48 @@ def main(argv):
     nr_prot_mapping = os.path.abspath(args.nr_prot_mapping[0])
 
     # Run fuctions :) Slow is as good as Fast
-    D_mapping = import_mapping(nr_prot_mapping)
-    import_pfam(pfam_scan_out_file, D_mapping)
+    d_mapping = import_mapping(nr_prot_mapping)
+    import_pfam(pfam_scan_out_file, d_mapping)
 
 
 def import_file(input_file):
+    '''Import file'''
     with open(input_file) as f_in:
-        txt = (line.rstrip() for line in f_in)
-        txt = list(line for line in txt if line)
+        txt = list(line.rstrip() for line in f_in)
     return txt
 
 
 def import_mapping(nr_prot_mapping):
+    '''Import mapping'''
     mapping_txt = import_file(nr_prot_mapping)
     # Key: nr id, value: tuple of software and id
-    D_mapping = defaultdict(list)
+    d_mapping = defaultdict(list)
     for line in mapping_txt[1:]:
         line_split = line.split('\t')
         prot_name, prefix, prefix_id = line_split
-        D_mapping[prot_name].append((prefix, prefix_id))
+        d_mapping[prot_name].append((prefix, prefix_id))
+    return d_mapping
 
-    return D_mapping
 
-
-def import_pfam(pfam_scan_out_file, D_mapping):
+def import_pfam(pfam_scan_out_file, d_mapping):
+    '''Import Pfam output'''
     pfam_txt = import_file(pfam_scan_out_file)
-    D_pfam = defaultdict(float)
+    d_pfam = defaultdict(float)
     for line in pfam_txt:
-        if line.startswith('#'):
+        if line.startswith('#') or not line:
             continue
         line_split = re.split(' +', line)
         prot_name = line_split[0]
         bit_score = float(line_split[11])
-        for tup in D_mapping[prot_name]:
-            D_pfam[(tup[0], tup[1])] += round(bit_score, 1)
+        for tup in d_mapping[prot_name]:
+            d_pfam[(tup[0], tup[1])] += round(bit_score, 1)
 
-    # Write cPickle
+    # Write pickle
     output_pickle = os.path.join(
         os.path.dirname(pfam_scan_out_file), 'pfam_score.p'
     )
-    cPickle.dump(D_pfam, open(output_pickle, 'wb'))
+    pickle.dump(d_pfam, open(output_pickle, 'wb'))
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

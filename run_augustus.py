@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Run AUGUSTUS for gene prediction with ab initio model.
@@ -20,29 +20,24 @@ augustus\
 
 Input: masked assembly and species parameter for Augustus
 Output: gene features in GFF3
+Last updated: Jul 12, 2020
 '''
 
-# Import modules
-import sys
-import re
 import os
-from glob import glob
+import re
 from argparse import ArgumentParser
 from collections import defaultdict
+from glob import glob
 
-# Get Logging
-this_path = os.path.realpath(__file__)
-this_dir = os.path.dirname(this_path)
-sys.path.append(this_dir)
-from set_logging import set_logging
 from import_config import import_config
+from set_logging import set_logging
 
 # Parameters
-D_conf = import_config(this_dir)
-augustus_bin = D_conf['AUGUSTUS_PATH']
+D_CONF = import_config()
 
 
-def main(argv):
+def main():
+    '''Main function'''
     argparse_usage = 'run_augustus.py -m <masked_assembly> -s <species>'
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
@@ -73,23 +68,23 @@ def main(argv):
 
     # Set logging
     log_file = os.path.join(log_dir, 'run_augustus.log')
-    global logger_time, logger_txt
-    logger_time, logger_txt = set_logging(log_file)
+    logger = set_logging(log_file)
 
     # Run functions :) Slow is as good as Fast
-    run_augustus(masked_assembly, output_dir, species)
+    run_augustus(masked_assembly, output_dir, species, logger)
     parse_augustus(output_dir)
 
 
 # Define functions
 def import_file(input_file):
+    '''Import file'''
     with open(input_file) as f_in:
-        txt = (line.rstrip() for line in f_in)
-        txt = list(line for line in txt if line)
+        txt = list(line.rstrip() for line in f_in)
     return txt
 
 
 def create_dir(output_dir, log_dir):
+    '''Create directories'''
     if not glob(output_dir):
         os.mkdir(output_dir)
 
@@ -97,7 +92,8 @@ def create_dir(output_dir, log_dir):
         os.mkdir(log_dir)
 
 
-def run_augustus(masked_assembly, output_dir, species):
+def run_augustus(masked_assembly, output_dir, species, logger):
+    '''Run Augustus'''
     # augustus --uniqueGeneId=true --gff3=on Neucr2_AssemblyScaffolds.fasta
     # --species=fusarium_graminearum --stopCodonExcludedFromCDS=false
     # > Neucr2.gff3
@@ -105,32 +101,36 @@ def run_augustus(masked_assembly, output_dir, species):
     augustus_output = os.path.join(output_dir, 'augustus.gff3')
 
     # Run AUGUSTUS
+    logger_time, logger_txt = logger
     logger_time.debug('START: Augustus')
     if not glob(augustus_output):
         command = (
             '{} --uniqueGeneId=true --singlestrand=true --gff3=on {} '
             '--species={} --stopCodonExcludedFromCDS=false --softmasking=1 '
             '> {}'.format(
-            augustus_bin, masked_assembly, species, augustus_output
-        ))
-        logger_txt.debug('[Run] {}'.format(command))
+                D_CONF['AUGUSTUS_PATH'], masked_assembly, species,
+                augustus_output
+            )
+        )
+        logger_txt.debug('[Run] %s', command)
         os.system(command)
     else:
-        logger_txt.debug('Running Augustus has already been finished')
+        logger_txt.debug('[Note] Running Augustus has already been finished')
     logger_time.debug('DONE : Augustus')
 
 
 def parse_augustus(output_dir):
+    '''Parse Augustus output'''
     augustus_gff3_file = os.path.join(output_dir, 'augustus.gff3')
     augustus_gff3 = import_file(augustus_gff3_file)
 
     # Define regular expression
     reg_transcript = re.compile(r'\ttranscript\t.+ID=([^;]+)')
-    reg_proSeq_start = re.compile(r'^# protein sequence = \[(\S+)\]*')
-    reg_proSeq_end = re.compile(r'\]$')
+    reg_prot_start = re.compile(r'^# protein sequence = \[(\S+)\]*')
+    reg_prot_end = re.compile(r'\]$')
 
     prot_tag = 0
-    D_seq = defaultdict(str)
+    d_seq = defaultdict(str)
     for line in augustus_gff3:
         # Exclude comment lines of BRAKER1 output
         if re.search('# Evidence for and against this transcript:', line):
@@ -155,35 +155,34 @@ def parse_augustus(output_dir):
             continue
 
         m_transcript = reg_transcript.search(line)
-        m_proSeq_start = reg_proSeq_start.search(line)
-        m_proSeq_end = reg_proSeq_end.search(line)
+        m_prot_start = reg_prot_start.search(line)
+        m_prot_end = reg_prot_end.search(line)
 
         if m_transcript:
             transcript_id = m_transcript.group(1)
-        elif m_proSeq_start:
+        elif m_prot_start:
             prot_tag = 1
 
-        if m_proSeq_end:
+        if m_prot_end:
             prot_seq = line.replace('# protein sequence = [', '')
             prot_seq = prot_seq.replace('# ', '').replace(']', '')
-            D_seq[transcript_id] += prot_seq
+            d_seq[transcript_id] += prot_seq
             prot_tag = 0
 
         if prot_tag == 1:
             prot_seq = (
-                line.replace('# protein sequence = [', '')
-                    .replace('# ', '')
+                line.replace('# protein sequence = [', '').replace('# ', '')
             )
-            D_seq[transcript_id] += prot_seq
+            d_seq[transcript_id] += prot_seq
 
     # Write to file
     outfile = os.path.join(output_dir, 'augustus.faa')
     outhandle = open(outfile, "w")
-    D_seq_sorted = sorted(
-        D_seq.items(),
+    d_seq_sorted = sorted(
+        d_seq.items(),
         key=lambda x: int(re.search(r'g(\d+)\.t\d+$', x[0]).group(1))
     )
-    for transcript_id, prot_seq in D_seq_sorted:
+    for transcript_id, prot_seq in d_seq_sorted:
         header_txt = '>{}\n'.format(transcript_id)
         outhandle.write(header_txt)
         i = 0
@@ -194,4 +193,4 @@ def parse_augustus(output_dir):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()

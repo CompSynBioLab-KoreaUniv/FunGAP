@@ -28,12 +28,6 @@ cd FunGAP/docker
 docker build -t fungap .
 ```
 
-### [Bug] Fix the BRAKER bug
-
-Please follow these instructions to make it work.
-
-- [Braker1 bug](../INSTALL.md#8-braker1-bug)
-
 ### Enter Docker image and execute FunGAP pipeline
 
 1. Go to the directory you have your rna-seq reads and genome fasta.

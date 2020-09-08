@@ -26,22 +26,8 @@ RUN echo "\n2\n/opt/conda/bin\n\n5\n" > tmp \
 
 RUN conda create -n maker maker=2.31.10
 
-WORKDIR /workspace/FunGAP/db/busco
-RUN wget https://busco-archive.ezlab.org/v3/datasets/fungi_odb9.tar.gz \
-    && wget https://busco-archive.ezlab.org/v3/datasets/ascomycota_odb9.tar.gz \
-    && wget https://busco-archive.ezlab.org/v3/datasets/basidiomycota_odb9.tar.gz \
-    && tar -zxvf fungi_odb9.tar.gz \
-    && tar -zxvf ascomycota_odb9.tar.gz \
-    && tar -zxvf basidiomycota_odb9.tar.gz
-
-WORKDIR /tmp
-RUN git clone https://github.com/Gaius-Augustus/BRAKER.git \
-    && cp BRAKER/scripts/*.pl  BRAKER/scripts/*.py /opt/conda/bin/ \
-    && git clone https://github.com/Gaius-Augustus/Augustus.git \
-    && cp Augustus/scripts/*.pl Augustus/scripts/*.py /opt/conda/bin/ \
-    && cpan Math::Utils
-
-# For unknown reason, diamon stop working. New install
-RUN wget http://github.com/bbuchfink/diamond/releases/download/v0.9.24/diamond-linux64.tar.gz \
+# For unknown reason, diamond from conda is not working. Here we reinstall it
+RUN wget https://github.com/bbuchfink/diamond/releases/download/v2.0.0/diamond-linux64.tar.gz \
     && tar -xf diamond-linux64.tar.gz \
     && mv diamond /opt/conda/bin/diamond
+

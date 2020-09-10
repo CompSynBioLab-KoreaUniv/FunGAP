@@ -214,7 +214,7 @@ conda activate fungap
 ./set_dependencies.py \
   --pfam_db_path db/pfam/ \
   --genemark_path external/gmes_linux_64/ \
-  --maker_path $MAKER_DIR
+  --maker_path ${MAKER_DIR}
 ```
 
 <br />

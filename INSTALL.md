@@ -48,7 +48,7 @@ Although we recommend using Docker, some workspaces are not available for Docker
 
 ## 1. Setup Anaconda environment
 
-### 1.1. Install Anaconda3 (v4.8.3 tested)
+### 1.1. Install Anaconda3 (v4.8.4 tested)
 
 Download and install Anaconda3 (We assume that you install it in `$HOME/anaconda3`)
 

@@ -269,7 +269,8 @@ gunzip GCF_000146045.2_R64_genomic.fna.gz
 ```
 $FUNGAP_DIR/download_sister_orgs.py \
   --taxon "Saccharomyces cerevisiae" \
-  --email_address <your_email_address>
+  --email_address <your_email_address> \
+  --num_sisters 1
 zcat sister_orgs/*faa.gz > prot_db.faa
 ```
 

@@ -36,14 +36,13 @@ def main():
     d_pfam = parse_pfam(pfam_file)
     add_pfam_to_gff3(input_gff3, d_pfam)
 
-
 def import_file(input_file):
     '''Import file'''
     with open(input_file) as f_in:
         txt = list(line.rstrip() for line in f_in)
     return txt
 
-
+  
 def parse_pfam(pfam_file):
     '''Parse Pfam'''
     pfam_txt = import_file(pfam_file)

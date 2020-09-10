@@ -48,13 +48,11 @@ def import_file(input_file):
         txt = list(line.rstrip() for line in f_in)
     return txt
 
-
 def get_reverse_complement(nuc_seq):
     '''Get reverse complement'''
     my_dna = Seq(nuc_seq, generic_dna)
     rev_comp_dna = str(my_dna.reverse_complement())
     return rev_comp_dna
-
 
 def parse_gff3(input_fasta, input_gff3, output_prefix):
     '''Parse GFF3 file'''

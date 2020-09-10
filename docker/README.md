@@ -8,6 +8,7 @@ Requirements:
 - 16Gb of available disk space
 - [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) release and it's key (`gmes_linux_64.tar.gz` and `gm_key_64.gz`)
 
+
 ## Steps
 
 ### Build FunGAP docker image

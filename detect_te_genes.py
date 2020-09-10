@@ -1,21 +1,20 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Detect TE genes using Pfam
  - Input: protein FASTA
  - Output: TE gene list
-Authour Byougnam Min on May 30, 2018
+Last updated: Jul 13, 2020
 '''
 
-# Import modules
 import os
 import sys
-from datetime import datetime
 from argparse import ArgumentParser
+from datetime import datetime
 from distutils.spawn import find_executable
 
 # Define D_te_pfam
-D_te_pfam = {
+D_TE_PFAM = {
     'PF00075': 'RNase H',
     'PF00078': 'Reverse transcriptase (RNA-dependent DNA polymerase)',
     'PF00665': 'Integrase core domain',
@@ -43,43 +42,38 @@ D_te_pfam = {
 }
 
 
-def main(argv):
+def main():
+    '''Main function'''
     argparse_usage = (
         'detect_te_genes.py -p <protein_fasta> -i <interproscan_path>'
     )
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
-        "-p", "--protein_fasta", dest="protein_fasta", nargs=1,
-        help="Protein FASTA"
+        '-p', '--protein_fasta', nargs=1, required=True,
+        help='Protein FASTA'
     )
     parser.add_argument(
-        "-i", "--interproscan_path", dest="interproscan_path", nargs='?',
+        '-i', '--interproscan_path', nargs='?', default='',
         help=(
-            "InterProScan path (you do not need to provide this if it is in "
-            "your PATH"
+            'InterProScan path (you do not need to provide this if it is in '
+            'your PATH'
         )
     )
 
     args = parser.parse_args()
-    if args.protein_fasta:
-        protein_fasta = os.path.abspath(args.protein_fasta[0])
-    else:
-        print '[ERROR] Please provide PROTEIN FASTA'
-        parser.print_help()
-        sys.exit(2)
+    protein_fasta = os.path.abspath(args.protein_fasta[0])
 
     if args.interproscan_path:
-        interproscan_path = args.interproscan_path[0]
+        interproscan_path = args.interproscan_path
         interproscan_exe = os.path.join(interproscan_path, 'interproscan.sh')
         if os.path.exists(interproscan_exe):
-            print '[ERROR] {} does not exist. Please check.'.format(
+            sys.exit('[ERROR] {} does not exist. Please check.'.format(
                 interproscan_exe
-            )
+            ))
     else:
-        interproscan_exe = find_executable("interproscan.sh")
+        interproscan_exe = find_executable('interproscan.sh')
         if not interproscan_exe:
-            print '[ERROR] interproscan.sh not in your PATH. Please check'
-            sys.exit(2)
+            sys.exit('[ERROR] interproscan.sh not in your PATH. Please check')
 
     # Run functions :) Slow is as good as Fast
     ipr_out = run_interproscan(protein_fasta, interproscan_exe)
@@ -87,12 +81,14 @@ def main(argv):
 
 
 def import_file(input_file):
+    '''Import file'''
     with open(input_file) as f_in:
         txt = list(line.rstrip() for line in f_in)
     return txt
 
 
 def run_interproscan(protein_fasta, interproscan_exe):
+    '''Run InterProScan'''
     tmp_dir = 'tmp_interproscan'
     outfile_base = '{}_pfam'.format(os.path.splitext(protein_fasta)[0])
     outfile = '{}.tsv'.format(outfile_base)
@@ -105,19 +101,20 @@ def run_interproscan(protein_fasta, interproscan_exe):
         )
         current_time = datetime.now()
         current_time_f = current_time.strftime('%Y-%m-%d %H:%M')
-        print '[{}] Start running InterproScan for Pfam'.format(current_time_f)
-        print '[Run] {}'.format(command)
+        print('[{}] Start running InterproScan for Pfam'.format(current_time_f))
+        print('[Run] {}'.format(command))
         os.system(command)
         current_time = datetime.now()
         current_time_f = current_time.strftime('%Y-%m-%d %H:%M')
-        print '[{}] Done running InterproScan for Pfam'.format(current_time_f)
+        print('[{}] Done running InterproScan for Pfam'.format(current_time_f))
     else:
-        print 'Running InterProscan has already been finished. Skip this step.'
+        print('[Note] Running InterProscan has already been finished')
 
     return '{}.tsv'.format(outfile_base)
 
 
 def detect_te_genes(ipr_out, protein_fasta):
+    '''Detect TE genes'''
     outfile = '{}_te_pfam.txt'.format(os.path.splitext(protein_fasta)[0])
     outhandle = open(outfile, 'w')
     header_txt = '{}\t{}\t{}\n'.format('prot_id', 'pfam_id', 'pfam_desc')
@@ -129,16 +126,16 @@ def detect_te_genes(ipr_out, protein_fasta):
         prot_id = line_split[0]
         pfam_id = line_split[4]
         pfam_desc = line_split[5]
-        if pfam_id not in D_te_pfam:
+        if pfam_id not in D_TE_PFAM:
             continue
         num_te_genes += 1
         row_txt = '{}\t{}\t{}\n'.format(prot_id, pfam_id, pfam_desc)
         outhandle.write(row_txt)
 
-    print '{} TE-related genes were found. Check {}'.format(
+    print('{} TE-related genes were found. Check {}'.format(
         num_te_genes, os.path.basename(outfile)
-    )
+    ))
 
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
+if __name__ == '__main__':
+    main()

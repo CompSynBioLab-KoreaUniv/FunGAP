@@ -2,12 +2,11 @@
 
 '''
 Given fasta and gff3, get transcript sequence in .fna foramt
-Last updated: Nov 20, 2019
+Last updated: Aug 12, 2020
 '''
 
 import os
 import re
-import sys
 from argparse import ArgumentParser
 from collections import defaultdict
 
@@ -90,7 +89,7 @@ def parse_gff3(input_fasta, input_gff3, output_prefix):
     output_transcript = '{}_transcript.fna'.format(output_prefix)
     output = open(output_gene, 'w')
     output2 = open(output_transcript, 'w')
-    gene_ids = sorted(d_gff3.keys(),key=lambda x: x.replace('.t1', ''))
+    gene_ids = sorted(d_gff3.keys(), key=lambda x: x.replace('.t1', ''))
     for gene_id in gene_ids:
         feature = d_gff3[gene_id]
         sorted_by_start = sorted(feature, key=lambda tup: tup[1])
@@ -132,6 +131,7 @@ def parse_gff3(input_fasta, input_gff3, output_prefix):
             j += 60
     output.close()
     output2.close()
+
 
 if __name__ == '__main__':
     main()

@@ -1,16 +1,15 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 GFF3 postprocessing
-    - Remove UTRs when two near genes are overlapped
+ - Remove UTRs when two near genes are overlapped
 
 Input: GFF3 file
 Output: Postprocessed GFF3 file
+Last updated: Aug 12, 2020
 '''
 
-# Import modules
 import os
-import sys
 from argparse import ArgumentParser
 
 from BCBio import GFF
@@ -19,8 +18,8 @@ from Bio.Alphabet import generic_dna
 from Bio.SeqFeature import FeatureLocation
 
 
-# Main function
-def main(argv):
+def main():
+    '''Main function'''
     argparser_usage = (
         'gff3_postprocess.py -g <genome_assembly> -i <input_gff3> -o '
         '<output_gff3>'
@@ -50,12 +49,14 @@ def main(argv):
 
 
 def import_file(input_file):
+    '''Import file'''
     with open(input_file) as f_in:
         txt = list(line.rstrip() for line in f_in)
     return txt
 
 
 def gff3_postprocess(genome_assembly, input_gff3, output_gff3):
+    '''GFF3 post-processing'''
     def update_g_features(gene_i):
         g_feature = g_features[gene_i]
         m_feature = g_feature.sub_features[0]
@@ -82,7 +83,9 @@ def gff3_postprocess(genome_assembly, input_gff3, output_gff3):
         m_feature.location = FeatureLocation(
             cds_start, cds_end, m_feature.location.strand
         )
-        m_feature.sub_features = e_features_s[0:len(c_features_s)] + c_features_s
+        m_feature.sub_features = (
+            e_features_s[0:len(c_features_s)] + c_features_s
+        )
 
         g_features[gene_i].location = FeatureLocation(
             cds_start, cds_end,
@@ -90,18 +93,18 @@ def gff3_postprocess(genome_assembly, input_gff3, output_gff3):
         )
         g_features[gene_i].sub_features = [m_feature]
 
-    D_fna = SeqIO.to_dict(SeqIO.parse(genome_assembly, 'fasta', generic_dna))
-    D_scaffold = {}
+    d_fna = SeqIO.to_dict(SeqIO.parse(genome_assembly, 'fasta', generic_dna))
+    d_scaffold = {}
     scaffold_i = 0
     genome_assembly_txt = import_file(genome_assembly)
     for line in genome_assembly_txt:
         if not line.startswith('>'):
             continue
         scaffold_name = line.split(' ')[0].replace('>', '')
-        D_scaffold[scaffold_name] = scaffold_i
+        d_scaffold[scaffold_name] = scaffold_i
         scaffold_i += 1
-    gff_iter = GFF.parse(input_gff3, D_fna)
-    gff_iter_s = sorted(list(gff_iter), key=lambda x: D_scaffold[x.id])
+    gff_iter = GFF.parse(input_gff3, d_fna)
+    gff_iter_s = sorted(list(gff_iter), key=lambda x: d_scaffold[x.id])
     my_records = []
     for gff_element in gff_iter_s:
         g_features = gff_element.features  # Genes in a scaffold
@@ -123,4 +126,4 @@ def gff3_postprocess(genome_assembly, input_gff3, output_gff3):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

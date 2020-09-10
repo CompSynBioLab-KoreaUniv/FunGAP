@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Check if dependencies are correctly located and installed
@@ -13,106 +13,114 @@ Check if dependencies are correctly located and installed
  9) Blast
  10) Samtools
 
-The locations will be written in 'fungap.conf' file
+Output: the locations will be written in 'fungap.conf' file
+Last updated: Aug 12, 2020
 '''
 
-# Import modules
 import os
-import sys
 import subprocess
-from distutils import spawn
+import sys
 from argparse import ArgumentParser
-
-# Get logging
-this_path = os.path.realpath(__file__)
-this_dir = os.path.dirname(this_path)
+from distutils import spawn
 
 
-# Main function
-def main(argv):
+def main():
+    '''Main function'''
     argparse_usage = (
-        'check_dependencies.py -p <pfam_db> -u <busco_dir> -g <genemark_dir>'
+        'check_dependencies.py -p <pfam_db_path> -g <genemark_path> '
+        '-m <maker_path>'
     )
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
-        "-p", "--pfam_db_dir", required=True,
-        help="Path of Pfam database directory"
+        '-p', '--pfam_db_path', nargs=1, required=True,
+        help='Pfam database path'
     )
     parser.add_argument(
-        "-u", "--busco_db_dir", required=True,
-        help="Path of BUSCO database directory"
+        '-g', '--genemark_path', nargs=1, required=True,
+        help='GeneMark bin path'
     )
     parser.add_argument(
-        "-g", "--genemark_dir", required=True,
-        help="GeneMark installation path (binary directory)"
+        '-m', '--maker_path', nargs=1, required=True,
+        help='Maker bin path'
     )
     parser.add_argument(
-        "-r", "--repeat_modeler_dir", required=True,
-        help="Repeat Modeler installation path (binary directory)"
+        '-r', '--with_repeat_modeler', nargs='?', default='',
+        help='User-defined RepeatModeler bin path'
     )
     parser.add_argument(
-        "-H", "--with_hisat2", nargs='?', default='',
-        help="User-defined Hisat2 installation path (binary directory)"
+        '-a', '--with_augustus', nargs='?', default='',
+        help='User-defined Augustus bin path (it should be Augustus >=3.3.3)'
     )
     parser.add_argument(
-        "-t", "--with_trinity", nargs='?', default='',
-        help="User-defined Trinity installation path (binary directory)"
+        '-H', '--with_hisat2', nargs='?', default='',
+        help='User-defined Hisat2 bin path'
     )
     parser.add_argument(
-        "-m", "--with_maker", nargs='?', default='',
-        help="User-defined Maker installation path (binary directory)"
+        '-t', '--with_trinity', nargs='?', default='',
+        help='User-defined Trinity bin path'
     )
     parser.add_argument(
-        "-b", "--with_braker1", nargs='?', default='',
-        help="User-defined Braker1 installation path (binary directory)"
+        '-b', '--with_braker', nargs='?', default='',
+        help='User-defined Braker2 bin path'
     )
     parser.add_argument(
-        "-B", "--with_busco", nargs='?', default='',
-        help="User-defined BUSCO installation path (binary directory)"
+        '-B', '--with_busco', nargs='?', default='',
+        help='User-defined BUSCO bin path'
     )
     parser.add_argument(
-        "-i", "--with_pfam_scan", nargs='?', default='',
-        help="User-defined pfam_scan installation path (binary directory)"
+        '-i', '--with_pfam_scan', nargs='?', default='',
+        help='User-defined pfam_scan bin path'
     )
 
     args = parser.parse_args()
-    pfam_db_dir = os.path.abspath(args.pfam_db_dir)
-    busco_db_dir = os.path.abspath(args.busco_db_dir)
-    genemark_dir = os.path.abspath(args.genemark_dir)
-    repeat_modeler_dir = os.path.abspath(args.repeat_modeler_dir)
-    with_hisat2 = args.with_hisat2
-    with_trinity = args.with_trinity
-    with_maker = args.with_maker
-    with_braker1 = args.with_braker1
-    with_busco = args.with_busco
-    with_pfam_scan = args.with_pfam_scan
-
-    pfam_db_path, busco_db_path = check_db(pfam_db_dir, busco_db_dir)
+    pfam_db_path = os.path.abspath(args.pfam_db_path[0])
+    i_genemark_path = os.path.abspath(args.genemark_path[0])
+    i_maker_path = os.path.abspath(args.maker_path[0])
+    if args.with_repeat_modeler:
+        with_repeat_modeler = os.path.abspath(args.with_repeat_modeler)
+    else:
+        with_repeat_modeler = ''
+    if args.with_augustus:
+        with_augustus = os.path.abspath(args.with_augustus)
+    else:
+        with_augustus = ''
+    with_hisat2 = os.path.abspath(args.with_hisat2) if args.with_hisat2 else ''
+    if args.with_trinity:
+        with_trinity = os.path.abspath(args.with_trinity)
+    else:
+        with_trinity = ''
+    with_busco = os.path.abspath(args.with_busco) if args.with_busco else ''
+    with_braker = os.path.abspath(args.with_braker) if args.with_braker else ''
+    if args.with_pfam_scan:
+        with_pfam_scan = os.path.abspath(args.with_pfam_scan)
+    else:
+        with_pfam_scan = ''
+    pfam_db_path = check_db(pfam_db_path)
     (
         genemark_path, gmhmme3_path, probuild_path, build_database_path,
         repeat_modeler_path, hisat2_path, trinity_path, maker_path,
         gff3_merge_path, fasta_merge_path, maker2zff_path, fathom_path,
-        forge_path, hmm_assembler_path, braker1_path, busco_path,
+        forge_path, hmm_assembler_path, braker_path, busco_path,
         pfam_scan_path, blastp_path, blastn_path, blastx_path,
         makeblastdb_path, samtools_path, bamtools_path, augustus_path
     ) = get_path(
-        genemark_dir, repeat_modeler_dir, with_hisat2, with_trinity,
-        with_maker, with_braker1, with_busco, with_pfam_scan
+        i_genemark_path, i_maker_path, with_repeat_modeler, with_augustus,
+        with_hisat2, with_trinity, with_braker, with_busco, with_pfam_scan
     )
     check_working(
         genemark_path, gmhmme3_path, probuild_path, build_database_path,
         repeat_modeler_path, hisat2_path, trinity_path, maker_path,
         gff3_merge_path, fasta_merge_path, maker2zff_path, fathom_path,
-        forge_path, hmm_assembler_path, braker1_path, busco_path,
+        forge_path, hmm_assembler_path, braker_path, busco_path,
         pfam_scan_path, blastp_path, blastn_path, blastx_path, makeblastdb_path,
         samtools_path, bamtools_path, augustus_path
     )
 
     write_config(
-        pfam_db_path, busco_db_path, genemark_path, gmhmme3_path, probuild_path,
+        pfam_db_path, genemark_path, gmhmme3_path, probuild_path,
         build_database_path, repeat_modeler_path, hisat2_path, trinity_path,
         maker_path, gff3_merge_path, fasta_merge_path, maker2zff_path,
-        fathom_path, forge_path, hmm_assembler_path, braker1_path, busco_path,
+        fathom_path, forge_path, hmm_assembler_path, braker_path, busco_path,
         pfam_scan_path, blastp_path, blastn_path, blastx_path, makeblastdb_path,
         samtools_path, bamtools_path, augustus_path
     )
@@ -122,14 +130,14 @@ def main(argv):
     )
 
 
-def check_db(pfam_db_dir, busco_db_dir):
-    # Check pfam_db_dir
-    if not os.path.isdir(pfam_db_dir):
+def check_db(pfam_db_path):
+    '''Check pfam_db_path'''
+    if not os.path.isdir(pfam_db_path):
         sys.exit(
-            '[ERROR] Pfam directory does not exist: {}'.format(pfam_db_dir)
+            '[ERROR] Pfam directory does not exist: {}'.format(pfam_db_path)
         )
 
-    file_names = set(os.listdir(pfam_db_dir))
+    file_names = set(os.listdir(pfam_db_path))
     pfam_files = [
         'Pfam-A.hmm.h3f', 'Pfam-A.hmm.h3i', 'Pfam-A.hmm.h3m', 'Pfam-A.hmm.h3p',
         'Pfam-A.hmm', 'Pfam-A.hmm.dat'
@@ -144,28 +152,16 @@ def check_db(pfam_db_dir, busco_db_dir):
             '[ERROR] Pfam files are not found. Six files (Pfam-A.hmm  '
             'Pfam-A.hmm.dat Pfam-A.hmm.h3f Pfam-A.hmm.h3i Pfam-A.hmm.h3m '
             'Pfam-A.hmm.h3p) should be located at {} directory. These files can'
-            'be generated by "hmmpress Pfam-A.hmm" command'.format(pfam_db_dir)
+            'be generated by "hmmpress Pfam-A.hmm" command'.format(pfam_db_path)
         )
 
-    # Check BUSCO directory
-    if not os.path.isdir(busco_db_dir):
-        sys.exit(
-            '[ERROR] BUSCO DB directory does not exist: {}'.format(busco_db_dir)
-        )
-
-    file_names2 = set(os.listdir(busco_db_dir))
-    if 'lengths_cutoff' not in file_names2:
-        sys.exit(
-            '[ERROR] It looks you did not provide correct BUSCO DB directory'
-        )
-
-    return pfam_db_dir, busco_db_dir
+    return pfam_db_path
 
 
 def get_path(
-    genemark_dir, repeat_modeler_dir, with_hisat2, with_trinity, with_maker,
-    with_braker1, with_busco, with_pfam_scan
-):
+        i_genemark_path, i_maker_path, with_repeat_modeler, with_augustus,
+        with_hisat2, with_trinity, with_braker, with_busco, with_pfam_scan):
+    '''Get path'''
     print('\n** Checking the installed locations of dependencies **\n')
 
     def check_binary(tool_name, path, binary):
@@ -193,26 +189,27 @@ def get_path(
                 'in PATH environmental variable'.format(tool_name, binary)
             )
 
-    genemark_path = check_binary('GeneMark', genemark_dir, 'gmes_petap.pl')
-    gmhmme3_path = check_binary('GeneMark', genemark_dir, 'gmhmme3')
-    probuild_path = check_binary('GeneMark', genemark_dir, 'probuild')
+    genemark_path = check_binary('GeneMark', i_genemark_path, 'gmes_petap.pl')
+    gmhmme3_path = check_binary('GeneMark', i_genemark_path, 'gmhmme3')
+    probuild_path = check_binary('GeneMark', i_genemark_path, 'probuild')
     hisat2_path = check_binary('Hisat2', with_hisat2, 'hisat2')
     trinity_path = check_binary('Trinity', with_trinity, 'Trinity')
-    maker_path = check_binary('Maker', with_maker, 'maker')
-    gff3_merge_path = check_binary('Maker', with_maker, 'gff3_merge')
-    fasta_merge_path = check_binary('Maker', with_maker, 'fasta_merge')
-    maker2zff_path = check_binary('Maker', with_maker, 'maker2zff')
-    fathom_path = check_binary('Snap', '', 'fathom')
-    forge_path = check_binary('Snap', '', 'forge')
-    hmm_assembler_path = check_binary('Snap', '', 'hmm-assembler.pl')
+    maker_path = check_binary('Maker', i_maker_path, 'maker')
+    gff3_merge_path = check_binary('Maker', i_maker_path, 'gff3_merge')
+    fasta_merge_path = check_binary('Maker', i_maker_path, 'fasta_merge')
+    maker2zff_path = check_binary('Maker', i_maker_path, 'maker2zff')
+    fathom_path = check_binary('Snap', i_maker_path, 'fathom')
+    forge_path = check_binary('Snap', i_maker_path, 'forge')
+    hmm_assembler_path = check_binary('Snap', i_maker_path, 'hmm-assembler.pl')
     build_database_path = check_binary(
-        'RepeatModeler (BuildDatabase)', repeat_modeler_dir, 'BuildDatabase',
+        'RepeatModeler (BuildDatabase)', with_repeat_modeler, 'BuildDatabase',
     )
     repeat_modeler_path = check_binary(
-        'RepeatModeler (RepeatModeler)', repeat_modeler_dir, 'RepeatModeler',
+        'RepeatModeler (RepeatModeler)', with_repeat_modeler, 'RepeatModeler',
     )
-    braker1_path = check_binary('Braker1', with_braker1, 'braker.pl')
-    busco_path = check_binary('BUSCO', with_busco, 'run_busco')
+    augustus_path = check_binary('Augustus', with_augustus, 'augustus')
+    braker_path = check_binary('Braker', with_braker, 'braker.pl')
+    busco_path = check_binary('BUSCO', with_busco, 'busco')
     pfam_scan_path = check_binary('Pfam_scan', with_pfam_scan, 'pfam_scan.pl')
     blastp_path = check_binary('BLASTp', '', 'blastp')
     blastn_path = check_binary('BLASTn', '', 'blastn')
@@ -220,26 +217,25 @@ def get_path(
     makeblastdb_path = check_binary('MAKEBLASTDB', '', 'makeblastdb')
     samtools_path = check_binary('Samtools', '', 'samtools')
     bamtools_path = check_binary('Bamtools', '', 'bamtools')
-    augustus_path = check_binary('Augustus', '', 'augustus')
 
     return (
         genemark_path, gmhmme3_path, probuild_path, build_database_path,
         repeat_modeler_path, hisat2_path, trinity_path, maker_path,
         gff3_merge_path, fasta_merge_path, maker2zff_path, fathom_path,
-        forge_path, hmm_assembler_path, braker1_path, busco_path,
+        forge_path, hmm_assembler_path, braker_path, busco_path,
         pfam_scan_path, blastp_path, blastn_path, blastx_path,
         makeblastdb_path, samtools_path, bamtools_path, augustus_path
     )
 
 
 def check_working(
-    genemark_path, gmhmme3_path, probuild_path, build_database_path,
-    repeat_modeler_path, hisat2_path, trinity_path, maker_path, gff3_merge_path,
-    fasta_merge_path, maker2zff_path, fathom_path, forge_path,
-    hmm_assembler_path, braker1_path, busco_path, pfam_scan_path, blastp_path,
-    blastn_path, blastx_path, makeblastdb_path, samtools_path, bamtools_path,
-    augustus_path
-):
+        genemark_path, gmhmme3_path, probuild_path, build_database_path,
+        repeat_modeler_path, hisat2_path, trinity_path, maker_path,
+        gff3_merge_path, fasta_merge_path, maker2zff_path, fathom_path,
+        forge_path, hmm_assembler_path, braker_path, busco_path, pfam_scan_path,
+        blastp_path, blastn_path, blastx_path, makeblastdb_path, samtools_path,
+        bamtools_path, augustus_path):
+    '''Check if programs work properly'''
     print('\n** Checking the dependencies if they properly work **\n')
 
     def check_working_internal(binary_path, command_list):
@@ -248,7 +244,7 @@ def check_working(
                 command_list, stdout=open(os.devnull, 'wb'),
                 stderr=open(os.devnull, 'wb')
             )
-        except:
+        except subprocess.CalledProcessError:
             sys.exit(
                 '\n[ERROR] {} --help is not working. Please check your '
                 'installation'.format(os.path.basename(binary_path))
@@ -271,7 +267,7 @@ def check_working(
     check_working_internal(fathom_path, [fathom_path, '--help'])
     check_working_internal(forge_path, [forge_path, '--help'])
     check_working_internal(hmm_assembler_path, [hmm_assembler_path, '--help'])
-    check_working_internal(braker1_path, [braker1_path, '--help'])
+    check_working_internal(braker_path, [braker_path, '--help'])
     check_working_internal(busco_path, [busco_path, '--help'])
     check_working_internal(pfam_scan_path, [pfam_scan_path, '-h'])
     check_working_internal(blastp_path, [blastp_path, '--help'])
@@ -281,31 +277,43 @@ def check_working(
     check_working_internal(samtools_path, [samtools_path, '--help'])
     check_working_internal(bamtools_path, [bamtools_path, '--help'])
     check_working_internal(augustus_path, [augustus_path, '--help'])
+    check_augustus_version(augustus_path)
 
     # For GeneMark, check the .gm_key
-    home_dir = os.path.expanduser('~')
-    if not os.path.exists(os.path.join(home_dir, '.gm_key')):
+    home_path = os.path.expanduser('~')
+    if not os.path.exists(os.path.join(home_path, '.gm_key')):
         sys.exit(
             '\n[ERROR] You do not have .gm_key in your home directory.\n'
             'Check https://wiki.gacrc.uga.edu/wiki/GeneMark'
         )
 
+def check_augustus_version(augustus_path):
+    '''Check Augustus version 3.3.3'''
+    proc = subprocess.Popen(
+        [augustus_path, '--version'], stderr=subprocess.PIPE
+    )
+    output = str(proc.stderr.read().decode('utf-8'))
+    if not output.startswith('AUGUSTUS (3.3.3)'):
+        sys.exit(
+            '\n[ERROR] Augustus version is not 3.3.3. Check with "{} --version"'
+            ''.format(augustus_path)
+        )
+
 
 def write_config(
-    pfam_db_path, busco_db_path, genemark_path, gmhmme3_path, probuild_path,
-    build_database_path, repeat_modeler_path, hisat2_path,
-    trinity_path, maker_path, gff3_merge_path, fasta_merge_path,
-    maker2zff_path, fathom_path, forge_path, hmm_assembler_path,
-    braker1_path, busco_path, pfam_scan_path,
-    blastp_path, blastn_path, blastx_path, makeblastdb_path, samtools_path,
-    bamtools_path, augustus_path
-):
-
+        pfam_db_path, genemark_path, gmhmme3_path, probuild_path,
+        build_database_path, repeat_modeler_path, hisat2_path, trinity_path,
+        maker_path, gff3_merge_path, fasta_merge_path, maker2zff_path,
+        fathom_path, forge_path, hmm_assembler_path, braker_path, busco_path,
+        pfam_scan_path, blastp_path, blastn_path, blastx_path, makeblastdb_path,
+        samtools_path, bamtools_path, augustus_path):
+    '''Write config file'''
+    this_path = os.path.realpath(__file__)
+    this_dir = os.path.dirname(this_path)
     config_file = os.path.join(this_dir, 'fungap.conf')
     outhandle = open(config_file, 'w')
 
     outhandle.write('PFAM_DB_PATH={}\n'.format(pfam_db_path))
-    outhandle.write('BUSCO_DB_PATH={}\n'.format(busco_db_path))
     outhandle.write('GENEMARK_PATH={}\n'.format(genemark_path))
     outhandle.write('GMHMME3_PATH={}\n'.format(gmhmme3_path))
     outhandle.write('PROBUILD_PATH={}\n'.format(probuild_path))
@@ -320,7 +328,7 @@ def write_config(
     outhandle.write('FATHOM_PATH={}\n'.format(fathom_path))
     outhandle.write('FORGE_PATH={}\n'.format(forge_path))
     outhandle.write('HMM_ASSEMBLER_PATH={}\n'.format(hmm_assembler_path))
-    outhandle.write('BRAKER1_PATH={}\n'.format(braker1_path))
+    outhandle.write('BRAKER_PATH={}\n'.format(braker_path))
     outhandle.write('BUSCO_PATH={}\n'.format(busco_path))
     outhandle.write('PFAM_SCAN_PATH={}\n'.format(pfam_scan_path))
     outhandle.write('BLASTP_PATH={}\n'.format(blastp_path))
@@ -333,5 +341,5 @@ def write_config(
     outhandle.close()
 
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
+if __name__ == '__main__':
+    main()

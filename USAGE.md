@@ -15,8 +15,7 @@ Reference: Byoungnam Min,  Igor V Grigoriev, and In-Geol Choi, **FunGAP: Fungal 
 * [2. Augustus species model](#augustusgenemodel)
 * [3. Running FunGAP](#runningfungap)
 * [4. FunGAP output](#output)
-* [5. Test dataset](#testdata)
-* [6. After FunGAP](#afterfungap)
+* [5. After FunGAP](#afterfungap)
 
 <a name="prerequisites"></a>
 ## 0. Prerequisites
@@ -90,23 +89,10 @@ Final output will be located in `fungap_out` directory
 - fungap_out.gff3
 - fungap_out_stats.html
 
-<a name="testdata"></a>
-## 5. Test dataset
-You can download yeast (*S. cerevisiae*) genome assembly (FASTA) and RNA-seq reads (two FASTQs) from NCBI for testing FunGAP.
-
-```
-# Download RNA-seq reads using SRA toolkit (https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/)
-# Parameter -X indicates that we only need <int> pairs from the dataset.
-fastq-dump -X 3000000 -I --split-files SRR1198667
-
-# Download assembly
-wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/146/045/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz
-```
-
 It took about 9 hours by dual Intel(R) Xeon(R) CPU E5-2670 v3 with 40 CPU cores.
 
 <a name="afterfungap"></a>
-## 6. Add Pfam annotation to FunGAP GFF3 output
+## 5. Add Pfam annotation to FunGAP GFF3 output
 [Interproscan](https://www.ebi.ac.uk/interpro/search/sequence-search) can infer the functions of predicted genes.
 The ```gff3_add_pfam.py``` script adds the annotation to the GFF3 file.
 

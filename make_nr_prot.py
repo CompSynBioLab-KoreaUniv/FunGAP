@@ -1,22 +1,20 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Make nonredundant protein FASTA file.
+Last updated: Aug 12, 2020
 '''
 
-# Import modules
 import os
 import re
-import sys
-import mmap
 from argparse import ArgumentParser
 from collections import defaultdict
 
 
-# Main function
-def main(argv):
-    optparse_usage = 'make_nr_prot.py -i <faa_files> -o <output_dir>'
-    parser = ArgumentParser(usage=optparse_usage)
+def main():
+    '''Main function'''
+    argparse_usage = 'make_nr_prot.py -i <faa_files> -o <output_dir>'
+    parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
         '-i', '--faa_files', nargs='+', required=True,
         help='Input FAA files'
@@ -36,29 +34,35 @@ def main(argv):
 
 
 def create_dir(output_dir):
+    '''Create directory'''
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
 
+def import_file(input_file):
+    '''Import file'''
+    with open(input_file) as f_in:
+        txt = list(line.rstrip() for line in f_in)
+    return txt
+
+
 def make_nr_prot(faa_files, output_dir):
+    '''Make non-redundant protein sequences'''
     # Import FASTA & store in dictionary
     # (key: prot_seq, value: (prefix, name))
-    D_nr_prot = defaultdict(list)
+    d_nr_prot = defaultdict(list)
     for faa_file in faa_files:
         prefix = os.path.basename(faa_file).split('.')[0]
-        D_faa = defaultdict(str)
-        with open(faa_file, 'r+b') as f:
-            map = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
-            for line in iter(map.readline, ''):
-                line = line.rstrip()
-                if re.search('^>', line):
-                    prot_name = line.split(' ')[0].replace('>', '')
-                    continue
-
-                D_faa[prot_name] += line.strip()
-
-            for prot_name, seq in D_faa.items():
-                D_nr_prot[seq].append((prefix, prot_name))
+        d_faa = defaultdict(str)
+        faa_txt = import_file(faa_file)
+        for line in faa_txt:
+            line = line.rstrip()
+            if re.search('^>', line):
+                prot_name = line.split(' ')[0].replace('>', '')
+                continue
+            d_faa[prot_name] += line.strip()
+        for prot_name, seq in d_faa.items():
+            d_nr_prot[seq].append((prefix, prot_name))
 
     # Write to FASTA & mapping file
     outfile1 = os.path.join(output_dir, 'nr_prot.faa')
@@ -70,7 +74,7 @@ def make_nr_prot(faa_files, output_dir):
     outhandle2.write(header_txt)
 
     prot_num = 1
-    for seq, lst in D_nr_prot.items():
+    for seq, lst in d_nr_prot.items():
         new_prot_name = 'prot_{}'.format(prot_num)
         prot_num += 1
 
@@ -84,7 +88,9 @@ def make_nr_prot(faa_files, output_dir):
         # Write mapping file
         for element in lst:
             software, software_id = element
-            row_txt = '{}\t{}\t{}\n'.format(new_prot_name, software, software_id)
+            row_txt = '{}\t{}\t{}\n'.format(
+                new_prot_name, software, software_id
+            )
             outhandle2.write(row_txt)
 
     # Close handle
@@ -93,4 +99,4 @@ def make_nr_prot(faa_files, output_dir):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

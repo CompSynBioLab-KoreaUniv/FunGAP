@@ -1,23 +1,21 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Import BLASTn result
  - Input: blastn output directory
  - Output: dictionary
+Last updated: Aug 12, 2020
 '''
 
-# Import modules
-from __future__ import division
-import re
 import os
-import sys
-import cPickle
+import pickle
+import re
 from argparse import ArgumentParser
 from collections import defaultdict
 
 
-# Define main function
-def main(argv):
+def main():
+    '''Main function'''
     argparse_usage = 'import_blastn.py -b <blastn_out_files> -o <output_dir>'
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
@@ -39,21 +37,23 @@ def main(argv):
 
 
 def import_file(input_file):
+    '''Import file'''
     with open(input_file) as f_in:
-        txt = (line.rstrip() for line in f_in)
-        txt = list(line for line in txt if line)
+        txt = list(line.rstrip() for line in f_in)
     return txt
 
 
 def create_dir(output_dir):
+    '''Create directory'''
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
 
 def import_blastn(blastn_out_files, output_dir):
-    D_blastn = defaultdict(float)
+    '''Import BLASTn output'''
+    d_blastn = defaultdict(float)
     for blast_file in blastn_out_files:
-        prefix = re.sub('\.blastn$', '', os.path.basename(blast_file))
+        prefix = re.sub(r'\.blastn$', '', os.path.basename(blast_file))
         blast_txt = import_file(blast_file)
         for line in blast_txt:
             line_split = line.split('\t')
@@ -66,12 +66,12 @@ def import_blastn(blastn_out_files, output_dir):
             q_cov = min(1, alignment_length / qlen)
             s_cov = min(1, alignment_length / slen)
             score = bit_score * q_cov * s_cov
-            D_blastn[(prefix, gene_id)] += round(score, 1)
+            d_blastn[(prefix, gene_id)] += round(score, 1)
 
-     # Write cPickle
+     # Write pickle
     output_pickle = os.path.join(output_dir, 'blastn_score.p')
-    cPickle.dump(D_blastn, open(output_pickle, 'wb'))
+    pickle.dump(d_blastn, open(output_pickle, 'wb'))
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

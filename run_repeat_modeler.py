@@ -1,50 +1,41 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 '''
 Run RepeatModeler. The output of repeat models are passed into Maker
 
 Input: genome assembly in FASTA
 Output: Repeat model in FASTA (named consensi.fa.classified)
+Last updated: Aug 12, 2020
 '''
 
-# Import modules
-import sys
 import os
-from glob import glob
+import sys
 from argparse import ArgumentParser
+from glob import glob
 
-# Get Logging
-this_path = os.path.realpath(__file__)
-this_dir = os.path.dirname(this_path)
-sys.path.append(this_dir)
-from set_logging import set_logging
 from import_config import import_config
-
-# Parameters
-program_name = 'repeat_modeler'
+from set_logging import set_logging
 
 
-# Main function
-def main(argv):
-    optparse_usage = (
-        'run_repeat_modeler.py -g <genome_assembly>'
-    )
-    parser = ArgumentParser(usage=optparse_usage)
+def main():
+    '''Main function'''
+    argparse_usage = 'run_repeat_modeler.py -g <genome_assembly>'
+    parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
-        "-g", "--genome_assembly", nargs=1, required=True,
-        help="Genome assembly file in FASTA format"
+        '-g', '--genome_assembly', nargs=1, required=True,
+        help='Genome assembly file in FASTA format'
     )
     parser.add_argument(
-        "-o", "--output_dir", nargs='?', default='repeat_modeler_out',
-        help="Output directory"
+        '-o', '--output_dir', nargs='?', default='repeat_modeler_out',
+        help='Output directory (default: repeat_modeler_out)'
     )
     parser.add_argument(
-        "-l", "--log_dir", nargs='?', default='logs',
-        help="Log directory"
+        '-l', '--log_dir', nargs='?', default='logs',
+        help='Log directory (default: logs)'
     )
     parser.add_argument(
-        "-c", "--num_cores", nargs='?', default=1, type=int,
-        help="Number of cores to be used"
+        '-c', '--num_cores', nargs='?', default=1, type=int,
+        help='Number of cores to be used'
     )
 
     args = parser.parse_args()
@@ -60,68 +51,54 @@ def main(argv):
     log_file = os.path.join(
         log_dir, 'run_repeat_modeler.log'
     )
-    global logger_time, logger_txt
-    logger_time, logger_txt = set_logging(log_file)
+    logger = set_logging(log_file)
 
     # Run functions :) Slow is as good as Fast
-    run_repeat_modeler(genome_assembly, output_dir, log_dir, num_cores)
-
-
-def import_file(input_file):
-    with open(input_file) as f_in:
-        txt = (line.rstrip() for line in f_in)
-        txt = list(line for line in txt if line)
-    return txt
+    run_repeat_modeler(genome_assembly, output_dir, log_dir, num_cores, logger)
 
 
 def create_dir(output_dir, log_dir):
+    '''Create directories'''
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
-
-    if not os.path.exists(log_dir):
-        os.mkdir(log_dir)
-
-    log_dir = os.path.join(log_dir, program_name)
     if not os.path.exists(log_dir):
         os.mkdir(log_dir)
 
 
-def run_repeat_modeler(genome_assembly, output_dir, log_dir, num_cores):
-    D_conf = import_config(this_dir)
-    builddatabase_bin = D_conf['BUILDDATABASE_PATH']
-    repeatmodeler_bin = D_conf['REPEATMODELER_PATH']
+def run_repeat_modeler(genome_assembly, output_dir, log_dir, num_cores, logger):
+    '''Run RepeatModeler'''
+    d_conf = import_config()
+    builddatabase_bin = d_conf['BUILDDATABASE_PATH']
+    repeatmodeler_bin = d_conf['REPEATMODELER_PATH']
 
     # BuildDatabase -name Choanephora_cucurbitarum
     # ../Choanephora_cucurbitarum_assembly.fna
     # RepeatModeler -database Choanephora_cucurbitarum -pa 25
 
     # Get repeat model
-    repeat_lib = os.path.join(
-        output_dir, '*', 'consensi.fa.classified'
-    )
+    repeat_lib = os.path.join(output_dir, '*', 'consensi.fa.classified')
+    logger_time, logger_txt = logger
     if not glob(repeat_lib):
         os.chdir(os.path.join(output_dir))
         logger_time.debug('START running RepeatModeler')
-        log_file1 = os.path.join(
-            log_dir, program_name, 'build_database.log'
+        log_file1 = os.path.join(log_dir, 'build_database.log')
+        command1 = '{0} -name {1} {1} > {2} 2>&1'.format(
+            builddatabase_bin, genome_assembly, log_file1
         )
-        command1 = '{} -name {} {} > {} 2>&1'.format(
-            builddatabase_bin, genome_assembly, genome_assembly, log_file1
-        )
-        logger_txt.debug('[Run] {}'.format(command1))
+        logger_txt.debug('[Run] %s', command1)
         os.system(command1)
 
-        log_file2 = os.path.join(
-            log_dir, program_name, 'repeat_modeler.log'
-        )
+        log_file2 = os.path.join(log_dir, 'repeat_modeler.log')
         command2 = '{} -database {} -pa {} > {} 2>&1'.format(
             repeatmodeler_bin, genome_assembly, num_cores, log_file2
         )
-        logger_txt.debug('[Run] {}'.format(command2))
+        logger_txt.debug('[Run] %s', command2)
         os.system(command2)
         logger_time.debug('DONE  running RepeatModeler')
     else:
-        logger_txt.debug('Running RepeatModeler has already been finished')
+        logger_txt.debug(
+            '[Note] Running RepeatModeler has already been finished'
+        )
 
     # Check if RepeatModeler is properly finished
     if not glob(repeat_lib):
@@ -132,5 +109,5 @@ def run_repeat_modeler(genome_assembly, output_dir, log_dir, num_cores):
         sys.exit(2)
 
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
+if __name__ == '__main__':
+    main()

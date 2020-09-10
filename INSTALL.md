@@ -257,7 +257,7 @@ You can download yeast (*Saccharomyces cerevisiae*) genome assembly (FASTA) and 
 ```
 # Download RNA-seq reads using SRA toolkit (https://ncbi.github.io/sra-tools/install_config.html)
 # Parameter -X indicates that we only need <int> pairs from the dataset.
-fastq-dump -X 3000000 -I --split-files SRR1198667
+fastq-dump -X 1000000 -I --split-files SRR1198667
 
 # Download assembly
 wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/146/045/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz

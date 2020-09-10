@@ -91,7 +91,7 @@ conda config --remove channels conda-forge/label/cf201901
 
 ```
 conda update conda
-conda create -n fungap
+conda create -y -n fungap
 conda activate fungap
 ```
 

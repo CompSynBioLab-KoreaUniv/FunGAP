@@ -99,7 +99,7 @@ conda activate fungap
 
 ```
 conda install braker2=2.1.5 trinity=2.11.0 repeatmodeler=2.0.1 hisat2=2.2.0 pfam_scan=1.6 busco=4.1.2
-pip install biopython bcbio-gff networkx markdown2 matplotlib
+pip install biopython==1.77 bcbio-gff networkx markdown2 matplotlib
 cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML
 ```
 

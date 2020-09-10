@@ -128,6 +128,12 @@ def main():
         help='Max intron length (Default: 2000 bp)'
     )
 
+    # Translation table
+    parser.add_argument(
+        '-t', '--translation_table', nargs='?', default=1, type=int,
+        help='Translation table (default: 1)'
+    )
+
     args = parser.parse_args()
     d_path = get_paths()
     output_dir = os.path.abspath(args.output_dir)
@@ -141,6 +147,7 @@ def main():
     sister_proteome = os.path.abspath(args.sister_proteome[0])
     num_cores = args.num_cores
     max_intron = args.max_intron
+    translation_table = args.translation_table
 
     # For non-fungus genomes
     if args.no_braker_fungus:
@@ -186,8 +193,8 @@ def main():
     )
     maker_gff3s, maker_faas = run_maker(
         genome_assembly, output_dir, augustus_species, sister_proteome,
-        num_cores, repeat_model_file, trinity_asms, no_genemark_fungus, d_path,
-        logger
+        num_cores, repeat_model_file, trinity_asms, no_genemark_fungus,
+        translation_table, d_path, logger
     )
     # Get masked assembly
     masked_assembly = os.path.join(
@@ -196,13 +203,14 @@ def main():
 
     # Run Augustus
     augustus_gff3, augustus_faa = run_augustus(
-        masked_assembly, output_dir, augustus_species, d_path, logger
+        masked_assembly, output_dir, augustus_species, translation_table,
+        d_path, logger
     )
 
     # Run Braker
     braker_gff3s, braker_faas = run_braker(
         masked_assembly, trans_bams, output_dir, num_cores, no_braker_fungus,
-        d_path, logger
+        translation_table, d_path, logger
     )
 
     # Run BUSCO on each gene models
@@ -419,8 +427,8 @@ def run_repeat_modeler(genome_assembly, output_dir, num_cores, d_path, logger):
 
 def run_maker(
         genome_assembly, output_dir, augustus_species, sister_proteome,
-        num_cores, repeat_model_file, trinity_asms, no_genemark_fungus, d_path,
-        logger):
+        num_cores, repeat_model_file, trinity_asms, no_genemark_fungus,
+        translation_table, d_path, logger):
     '''Run Maker'''
     maker_out_dir = os.path.join(output_dir, 'maker_out')
     # run_maker.py -i <input_fasta> -a <augustus_species> -p <protein_db_fasta>
@@ -430,10 +438,11 @@ def run_maker(
     command = (
         '{} --input_fasta {} --augustus_species {} --protein_db_fasta {}'
         ' --repeat_model {} --est_files {} --output_dir {} --num_cores {} '
-        '--log_dir {} {}'.format(
+        '--translation_table {} --log_dir {} {}'.format(
             d_path['run_maker'], genome_assembly, augustus_species,
             sister_proteome, repeat_model_file, ' '.join(trinity_asms),
-            maker_out_dir, num_cores, log_dir, no_genemark_fungus
+            maker_out_dir, num_cores, translation_table, log_dir,
+            no_genemark_fungus
         )
     )
     logger_time, logger_txt = logger
@@ -450,7 +459,9 @@ def run_maker(
     return maker_gff3s, maker_faas
 
 
-def run_augustus(masked_assembly, output_dir, augustus_species, d_path, logger):
+def run_augustus(
+        masked_assembly, output_dir, augustus_species, translation_table,
+        d_path, logger):
     '''Run Augustus'''
     # run_augustus.py -m <masked_assembly> -s <species> -o <output_dir>
     # -l <log_dir>
@@ -458,9 +469,9 @@ def run_augustus(masked_assembly, output_dir, augustus_species, d_path, logger):
     log_dir = os.path.join(output_dir, 'logs')
     command = (
         '{} --masked_assembly {} --species {} --output_dir {} '
-        '--log_dir {}'.format(
+        '--translation_table {} --log_dir {}'.format(
             d_path['run_augustus'], masked_assembly, augustus_species,
-            output_dir, log_dir
+            output_dir, translation_table, log_dir
         )
     )
     logger_time, logger_txt = logger
@@ -476,7 +487,7 @@ def run_augustus(masked_assembly, output_dir, augustus_species, d_path, logger):
 
 def run_braker(
         masked_assembly, trans_bams, output_dir, num_cores, no_braker_fungus,
-        d_path, logger):
+        translation_table, d_path, logger):
     '''Run BRAKER'''
     braker_output_dir = os.path.join(output_dir, 'braker_out')
     log_dir = os.path.join(output_dir, 'logs')
@@ -484,9 +495,10 @@ def run_braker(
     # -l <log_dir> -c <num_cores> --fungus
     command = (
         '{} --masked_assembly {} --bam_files {} --output_dir {} '
-        '--log_dir {} --num_cores {} {}'.format(
+        '--translation_table {} --log_dir {} --num_cores {} {}'.format(
             d_path['run_braker'], masked_assembly, ' '.join(trans_bams),
-            braker_output_dir, log_dir, num_cores, no_braker_fungus
+            braker_output_dir, translation_table, log_dir, num_cores,
+            no_braker_fungus
         )
     )
     logger_time, logger_txt = logger

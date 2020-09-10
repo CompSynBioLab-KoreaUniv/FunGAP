@@ -4,14 +4,15 @@
 Run AUGUSTUS for gene prediction with ab initio model.
 
 * Used Augustus parameters in FunGAP
-augustus\
-    --uniqueGeneId=true\
-    --singlestrand=true\
-    --gff3=on\
-    --species=<SPECIES_ARG>\
-    --stopCodonExcludedFromCDS=false\
-    --softmasking=1\
-    <FASTA_FILE>\
+augustus \
+    --uniqueGeneId=true \
+    --singlestrand=true \
+    --gff3=on \
+    --species=<SPECIES_ARG> \
+    --stopCodonExcludedFromCDS=false \
+    --softmasking=1 \
+    --translation_table=12 \
+    <FASTA_FILE> \
     > <OUTPUT_GFF3>
 
 --singlestrand: Predict genes independently on each strand. This makes maximal
@@ -53,6 +54,10 @@ def main():
         help='Output directory (default: augustus_out)'
     )
     parser.add_argument(
+        '-t', '--translation_table', nargs='?', default=1, type=int,
+        help='Translation table (default: 1)'
+    )
+    parser.add_argument(
         '-l', '--log_dir', nargs='?', default='logs',
         help='Log directory'
     )
@@ -61,6 +66,7 @@ def main():
     masked_assembly = os.path.abspath(args.masked_assembly[0])
     species = args.species[0]
     output_dir = os.path.abspath(args.output_dir)
+    translation_table = args.translation_table
     log_dir = os.path.abspath(args.log_dir)
 
     # Create necessary dirs
@@ -71,7 +77,9 @@ def main():
     logger = set_logging(log_file)
 
     # Run functions :) Slow is as good as Fast
-    run_augustus(masked_assembly, output_dir, species, logger)
+    run_augustus(
+        masked_assembly, output_dir, species, translation_table, logger
+    )
     parse_augustus(output_dir)
 
 
@@ -92,7 +100,8 @@ def create_dir(output_dir, log_dir):
         os.mkdir(log_dir)
 
 
-def run_augustus(masked_assembly, output_dir, species, logger):
+def run_augustus(
+        masked_assembly, output_dir, species, translation_table, logger):
     '''Run Augustus'''
     # augustus --uniqueGeneId=true --gff3=on Neucr2_AssemblyScaffolds.fasta
     # --species=fusarium_graminearum --stopCodonExcludedFromCDS=false
@@ -105,11 +114,11 @@ def run_augustus(masked_assembly, output_dir, species, logger):
     logger_time.debug('START: Augustus')
     if not glob(augustus_output):
         command = (
-            '{} --uniqueGeneId=true --singlestrand=true --gff3=on {} '
+            '{} --uniqueGeneId=true --singlestrand=true --gff3=on '
             '--species={} --stopCodonExcludedFromCDS=false --softmasking=1 '
-            '> {}'.format(
-                D_CONF['AUGUSTUS_PATH'], masked_assembly, species,
-                augustus_output
+            '--translation_table={} {} > {}'.format(
+                D_CONF['AUGUSTUS_PATH'], species, translation_table,
+                masked_assembly, augustus_output
             )
         )
         logger_txt.debug('[Run] %s', command)

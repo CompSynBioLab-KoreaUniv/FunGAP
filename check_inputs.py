@@ -76,12 +76,20 @@ def check_trans(trans_read_1, trans_read_2, trans_read_single, trans_bam):
             sys.exit(error_message2)
 
         # Check prefix
-        prefix_1 = os.path.basename(trans_read_1).replace('_1.fastq', '')
-        prefix_2 = os.path.basename(trans_read_2).replace('_2.fastq', '')
+        prefix_1 = (
+            os.path.basename(trans_read_1)
+            .replace('_1.fastq', '')
+            .replace('_1.fq', '')
+        )
+        prefix_2 = (
+            os.path.basename(trans_read_2)
+            .replace('_2.fastq', '')
+            .replace('_2.fq', '')
+        )
         if prefix_1 != prefix_2:
             error_message3 = (
                 '[ERROR] Two paired-end trans_read_files should have same'
-                'prefix. <prefix>_1.fastq and <prefix>_2.fastq'
+                'prefix. <prefix>_1.f(ast)q and <prefix>_2.f(ast)q'
             )
             sys.exit(error_message3)
 

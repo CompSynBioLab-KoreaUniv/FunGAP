@@ -1,4 +1,4 @@
-# FunGAP: Fungal Genome Annotation Pipeline v1.0.1
+# FunGAP: Fungal Genome Annotation Pipeline v1.1.1
 
 **Last updated: Sep 12, 2020**
 

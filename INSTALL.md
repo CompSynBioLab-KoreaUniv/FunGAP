@@ -246,6 +246,19 @@ to
 
 <br />
 
+## 8. Diamond bug
+
+Somehow conda-installed diamond doesn't work at the moment. So replace the diamond with new one.
+
+```
+conda activate fungap
+which diamond  # It should look like */conda/fungap/bin/diamond
+cp $(which diamond) $(which diamond).backup
+wget https://github.com/bbuchfink/diamond/releases/download/v2.0.0/diamond-linux64.tar.gz
+tar -xf diamond-linux64.tar.gz
+mv diamond $(dirname $(which diamond))
+```
+
 # Test run
 
 <a name="testdata"></a>

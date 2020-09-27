@@ -16,6 +16,7 @@ Output: filtered gene featrue file in GFF3
 Last updated: Jul 13, 2020
 '''
 
+import bisect
 import os
 import pickle
 import re
@@ -115,14 +116,13 @@ def main():
     d_pfam = pickle.load(open(pfam_dict, 'rb'))
     d_blastn = pickle.load(open(blastn_dict, 'rb'))
 
-    # Self-filtering
+    # Self-filtering (for score purpose)
     for input_gff3 in input_gff3s:
         prefix = re.sub(r'\.gff3$', '', os.path.basename(input_gff3))
         d_gff3, d_gene, d_cds, d_cds_len, d_exon = import_gff3([input_gff3])
-        self_filtered = filtering(
-            d_cds, d_cds_len, d_blastp, d_busco, d_pfam, d_blastn, d_bad,
-            output_dir
-        )
+        d_score = cal_score(
+            d_cds, d_blastp, d_busco, d_pfam, d_blastn, output_dir)
+        self_filtered = filtering(d_cds, d_cds_len, d_score)
         outfile_self = os.path.join(
             output_dir, '{}_filtered.list'.format(prefix)
         )
@@ -136,10 +136,9 @@ def main():
 
     # Filtering
     d_gff3, d_gene, d_cds, d_cds_len, d_exon = import_gff3(input_gff3s)
-    final_gene_set = filtering(
-        d_cds, d_cds_len, d_blastp, d_busco, d_pfam, d_blastn, d_bad,
-        output_dir
-    )
+    remove_bad_genes(d_cds, d_bad)
+    d_score = cal_score(d_cds, d_blastp, d_busco, d_pfam, d_blastn, output_dir)
+    final_gene_set = filtering(d_cds, d_cds_len, d_score)
     d_prot = import_prot(nr_prot_file, d_mapping_rev)
     write_final_prots(final_gene_set, d_mapping, output_dir)
     write_files(
@@ -179,7 +178,6 @@ def import_mapping(mapping_file):
         prot_name, prefix, prefix_id = line_split
         d_mapping[(prefix, prefix_id)] = prot_name
         d_mapping_rev[prot_name].append((prefix, prefix_id))
-
     return d_mapping, d_mapping_rev
 
 
@@ -198,29 +196,18 @@ def import_gff3(gff3_files):
     for gff3_file in gff3_files:
         prefix = os.path.basename(gff3_file).split('.')[0]
         gff3_txt = import_file(gff3_file)
-
         d_parent = {}
         for line in gff3_txt:
             if not re.search('\t', line):
                 continue  # Only consider line containing tabs
-
             line_split = line.split('\t')
             scaffold, source, feat_type, start, end, score, strand, phase = (
                 line_split[:8]
             )
-
             m_id = reg_id.search(line)
-            if m_id:
-                entry_id = m_id.group(1)
-            else:
-                entry_id = line_split[8]
-
+            entry_id = m_id.group(1) if m_id else line_split[8]
             m_parent = reg_parent.search(line)
-            if m_parent:
-                parent_id = m_parent.group(1)
-            else:
-                parent_id = ''
-
+            parent_id = m_parent.group(1) if m_parent else ''
             if feat_type in ('mRNA', 'transcript'):
                 if entry_id != '':
                     mrna_id = entry_id
@@ -233,7 +220,6 @@ def import_gff3(gff3_files):
                     scaffold, source, feat_type, int(start), int(end), score,
                     strand, phase
                 )
-
             elif feat_type == 'CDS':
                 cds_gene = parent_id  # mRNA ID
                 new_cds_gene = (prefix, cds_gene)
@@ -258,7 +244,6 @@ def import_gff3(gff3_files):
                     scaffold, source, feat_type, int(start), int(end),
                     score, strand, phase
                 ))
-
             elif feat_type == 'exon':
                 exon_gene = parent_id # mRNA ID
                 new_exon_gene = (prefix, exon_gene)
@@ -267,25 +252,26 @@ def import_gff3(gff3_files):
                     scaffold, source, feat_type, int(start), int(end),
                     score, strand, phase
                 ))
-
     return d_gff3, d_gene, d_cds, d_cds_len, d_exon
 
 
-def filtering(
-        d_cds, d_cds_len, d_blastp, d_busco, d_pfam, d_blastn, d_bad,
-        output_dir):
-    '''Filter good gene models'''
-    d_cds_filtered = {}
-    for gene_tup, value in d_cds.items():
-        if d_bad[gene_tup]:
-            continue
-        d_cds_filtered[gene_tup] = value
+def remove_bad_genes(d_cds, d_bad):
+    '''Remove bad genes'''
+    for gene_model in d_bad.keys():
+        del d_cds[gene_model]
 
-    # Sort CDS: three keys used - scaffold, start, and end
-    d_cds_sorted = sorted(
-        d_cds_filtered.items(), key=lambda x: (x[1][0], x[1][1], x[1][2])
-    )
 
+def cal_score(d_cds, d_blastp, d_busco, d_pfam, d_blastn, output_dir):
+    '''Calculate and wriet score'''
+    d_score = {}
+    for gene_model in d_cds.keys():
+        blast_score = d_blastp[gene_model]
+        busco_score = d_busco[gene_model]
+        pfam_score = d_pfam[gene_model]
+        blastn_score = d_blastn[gene_model]
+        d_score[gene_model] = sum(
+            [blast_score, pfam_score, busco_score, blastn_score]
+        )
     # Write score table
     outfile_score = os.path.join(output_dir, 'gene_model_scores.txt')
     outhandle_score = open(outfile_score, 'w')
@@ -294,7 +280,7 @@ def filtering(
         'pfam_score', 'blastn_score', 'score_sum'
     )
     outhandle_score.write(header_txt)
-    for tup in d_cds_sorted:
+    for tup in d_cds:
         gene_tup = tup[0]
         software = gene_tup[0]
         software_id = gene_tup[1]
@@ -309,9 +295,16 @@ def filtering(
             round(score_sum, 1)
         )
         outhandle_score.write(row_txt)
-
     outhandle_score.close()
+    return d_score
 
+
+def filtering(d_cds, d_cds_len, d_score):
+    '''Filter good gene models'''
+    # Sort CDS: three keys used - scaffold, start, and end
+    d_cds_sorted = sorted(
+        d_cds.items(), key=lambda x: (x[1][0], x[1][1], x[1][2])
+    )
     # Find chunks
     model_chunks = []  # It will be list of list
     tmp_list = [d_cds_sorted[0][0]]  # Initialize
@@ -339,66 +332,51 @@ def filtering(
             model_chunks.append(tmp_list)
             tmp_list = [current_gene_name]  # Initialize
             max_cds_end = int(current_cds_end)
-
         i += 1
 
     # Filtering
     final_gene_set = []
-    i = 1
     for model_chunk in model_chunks:
-        i += 1
-        # Build Graph
-        graph = nx.Graph()
-        for gene_name1 in model_chunk:
-            for gene_name2 in model_chunk:
-                graph.add_node(gene_name1)
-                start1, end1 = d_cds[gene_name1][1:]
-                start2, end2 = d_cds[gene_name2][1:]
-                if start1 == start2 and end1 == end2:
-                    continue
-                overlap = min(end1, end2) - max(start1, start2)
-                condition1 = overlap < (end1 - start1 + 1) * 0.1
-                condition2 = overlap < (end2 - start2 + 1) * 0.1
-                if overlap == 0 or condition1 and condition2:
-                    graph.add_edge(gene_name1, gene_name2)
-        all_combs = list(nx.find_cliques(graph))
-
-        # Get score and pick best one
-        max_score = 0
-        final_chunk = []
-        for comb in all_combs:
-            score = 0
-            for element in comb:
-                blast_score = d_blastp[element]
-                busco_score = d_busco[element]
-                pfam_score = d_pfam[element]
-                blastn_score = d_blastn[element]
-
-                score += sum(
-                    [blast_score, pfam_score, busco_score, blastn_score]
-                )
-
-            if score == max_score:
-                final_chunk += [comb]
-            elif score > max_score:
-                final_chunk = [comb]
-                max_score = score
-
-        # If all scores are zero, get maximally covered candidates
-        if max_score == 0 and len(final_chunk) > 1:
-            max_cds_len = 0
-            for comb in final_chunk:
-                total_cds_len = sum(d_cds_len[x] for x in comb)
-                if total_cds_len > max_cds_len:
-                    final_chunk2 = comb
-                    max_cds_len = total_cds_len
-        else:
-            final_chunk2 = final_chunk[0]
-
-        # Get score per element
-        final_gene_set += final_chunk2
-
+        final_gene_set += get_best_comb(model_chunk, d_cds, d_cds_len, d_score)
     return final_gene_set
+
+
+def get_best_comb(model_chunk, d_cds, d_cds_len, d_score):
+    '''Get the best combination of the genes'''
+    # Sort by start point
+    model_chunk2 = [(x, d_cds[x][1], d_cds[x][2]) for x in model_chunk]
+    model_chunk_s = sorted(model_chunk2, key=lambda x: x[1])
+    # (Score, cds_len, list of genes)
+    init_score = d_score[model_chunk_s[0][0]]
+    init_cds_len = d_cds_len[model_chunk_s[0][0]]
+    combs = [(init_score, init_cds_len, [model_chunk_s[0]])]
+    for current_model in model_chunk_s[1:]:
+        flag = False
+        for previous_model in combs[::-1]:
+            if not is_overlap(current_model, previous_model[2][-1]):
+                new_score = d_score[current_model[0]] + previous_model[0]
+                new_cds_len = d_cds_len[current_model[1]] + previous_model[1]
+                new_gene_list = previous_model[2] + [current_model]
+                bisect.insort(combs, (new_score, new_cds_len, new_gene_list))
+                flag = True
+                break
+        if not flag:
+            # If there's no previous model to combine
+            score = d_score[current_model[0]]
+            cds_len = d_cds_len[current_model[0]]
+            bisect.insort(combs, (score, cds_len, [current_model]))
+    best_comb = [x[0] for x in combs[-1][2]]
+    return best_comb
+    
+
+def is_overlap(model1, model2):
+    '''Check if two models overlap'''
+    start1, end1 = model1[1], model1[2]
+    start2, end2 = model2[1], model2[2]
+    overlap = min(end1, end2) - max(start1, start2) + 1
+    condition1 = overlap >= (end1 - start1 + 1) * 0.1
+    condition2 = overlap >= (end2 - start2 + 1) * 0.1
+    return condition1 or condition2
 
 
 def import_prot(nr_prot, d_mapping_rev):

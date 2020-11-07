@@ -23,8 +23,6 @@ import re
 from argparse import ArgumentParser
 from collections import defaultdict
 
-import networkx as nx
-
 from set_logging import set_logging
 
 # Parameters
@@ -194,7 +192,7 @@ def import_gff3(gff3_files):
     reg_id = re.compile(r'ID=([^;]+)')
     reg_parent = re.compile(r'Parent=([^;]+)')
     for gff3_file in gff3_files:
-        prefix = os.path.basename(gff3_file).split('.')[0]
+        prefix = re.sub(r'\.gff3$', '', os.path.basename(gff3_file))
         gff3_txt = import_file(gff3_file)
         d_parent = {}
         for line in gff3_txt:
@@ -281,13 +279,12 @@ def cal_score(d_cds, d_blastp, d_busco, d_pfam, d_blastn, output_dir):
     )
     outhandle_score.write(header_txt)
     for tup in d_cds:
-        gene_tup = tup[0]
-        software = gene_tup[0]
-        software_id = gene_tup[1]
-        blast_score = d_blastp[gene_tup]
-        busco_score = d_busco[gene_tup]
-        pfam_score = d_pfam[gene_tup]
-        blastn_score = d_blastn[gene_tup]
+        software = tup[0]
+        software_id = tup[1]
+        blast_score = d_blastp[tup]
+        busco_score = d_busco[tup]
+        pfam_score = d_pfam[tup]
+        blastn_score = d_blastn[tup]
         score_sum = sum([blast_score, busco_score, pfam_score, blastn_score])
         row_txt = '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
             software, software_id, round(blast_score, 1),

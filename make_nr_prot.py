@@ -52,7 +52,7 @@ def make_nr_prot(faa_files, output_dir):
     # (key: prot_seq, value: (prefix, name))
     d_nr_prot = defaultdict(list)
     for faa_file in faa_files:
-        prefix = os.path.basename(faa_file).split('.')[0]
+        prefix = re.sub(r'\.faa$', '', os.path.basename(faa_file))
         d_faa = defaultdict(str)
         faa_txt = import_file(faa_file)
         for line in faa_txt:

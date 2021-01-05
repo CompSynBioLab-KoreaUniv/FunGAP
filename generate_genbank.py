@@ -26,40 +26,31 @@ from Bio.SeqRecord import SeqRecord
 def main():
     '''Main function'''
     argparse_usage = (
-        'generate_genbank.py -f <input_fna> -g <input_gff3> -a <input_faa> '
-    )
+        'generate_genbank.py -f <input_fna> -g <input_gff3> -a <input_faa> ')
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
         '-f', '--input_fna', nargs=1, required=True,
-        help='Input FNA file'
-    )
+        help='Input FNA file')
     parser.add_argument(
         '-g', '--input_gff3', nargs=1, required=True,
-        help='Input GFF3 file'
-    )
+        help='Input GFF3 file')
     parser.add_argument(
         '-a', '--input_faa', nargs=1, required=True,
-        help='Input FAA file'
-    )
+        help='Input FAA file')
     parser.add_argument(
         '-o', '--output_prefix', nargs='?', default='out',
-        help='Output prefix'
-    )
+        help='Output prefix')
     parser.add_argument(
         '-O', '--organism_name', nargs='?', default='organism',
-        help='Organism name (default: organism)'
-    )
+        help='Organism name (default: organism)')
     parser.add_argument(
         '-d', '--data_file_division', nargs='?', default='PLN',
-        help='Data file division (default: PLN)'
-    )
+        help='Data file division (default: PLN)')
     parser.add_argument(
         '-t', '--taxonomy', nargs='?', default='Eukaryota',
         help=(
             'Taxonomy separated by "; ", such as "Eukaryota; Fungi"\n'
-            '(default: Eukaryota)'
-        )
-    )
+            '(default: Eukaryota)'))
 
     args = parser.parse_args()
     input_fna = os.path.abspath(args.input_fna[0])
@@ -73,8 +64,7 @@ def main():
     # Run functions :) Slow is as good as Fast
     generate_genbank(
         input_fna, input_gff3, input_faa, output_prefix, organism_name,
-        data_file_division, taxonomy
-    )
+        data_file_division, taxonomy)
 
 
 # To parse GFF3 I referred the site

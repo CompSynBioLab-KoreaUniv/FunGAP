@@ -32,21 +32,17 @@ def main():
     '''Main function'''
     argparse_usage = (
         'catch_bad_genes.py -g <gff3_files> -a <genome_assembly> '
-        '-o <output_dir>'
-    )
+        '-o <output_dir>')
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
         '-g', '--gff3_files', nargs='+', required=True,
-        help='Input GFF3 files'
-    )
+        help='Input GFF3 files')
     parser.add_argument(
         '-a', '--genome_assembly', nargs=1, required=True,
-        help='Non-masked genome sequence file in FASTA'
-    )
+        help='Non-masked genome sequence file in FASTA')
     parser.add_argument(
         '-o', '--output_dir', nargs='?', default='gene_filtering',
-        help='Output directory'
-    )
+        help='Output directory')
 
     args = parser.parse_args()
     gff3_files = [os.path.abspath(x) for x in args.gff3_files]
@@ -89,8 +85,7 @@ def catch_middle_stop(gff3_files, genome_assembly_file, output_dir):
                 for mrna_feature in mrna_features:
                     mrna_sub_features = mrna_feature.sub_features
                     mrna_sub_features_s = sorted(
-                        mrna_sub_features, key=lambda x: x.location.start
-                    )
+                        mrna_sub_features, key=lambda x: x.location.start)
                     seq_cds = []
                     coords = []
                     mrna_sub_features_s2 = []
@@ -102,9 +97,7 @@ def catch_middle_stop(gff3_files, genome_assembly_file, output_dir):
                             feature.location.start:
                             feature.location.end])
                         coords.append(
-                            (feature.location.start, feature.location.end)
-                        )
-
+                            (feature.location.start, feature.location.end))
                     i = 1
                     while i < len(coords):
                         intron_start = coords[i - 1][1]

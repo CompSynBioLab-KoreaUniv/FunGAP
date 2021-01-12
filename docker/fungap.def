@@ -1,0 +1,23 @@
+Bootstrap: docker
+From: taniguti/fungap-base:v1.1.0
+
+%environment
+	export FUNGAP_DIR=/workspace/FunGAP	
+
+%files
+	gmes_linux_64.tar.gz /workspace/FunGAP/external/
+	gm_key_64.gz /workspace/FunGAP/external/
+        patch_braker.pl /opt/conda/bin/filterGenesIn_mRNAname.pl
+        fungap.conf $FUNGAP_DIR/
+
+%post
+	cd /workspace/FunGAP/external/
+	tar -zxvf gmes_linux_64.tar.gz
+	gunzip gm_key_64.gz
+	cp gm_key_64 ~/.gm_key 
+	
+	cd gmes_linux_64/ 
+	cp other/reformat_fasta.pl .
+	perl change_path_in_perl_scripts.pl "/usr/bin/env perl"
+
+	

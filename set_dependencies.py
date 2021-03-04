@@ -49,7 +49,7 @@ def main():
     )
     parser.add_argument(
         '-a', '--with_augustus', nargs='?', default='',
-        help='User-defined Augustus bin path (it should be Augustus >=3.3.3)'
+        help='User-defined Augustus bin path (it should be Augustus >=3.4.0)'
     )
     parser.add_argument(
         '-H', '--with_hisat2', nargs='?', default='',
@@ -288,14 +288,14 @@ def check_working(
         )
 
 def check_augustus_version(augustus_path):
-    '''Check Augustus version 3.3.3'''
+    '''Check Augustus version 3.4.0'''
     proc = subprocess.Popen(
         [augustus_path, '--version'], stderr=subprocess.PIPE
     )
     output = str(proc.stderr.read().decode('utf-8'))
-    if not output.startswith('AUGUSTUS (3.3.3)'):
+    if not output.startswith('AUGUSTUS (3.4.0)'):
         sys.exit(
-            '\n[ERROR] Augustus version is not 3.3.3. Check with "{} --version"'
+            '\n[ERROR] Augustus version is not 3.4.0. Check with "{} --version"'
             ''.format(augustus_path)
         )
 

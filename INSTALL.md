@@ -1,6 +1,6 @@
 # Installation of FunGAP v1.1.1
 
-**Last updated: May 18, 2021*
+** Last updated: May 18, 2021*
 
 **FunGAP is freely available for academic use. For the commerical use or license of FunGAP, please contact In-Geol Choi (email: igchoi (at) korea.ac.kr). Please, cite the following reference**
 
@@ -91,15 +91,6 @@ pip install biopython bcbio-gff markdown2 matplotlib
 cpanm YAML Hash::Merge Logger::Simple Parallel::ForkManager MCE::Mutex Thread::Queue threads
 ```
 
-### 1.6. Install Maker
-
-Because Maker is incompatible with other dependencies (it requires Python2), we will make a new environment and install the Maker in it.
-
-```
-conda deactivate
-conda create -n maker -c bioconda maker=2.31.10
-```
-
 <br />
 
 ## 2. Download and install FunGAP
@@ -178,7 +169,7 @@ cd $FUNGAP_DIR/external/gmes_linux_64/
 ```
 conda activate fungap
 cd $(dirname $(which RepeatMasker))/../share/RepeatMasker
-# ./configure downloads required databases
+# ./configure command will download required databases
 echo -e "\n2\n$(dirname $(which rmblastn))\n\n5\n" > tmp && ./configure < tmp
 
 # It should look like this
@@ -229,6 +220,7 @@ gunzip GCF_000146045.2_R64_genomic.fna.gz
 ### 2. Download protein sequences of related species
 
 ```
+conda activate fungap  # if you didn't do it already
 $FUNGAP_DIR/download_sister_orgs.py \
   --taxon "Saccharomyces cerevisiae" \
   --email_address <YOUR_EMAIL_ADDRESS> \
@@ -239,6 +231,7 @@ zcat sister_orgs/*faa.gz > prot_db.faa
 ### 3. Get Augustus species
 
 ```
+conda activate fungap  # if you didn't do it already
 $FUNGAP_DIR/get_augustus_species.py \
   --genus_name "Saccharomyces" \
   --email_address byoungnammin@lbl.gov
@@ -249,6 +242,7 @@ $FUNGAP_DIR/get_augustus_species.py \
 ### 4. Run FunGAP
 
 ```
+conda activate fungap  # if you didn't do it already
 $FUNGAP_DIR/fungap.py \
   --genome_assembly GCF_000146045.2_R64_genomic.fna \
   --trans_read_1 SRR1198667_1.fastq \
@@ -259,4 +253,4 @@ $FUNGAP_DIR/fungap.py \
   --num_cores 8
   ```
   
-It took about 8 hours by Intel(R) Xeon(R) CPU E5-2676 v3 @ 2.40GHz with 8 CPU cores.
+The FunGAP predicted ~5500 genes in my test run (`fungap_out/fungap_out` output directory). It took about 8 hours by Intel(R) Xeon(R) CPU E5-2676 v3 @ 2.40GHz with 8 CPU cores.

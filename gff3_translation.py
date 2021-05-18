@@ -2,7 +2,8 @@
 
 '''
 Given fasta and gff3, get protein sequence in fasta foramt
-Last updated: Aug 12, 2020
+
+Last updated: May 18, 2021
 '''
 
 import os
@@ -12,7 +13,6 @@ from argparse import ArgumentParser
 from collections import defaultdict
 
 from Bio import BiopythonWarning, SeqIO
-from Bio.Alphabet import generic_dna
 from Bio.Seq import Seq
 
 warnings.simplefilter('ignore', BiopythonWarning)
@@ -21,25 +21,20 @@ warnings.simplefilter('ignore', BiopythonWarning)
 def main():
     '''Main function'''
     argparse_usage = (
-        'gff3_translation.py -a <asm_file> -g <gff3_file> -o <output_file>'
-    )
+        'gff3_translation.py -a <asm_file> -g <gff3_file> -o <output_file>')
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
         '-a', '--asm_file', nargs=1, required=True,
-        help='Genome assembly file (FASTA)'
-    )
+        help='Genome assembly file (FASTA)')
     parser.add_argument(
         '-g', '--gff3_file', nargs=1, required=True,
-        help='GFF3 file'
-    )
+        help='GFF3 file')
     parser.add_argument(
         '-t', '--translation_table', nargs='?', default=1,
-        help='Translation table'
-    )
+        help='Translation table')
     parser.add_argument(
         '-o', '--output_file', nargs=1, required=True,
-        help='Output file'
-    )
+        help='Output file')
 
     args = parser.parse_args()
     asm_file = os.path.abspath(args.asm_file[0])
@@ -81,7 +76,7 @@ def parse_gff3(asm_file, gff3_file, table, output_file):
         gene_id = reg_parent.search(gene_id).group(1)
         d_gff3[gene_id].append((scaffold, start, end, strand, phase))
     # Parse fasta and store in dictionary
-    d_fasta = SeqIO.to_dict(SeqIO.parse(asm_file, 'fasta', generic_dna))
+    d_fasta = SeqIO.to_dict(SeqIO.parse(asm_file, 'fasta'))
     # Extract sequence
     output = open(output_file, 'w')
     gene_ids = d_gff3.keys()
@@ -127,7 +122,7 @@ def translation(seq, table):
 
 def get_reverse_complement(nuc_seq):
     '''Get reverse complement'''
-    my_dna = Seq(nuc_seq, generic_dna)
+    my_dna = Seq(nuc_seq)
     rev_comp_dna = str(my_dna.reverse_complement())
     return rev_comp_dna
 

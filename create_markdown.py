@@ -2,7 +2,8 @@
 
 '''
 Create Markedown document
-Last updated: Jul 13, 2020
+
+Last updated: May 18, 2021
 '''
 
 import datetime
@@ -16,7 +17,6 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from Bio import SeqIO
-from Bio.Alphabet import IUPAC, generic_dna
 from Bio.Seq import Seq
 from Bio.SeqUtils import GC
 
@@ -33,29 +33,23 @@ def main():
     '''Main function'''
     argparse_usage = (
         'create_markdown.py -f <input_fasta> -g <input_gff3> '
-        '-t <trinity_assembly> -b <bam_file> -o <output_dir>'
-    )
+        '-t <trinity_assembly> -b <bam_file> -o <output_dir>')
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
         '-f', '--input_fasta', nargs=1, required=True,
-        help='Genome assembly file in FASTA format'
-    )
+        help='Genome assembly file in FASTA format')
     parser.add_argument(
         '-g', '--input_gff3', nargs=1, required=True,
-        help='Input GFF3 file'
-    )
+        help='Input GFF3 file')
     parser.add_argument(
         '-t', '--trinity_assembly', nargs=1, required=True,
-        help='Trinity assembly output (FASTA)'
-    )
+        help='Trinity assembly output (FASTA)')
     parser.add_argument(
         '-b', '--bam_file', nargs=1, required=True,
-        help='Hisat2 log'
-    )
+        help='Hisat2 log')
     parser.add_argument(
         '-o', '--output_dir', nargs='?', default='fungap_out',
-        help='Output directory'
-    )
+        help='Output directory')
 
     args = parser.parse_args()
     input_fasta = os.path.abspath(args.input_fasta[0])
@@ -66,7 +60,7 @@ def main():
 
     # Run functions :) Slow is as good as Fast
     create_dir(output_dir)
-    d_fasta = SeqIO.to_dict(SeqIO.parse(input_fasta, 'fasta', generic_dna))
+    d_fasta = SeqIO.to_dict(SeqIO.parse(input_fasta, 'fasta'))
     d_gff3 = parse_gff3(input_gff3)
     protein_lengths, d_stat = get_stats(d_fasta, d_gff3)
     d_stat = get_stats2(d_fasta, d_stat)
@@ -74,8 +68,7 @@ def main():
     trans_len_dist_png = draw_trans_len_dist(d_trinity, output_dir)
     prot_len_dist_png = draw_prot_len_dist(protein_lengths, output_dir)
     create_markdown(
-        d_stat, d_trinity, trans_len_dist_png, prot_len_dist_png, output_dir
-    )
+        d_stat, d_trinity, trans_len_dist_png, prot_len_dist_png, output_dir)
 
 
 def import_file(input_file):
@@ -87,7 +80,7 @@ def import_file(input_file):
 
 def get_reverse_complement(nuc_seq):
     '''Get reverse complement sequence'''
-    my_dna = Seq(nuc_seq, generic_dna)
+    my_dna = Seq(nuc_seq)
     rev_comp_dna = str(my_dna.reverse_complement())
     return rev_comp_dna
 
@@ -154,9 +147,7 @@ def get_stats(d_fasta, d_gff3):
     sorted_genes = sorted(
         d_gff3.items(), key=lambda x: (
             int(re.findall(r'\d+', x[0])[0]),
-            x[1][0][1]
-        )
-    )
+            x[1][0][1]))
 
     for prot_id, tuples in sorted_genes:
         total_genes += 1
@@ -226,7 +217,7 @@ def get_stats(d_fasta, d_gff3):
 
     # Get GC content of CDS seq
     full_cds_seq = ''.join(d_cds_seq.values())
-    my_seq = Seq(full_cds_seq, IUPAC.unambiguous_dna)
+    my_seq = Seq(full_cds_seq)
     cds_gc_percent = GC(my_seq)
     # Percent coding
     coding_percent = float(len(full_cds_seq)) / total_bases
@@ -270,7 +261,7 @@ def get_stats2(d_fasta, d_stat):
     non_coding_percent = float(len(non_coding_seq)) / total_bases
     non_coding_percent = non_coding_percent * 100
     non_coding_percent = round(non_coding_percent, 2)
-    my_seq = Seq(non_coding_seq, IUPAC.unambiguous_dna)
+    my_seq = Seq(non_coding_seq)
     non_coding_gc = GC(my_seq)
 
     d_stat['Percent non-coding region'] = (non_coding_percent)
@@ -321,8 +312,7 @@ def draw_trans_len_dist(d_trinity, output_dir):
     outpng = os.path.join(output_dir, 'fungap_out_trans_len_dist.png')
     plt.savefig(
         outpng, dpi=500, facecolor='w', edgecolor='w', orientation='portrait',
-        format=None, transparent=False, bbox_inches=None, pad_inches=0.1
-    )
+        format=None, transparent=False, bbox_inches=None, pad_inches=0.1)
     return outpng
 
 
@@ -331,9 +321,7 @@ def draw_prot_len_dist(protein_lengths, output_dir):
     fig = plt.figure()
     axis = fig.add_subplot(111)
     plt.hist(
-        protein_lengths, facecolor='#4b85c5', alpha=1,
-        bins=150
-    )
+        protein_lengths, facecolor='#4b85c5', alpha=1, bins=150)
     plt.title('Protein length distribution')
     plt.xlabel('Amino acids (aa)')
     plt.ylabel('Frequency')
@@ -341,8 +329,7 @@ def draw_prot_len_dist(protein_lengths, output_dir):
     outpng = os.path.join(output_dir, 'fungap_out_prot_len_dist.png')
     plt.savefig(
         outpng, dpi=500, facecolor='w', edgecolor='w', orientation='portrait',
-        format=None, transparent=False, bbox_inches=None, pad_inches=0.1
-    )
+        format=None, transparent=False, bbox_inches=None, pad_inches=0.1)
     return outpng
 
 
@@ -359,8 +346,7 @@ def create_markdown(
 
     # Number of genes
     num_genes_txt = 'The **{}** genes were predicted in this genome.'.format(
-        '{:,}'.format(d_stat['Total genes'])
-    )
+        '{:,}'.format(d_stat['Total genes']))
     markd += markdown(num_genes_txt)
 
     # Gene structure summary
@@ -399,9 +385,7 @@ def create_markdown(
         '{:,}'.format(d_stat['Num introns']),
         d_stat['Num introns per gene'],
         '{:,}'.format(d_stat['Num exons']),
-        d_stat['Num exons per gene'],
-
-    )
+        d_stat['Num exons per gene'])
     markd += markdown(gene_structure_table, extras=['wiki-tables'])
 
     # Transcript assembly summary
@@ -419,8 +403,7 @@ def create_markdown(
         '{:,}'.format(d_trinity['Num mapped reads']),
         '{:,}'.format(d_trinity['Total contigs']),
         '{:,}'.format(d_trinity['Long contigs']),
-        '{:,}'.format(d_trinity['Total size'])
-    )
+        '{:,}'.format(d_trinity['Total size']))
     markd += markdown(transcript_stats_table, extras=['wiki-tables'])
 
     # Transscript length distribution
@@ -428,17 +411,14 @@ def create_markdown(
     markd += '<br>'
     markd += markdown(trans_len_txt)
     markd += markdown('![Transcript length distribution]({})'.format(
-        os.path.basename(trans_len_dist_png)
-    ))
+        os.path.basename(trans_len_dist_png)))
 
     # Protein length distribution
     prot_len_txt = '### 4. Protein length distribution'
     markd += '<br>'
     markd += markdown(prot_len_txt)
     markd += markdown('![Protein length distribution]({})'.format(
-        os.path.basename(prot_len_dist_png)
-    ))
-
+        os.path.basename(prot_len_dist_png)))
     outfile = os.path.join(output_dir, 'fungap_out.html')
 
     # header including css

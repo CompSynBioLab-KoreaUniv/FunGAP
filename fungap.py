@@ -33,11 +33,12 @@ This script runs the pipeline with following order.
     4) Write output
         copy_output.py
         create_markdown.py
-Last updated: Jul 13, 2020
+
+Last updated: May 18, 2021
 '''
 
 # Version
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 
 # Import modules
 import os

@@ -2,7 +2,8 @@
 
 '''
 Make transcripts file from genome FASTA and GFF3
-Last updated: Aug 12, 2020
+
+Last updated: May 18, 2021
 '''
 
 import os
@@ -10,26 +11,21 @@ import re
 from argparse import ArgumentParser
 from collections import defaultdict
 
-from Bio.Alphabet import generic_dna
 from Bio.Seq import Seq
 
 
-# Main function
 def main():
     '''Main function'''
     argparse_usage = (
         'make_transcripts.py -f <input_fasta> -g <input_gff3> '
-        '-o <output_prefix>'
-    )
+        '-o <output_prefix>')
     parser = ArgumentParser(usage=argparse_usage)
     parser.add_argument(
         '-f', '--input_fasta', nargs=1, required=True,
-        help='Input fasta file'
-    )
+        help='Input fasta file')
     parser.add_argument(
         '-g', '--input_gff3', nargs=1, required=True,
-        help='Input gff3 file'
-    )
+        help='Input gff3 file')
 
     args = parser.parse_args()
     input_fasta = os.path.abspath(args.input_fasta[0])
@@ -48,7 +44,7 @@ def import_file(input_file):
 
 def get_reverse_complement(nuc_seq):
     '''Get reverse complementary sequence'''
-    my_dna = Seq(nuc_seq, generic_dna)
+    my_dna = Seq(nuc_seq)
     rev_comp_dna = str(my_dna.reverse_complement())
     return rev_comp_dna
 

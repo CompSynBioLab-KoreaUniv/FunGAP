@@ -2,11 +2,9 @@
 
 '''
 Generate Genbank file using GFF3 and annotations
-Last updated: Aug 12, 2020
-'''
 
-# Import modeuls
-from __future__ import with_statement
+Last updated: May 21, 2021
+'''
 
 import gzip
 import os
@@ -17,7 +15,6 @@ from collections import defaultdict, namedtuple
 from datetime import datetime
 
 from Bio import SeqIO
-from Bio.Alphabet import generic_dna, generic_protein
 from Bio.Seq import Seq
 from Bio.SeqFeature import CompoundLocation, FeatureLocation, SeqFeature
 from Bio.SeqRecord import SeqRecord
@@ -96,8 +93,7 @@ def parse_gff3(filename):
     # Parse with transparent decompression
     gff_info_fields = [
         'seqid', 'source', 'type', 'start', 'end', 'score', 'strand',
-        'phase', 'attributes'
-    ]
+        'phase', 'attributes']
     gff_record = namedtuple('GFFRecord', gff_info_fields)
     open_func = gzip.open if filename.endswith('.gz') else open
     with open_func(filename) as infile:
@@ -119,8 +115,7 @@ def parse_gff3(filename):
                 'strand':
                     None if parts[6] == '.' else unquote(parts[6]),
                 'phase': None if parts[7] == '.' else unquote(parts[7]),
-                'attributes': parse_gff_attributes(parts[8])
-            }
+                'attributes': parse_gff_attributes(parts[8])}
             # Alternatively, you can emit the dictionary here,
             # if you need mutability:
             # yield normalizedInfo
@@ -135,13 +130,12 @@ def generate_genbank(
     outfile = '{}.gb'.format(output_prefix)
 
     # First, import input_fna in dictionary
-    d_fna = SeqIO.to_dict(SeqIO.parse(input_fna, 'fasta', generic_dna))
-    d_faa = SeqIO.to_dict(SeqIO.parse(input_faa, 'fasta', generic_protein))
+    d_fna = SeqIO.to_dict(SeqIO.parse(input_fna, 'fasta'))
+    d_faa = SeqIO.to_dict(SeqIO.parse(input_faa, 'fasta'))
 
     d_fna_sorted = sorted(
         d_fna.items(),
-        key=lambda x: int(re.findall(r'\d+', x[0])[0])
-    )
+        key=lambda x: int(re.findall(r'\d+', x[0])[0]))
 
     # Make dictionary for CDS
     d_cds = defaultdict(list)
@@ -159,16 +153,13 @@ def generate_genbank(
     for scaffold, seq in d_fna_sorted:
         my_seq = Seq(str(seq.seq))
         my_seq_record = SeqRecord(my_seq)
-        my_seq_record.seq.alphabet = generic_dna
-
         my_seq_record.description = '{} {}'.format(organism_name, scaffold)
         date = datetime.today().strftime('%d-%^b-%Y')
         my_seq_record.annotations['date'] = date
         my_seq_record.annotations['organism'] = organism_name
         my_seq_record.data_file_division = data_file_division
         my_seq_record.annotations['keywords'] = [
-            'Whole genome sequencing project'
-        ]
+            'Whole genome sequencing project']
         my_seq_record.annotations['taxonomy'] = taxonomy.split('; ')
         my_seq_record.annotations['source'] = organism_name
 
@@ -186,47 +177,35 @@ def generate_genbank(
 
             my_start = record.start
             my_end = record.end
-            if record.strand == '+':
-                my_strand = 1
-            else:
-                my_strand = -1
+            my_strand = 1 if record.strand == '+' else -1
 
             # Set qualifies for gene
             if my_feature_type == 'gene':
                 gene_start = my_start
                 gene_end = my_end
-
                 gene_feature_location = FeatureLocation(
-                    gene_start, gene_end, strand=my_strand
-                )
-
+                    gene_start, gene_end, strand=my_strand)
                 gene_qualifiers = {}
                 gene_locus_tag = record.attributes['ID']
                 gene_qualifiers['locus_tag'] = gene_locus_tag
-
                 gene_feature = SeqFeature(
                     gene_feature_location, type=my_feature_type,
-                    qualifiers=gene_qualifiers
-                )
-
+                    qualifiers=gene_qualifiers)
                 # Append my feature to seq_record
                 my_seq_record.features.append(gene_feature)
 
             elif my_feature_type == 'mRNA':
                 sorted_exon_records = sorted(
-                    d_exon[record.attributes['ID']], key=lambda x: x.start
-                )
+                    d_exon[record.attributes['ID']], key=lambda x: x.start)
                 sorted_cds_records = sorted(
-                    d_cds[record.attributes['ID']], key=lambda x: x.start
-                )
+                    d_cds[record.attributes['ID']], key=lambda x: x.start)
 
                 # Feature locations
                 # mRNA location is needed to be modified
                 fl_mrna_list = []
                 for exon_record in sorted_exon_records:
                     fl_element = FeatureLocation(
-                        exon_record.start, exon_record.end, strand=my_strand
-                    )
+                        exon_record.start, exon_record.end, strand=my_strand)
                     fl_mrna_list.append(fl_element)
 
                 if len(fl_mrna_list) == 1:
@@ -237,8 +216,7 @@ def generate_genbank(
                 fl_cds_list = []
                 for cds_record in sorted_cds_records:
                     fl_element = FeatureLocation(
-                        cds_record.start, cds_record.end, strand=my_strand
-                    )
+                        cds_record.start, cds_record.end, strand=my_strand)
                     fl_cds_list.append(fl_element)
 
                 # If fl_cds_list is more than 1 use CompoundLocation
@@ -255,8 +233,7 @@ def generate_genbank(
                 mrna_qualifiers['locus_tag'] = mrna_locus_tag
                 if record.score:
                     mrna_qualifiers['note'] = 'prediction score=%s' % (
-                        record.score
-                    )
+                        record.score)
 
                 cds_qualifiers['locus_tag'] = mrna_locus_tag
                 # Get phase
@@ -269,12 +246,10 @@ def generate_genbank(
 
                 mrna_feature = SeqFeature(
                     mrna_feature_location, type='mRNA',
-                    qualifiers=mrna_qualifiers
-                )
+                    qualifiers=mrna_qualifiers)
 
                 cds_feature = SeqFeature(
-                    cds_feature_location, type='CDS', qualifiers=cds_qualifiers
-                )
+                    cds_feature_location, type='CDS', qualifiers=cds_qualifiers)
                 # Append my feature to seq_record
                 my_seq_record.features.append(mrna_feature)
                 my_seq_record.features.append(cds_feature)

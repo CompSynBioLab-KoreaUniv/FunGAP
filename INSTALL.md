@@ -1,6 +1,6 @@
-# Installation of FunGAP v1.1.0
+# Installation of FunGAP v1.1.1
 
-**Last updated: Aug 20, 2020*
+**Last updated: May 18, 2021*
 
 **FunGAP is freely available for academic use. For the commerical use or license of FunGAP, please contact In-Geol Choi (email: igchoi (at) korea.ac.kr). Please, cite the following reference**
 
@@ -9,7 +9,7 @@ Reference: Byoungnam Min  Igor V Grigoriev  In-Geol Choi, FunGAP: Fungal Genome 
 <hr>
 
 Please don't hesitate to post on *Issues* or contact me (mbnmbn00@gmail.com) for help.
-These steps were tested in the freshly installed Ubuntu 18.04 LTS.
+These steps were tested in the freshly installed Ubuntu 20.04.2 LTS.
 
 <br />
 
@@ -27,79 +27,67 @@ Although we recommend using Docker, some workspaces are not available for Docker
 
 ### 0.1. Required softwares (and tested versions)
 
-1. [Hisat2](https://ccb.jhu.edu/software/hisat2/index.shtml) v2.2.0
-1. [Trinity](https://github.com/trinityrnaseq/trinityrnaseq) v2.11.0
+1. [Hisat2](https://ccb.jhu.edu/software/hisat2/index.shtml) v2.2.1
+1. [Trinity](https://github.com/trinityrnaseq/trinityrnaseq) v2.12.0
 1. [RepeatModeler](http://www.repeatmasker.org/RepeatModeler/) v2.0.1
-1. [Maker](http://www.yandell-lab.org/software/maker.html) v2.31.10
-1. [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) v4.59_lic
-1. [Augustus](https://github.com/Gaius-Augustus/Augustus) v3.3.3
+1. [Maker](http://www.yandell-lab.org/software/maker.html) v3.01.03
+1. [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) v4.65_lic
+1. [Augustus](https://github.com/Gaius-Augustus/Augustus) v3.4.0
 1. [Braker](http://exon.gatech.edu/braker1.html) v2.1.5
-1. [BUSCO](https://busco.ezlab.org/) v4.1.2
+1. [BUSCO](https://busco.ezlab.org/) v5.1.2
 1. [Pfam_scan](https://www.ebi.ac.uk/seqdb/confluence/display/THD/PfamScan) v1.6
-1. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download) v2.9.0+
+1. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download) v2.11.0
 1. [Samtools](http://www.htslib.org/download/) v1.10
 1. [Bamtools](https://github.com/pezmaster31/bamtools) v2.5.1
 
 ### 0.2. Required database
 
-1. [Pfam](https://pfam.xfam.org/) release 33.1
+1. [Pfam](https://pfam.xfam.org/) release 34.0
 
 <br/>
 
 ## 1. Setup Anaconda environment
 
-### 1.1. Install Anaconda3 (v4.8.4 tested)
+### 1.1. Install Anaconda3 (v4.10.1 tested)
 
 Download and install Anaconda3 (We assume that you install it in `$HOME/anaconda3`)
 
 ```
+# Download and install conda
 cd $HOME
-wget https://repo.anaconda.com/archive/Anaconda3-2020.07-Linux-x86_64.sh
-bash Anaconda3-2020.07-Linux-x86_64.sh
-```
+wget https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh
+bash Anaconda3-2021.05-Linux-x86_64.sh
 
-### 1.2. Set conda environment
-
-```
+# Set environment if you select "no" to "Do you wish the installer to initialize Anaconda3?"
 echo ". $HOME/anaconda3/etc/profile.d/conda.sh" >> ~/.bashrc
 source $HOME/.bashrc
 which conda  # It should be $HOME/anaconda3/condabin/conda
-```
 
-### 1.3. Add channels
-
-Set up the channels.
-
-```
-# Add two channels
-conda config --add channels bioconda
-conda config --add channels conda-forge
-
-# Check the channels
-conda config --show channels
-# channels:
-#  - conda-forge
-#  - bioconda
-#  - defaults
-  
-# Remove channels if you have unnecessary channels
-conda config --remove channels bioconda/label/cf201901
-conda config --remove channels conda-forge/label/cf201901
-```
-
-### 1.4. Create and activate an environment
-
-```
+# Get up-to-date conda
 conda update conda
+```
+
+### 1.2. Install dependencies
+
+```
+# Install Mamba package manager (faster!)
+conda install mamba -n base -c conda-forge
+
+# Create FunGAP environment and install dependencies using Mamba
 conda create -y -n fungap
 conda activate fungap
-```
+mamba install \
+  braker2=2.1.5 trinity=2.12.0 repeatmodeler=2.0.1 hisat2=2.2.1 pfam_scan=1.6 busco=5.1.2 \
+  -c bioconda -c conda-forge
 
-### 1.5. Install dependencies
+# Install Maker using Mamba (Maker installation is conflict with Busco)
+conda deactivate
+conda create -y -n maker
+conda activate maker
+mamba install maker=3.01.03 -c bioconda -c conda-forge
 
-```
-conda install braker2=2.1.5 trinity=2.11.0 repeatmodeler=2.0.1 hisat2=2.2.0 pfam_scan=1.6 busco=4.1.2
-pip install biopython==1.77 bcbio-gff markdown2 matplotlib
+# Install Python and Perl modules
+pip install biopython bcbio-gff markdown2 matplotlib
 cpanm YAML Hash::Merge Logger::Simple Parallel::ForkManager MCE::Mutex Thread::Queue threads
 ```
 
@@ -124,6 +112,8 @@ Download FunGAP using GitHub clone. Suppose we are installing FunGAP in your `$H
 cd $HOME  # or wherever you want
 git clone https://github.com/CompSynBioLab-KoreaUniv/FunGAP.git
 export FUNGAP_DIR=$(realpath FunGAP/)
+# You can put this export command in the your .bashrc file
+# so that you don't need to type every time you run the FunGAP
 ```
 
 <br />
@@ -141,8 +131,7 @@ mkdir -p $FUNGAP_DIR/db/pfam
 cd $FUNGAP_DIR/db/pfam
 wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
 wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.dat.gz
-gunzip Pfam-A.hmm.gz
-gunzip Pfam-A.hmm.dat.gz
+gunzip Pfam-A.hmm.gz Pfam-A.hmm.dat.gz
 conda activate fungap
 hmmpress Pfam-A.hmm  # HMMER package (would be automatically installed in the above Anaconda step)
 ```
@@ -219,46 +208,6 @@ conda activate fungap
 
 <br />
 
-## 7. Braker bug
-
-You have to fix this bug; otherwise, you will encounter this error.
-
-> ERROR: Number of good genes is 0, so the parameters cannot be optimized. Recomended are at least 300 genes <br />
-> WARNING: Number of good genes is low (0 <br />
-> ). Recomended are at least 300 genes
-
-```
-conda activate fungap
-cd $(dirname $(which braker.pl))
-vim filterGenesIn_mRNAname.pl
-```
-
-Go to line 38, and add a "?" character.
-
-From
-```
-    if ( $_ =~ m/transcript_id \"(.*)\"/ ) {
-```
-to
-```
-    if ( $_ =~ m/transcript_id \"(.*?)\"/ ) {
-```
-
-<br />
-
-## 8. Diamond bug
-
-Somehow conda-installed diamond doesn't work at the moment. So replace the diamond with new one.
-
-```
-conda activate fungap
-which diamond  # It should look like */conda/fungap/bin/diamond
-cp $(which diamond) $(which diamond).backup
-wget https://github.com/bbuchfink/diamond/releases/download/v2.0.0/diamond-linux64.tar.gz
-tar -xf diamond-linux64.tar.gz
-mv diamond $(dirname $(which diamond))
-```
-
 # Test run
 
 <a name="testdata"></a>
@@ -268,8 +217,8 @@ mv diamond $(dirname $(which diamond))
 You can download yeast (*Saccharomyces cerevisiae*) genome assembly (FASTA) and RNA-seq reads (two FASTQs) from NCBI for testing FunGAP.
 
 ```
-# Download RNA-seq reads using SRA toolkit (https://ncbi.github.io/sra-tools/install_config.html)
-# Parameter -X indicates that we only need <int> pairs from the dataset.
+# Download RNA-seq reads using SRA toolkit (https://github.com/ncbi/sra-tools/wiki/01.-Downloading-SRA-Toolkit)
+# Parameter -X indicates the number of read pairs you want to download
 fastq-dump -X 1000000 -I --split-files SRR1198667
 
 # Download assembly
@@ -282,7 +231,7 @@ gunzip GCF_000146045.2_R64_genomic.fna.gz
 ```
 $FUNGAP_DIR/download_sister_orgs.py \
   --taxon "Saccharomyces cerevisiae" \
-  --email_address <your_email_address> \
+  --email_address <YOUR_EMAIL_ADDRESS> \
   --num_sisters 1
 zcat sister_orgs/*faa.gz > prot_db.faa
 ```
@@ -310,4 +259,4 @@ $FUNGAP_DIR/fungap.py \
   --num_cores 8
   ```
   
-It took about 9 hours by dual Intel(R) Xeon(R) CPU E5-2670 v3 with 40 CPU cores.
+It took about 8 hours by Intel(R) Xeon(R) CPU E5-2676 v3 @ 2.40GHz with 8 CPU cores.

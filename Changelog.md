@@ -1,3 +1,7 @@
+## FunGAP v1.1.1 change log
+
+ - Supports Biopython 1.78
+
 ## FunGAP v1.1.0 change log
 
  - Python2 --> Python3

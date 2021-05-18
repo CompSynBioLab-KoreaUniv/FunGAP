@@ -6,7 +6,8 @@ GFF3 postprocessing
 
 Input: GFF3 file
 Output: Postprocessed GFF3 file
-Last updated: Aug 12, 2020
+
+Last updated: May 18, 2021
 '''
 
 import os
@@ -14,7 +15,6 @@ from argparse import ArgumentParser
 
 from BCBio import GFF
 from Bio import SeqIO
-from Bio.Alphabet import generic_dna
 from Bio.SeqFeature import FeatureLocation
 
 
@@ -22,21 +22,17 @@ def main():
     '''Main function'''
     argparser_usage = (
         'gff3_postprocess.py -g <genome_assembly> -i <input_gff3> -o '
-        '<output_gff3>'
-    )
+        '<output_gff3>')
     parser = ArgumentParser(usage=argparser_usage)
     parser.add_argument(
         '-g', '--genome_assembly', nargs=1, required=True,
-        help='Genome assembly file in FASTA format'
-    )
+        help='Genome assembly file in FASTA format')
     parser.add_argument(
         '-i', '--input_gff3', nargs=1, required=True,
-        help='Input GFF3 file'
-    )
+        help='Input GFF3 file')
     parser.add_argument(
         '-o', '--output_gff3', nargs=1, required=True,
-        help='Output GFF3 file name'
-    )
+        help='Output GFF3 file name')
 
     args = parser.parse_args()
 
@@ -61,39 +57,30 @@ def gff3_postprocess(genome_assembly, input_gff3, output_gff3):
         g_feature = g_features[gene_i]
         m_feature = g_feature.sub_features[0]
         c_features = [
-            x for x in m_feature.sub_features if x.type == 'CDS'
-        ]
+            x for x in m_feature.sub_features if x.type == 'CDS']
         c_features_s = sorted(
-            c_features, key=lambda x: x.location.start
-        )
+            c_features, key=lambda x: x.location.start)
         cds_start = c_features_s[0].location.start
         cds_end = c_features_s[-1].location.end
 
         e_features = [
-            x for x in m_feature.sub_features if x.type == 'exon'
-        ]
+            x for x in m_feature.sub_features if x.type == 'exon']
         e_features_s = sorted(
-            e_features, key=lambda x: x.location.start
-        )
+            e_features, key=lambda x: x.location.start)
         for i in range(len(c_features)):
             e_features_s[i].location = FeatureLocation(
                 c_features_s[i].location.start, c_features_s[i].location.end,
-                strand=c_features_s[i].location.strand
-            )
+                strand=c_features_s[i].location.strand)
         m_feature.location = FeatureLocation(
-            cds_start, cds_end, m_feature.location.strand
-        )
+            cds_start, cds_end, m_feature.location.strand)
         m_feature.sub_features = (
-            e_features_s[0:len(c_features_s)] + c_features_s
-        )
+            e_features_s[0:len(c_features_s)] + c_features_s)
 
         g_features[gene_i].location = FeatureLocation(
-            cds_start, cds_end,
-            strand=g_features[gene_i].location.strand
-        )
+            cds_start, cds_end, strand=g_features[gene_i].location.strand)
         g_features[gene_i].sub_features = [m_feature]
 
-    d_fna = SeqIO.to_dict(SeqIO.parse(genome_assembly, 'fasta', generic_dna))
+    d_fna = SeqIO.to_dict(SeqIO.parse(genome_assembly, 'fasta'))
     d_scaffold = {}
     scaffold_i = 0
     genome_assembly_txt = import_file(genome_assembly)

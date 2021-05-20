@@ -80,15 +80,15 @@ mamba install \
   braker2=2.1.5 trinity=2.12.0 repeatmodeler=2.0.1 hisat2=2.2.1 pfam_scan=1.6 busco=5.1.2 \
   -c bioconda -c conda-forge
 
+# Install Python and Perl modules (within fungap environment)
+pip install biopython bcbio-gff markdown2 matplotlib
+cpanm YAML Hash::Merge Logger::Simple Parallel::ForkManager MCE::Mutex Thread::Queue threads
+
 # Install Maker using Mamba (Maker installation is conflict with Busco)
 conda deactivate
 conda create -y -n maker
 conda activate maker
 mamba install maker=3.01.03 -c bioconda -c conda-forge
-
-# Install Python and Perl modules
-pip install biopython bcbio-gff markdown2 matplotlib
-cpanm YAML Hash::Merge Logger::Simple Parallel::ForkManager MCE::Mutex Thread::Queue threads
 ```
 
 <br />

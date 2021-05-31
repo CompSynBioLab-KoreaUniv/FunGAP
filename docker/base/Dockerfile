@@ -3,21 +3,20 @@ FROM continuumio/miniconda3:4.9.2
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install mamba and dependencies
-RUN conda install mamba -n base -c conda-forge
-RUN mamba install -c bioconda -c conda-forge \
+RUN apt-get update && apt-get install -y postgresql-contrib \
+    && conda install mamba -n base -c conda-forge \
+    && mamba install -c bioconda -c conda-forge \
         braker2=2.1.5 \
         trinity=2.12.0 \
         repeatmodeler=2.0.1 \
         hisat2=2.2.1 \
         pfam_scan=1.6 \
-        busco=5.1.2
-  
-# Install Python and Perl modules (within fungap environment)
-RUN pip install biopython bcbio-gff markdown2 matplotlib
+        busco=5.1.2 \
+    && cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML \
+    && pip install biopython bcbio-gff markdown2 matplotlib
 
 # Install Maker using Mamba (Maker installation is conflict with Busco)
 RUN mamba create -c bioconda -c conda-forge -n maker maker=3.01.03
-
 
 WORKDIR /workspace/FunGAP
 ENV PFAM_DB=/workspace/FunGAP/db/pfam/

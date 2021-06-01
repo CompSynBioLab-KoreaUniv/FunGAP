@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y postgresql-contrib \
         hisat2=2.2.1 \
         pfam_scan=1.6 \
         busco=5.1.2 \
+        augustus=3.4.0 \
     && cpanm Hash::Merge Logger::Simple Parallel::ForkManager YAML \
     && pip install biopython bcbio-gff markdown2 matplotlib
 

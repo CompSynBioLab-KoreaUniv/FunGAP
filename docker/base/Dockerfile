@@ -21,7 +21,7 @@ RUN mamba create -c bioconda -c conda-forge -n maker maker=3.01.03
 
 WORKDIR /workspace/FunGAP
 ENV PFAM_DB=/workspace/FunGAP/db/pfam/
-RUN git clone -b v1.1.1 https://github.com/CompSynBioLab-KoreaUniv/FunGAP.git . \
+RUN git clone https://github.com/CompSynBioLab-KoreaUniv/FunGAP.git . \
     && mkdir -p $PFAM_DB \
     && wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz -P $PFAM_DB \
     && wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.dat.gz -P $PFAM_DB \

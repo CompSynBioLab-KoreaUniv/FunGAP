@@ -15,9 +15,9 @@ Requirements:
 
 Be sure you have the following files in the working directory:
 
-`Dockerfile  fungap.conf  gmes_linux_64.tar.gz  gm_key_64.gz  patch_braker.pl`
+`Dockerfile  fungap.conf  gmes_linux_64.tar.gz  gm_key_64.gz`
 
-> GeneMark is not free for everybody, so you need to register in order to have gm_* files. If was not for that I could have push FunGAP docker image ready for use in DockerHub. The Dcoker image will have about 13Gb.
+> GeneMark is not free for everybody, so you need to register in order to have gm_* files. If was not for that I could have push FunGAP docker image ready for use in DockerHub. The Docker image will have about 13Gb.
 
 ```bash
 # 1. Clone FunGAP repository
@@ -41,7 +41,7 @@ docker build -t fungap .
 1. Go to `/fungap_workspace` and use helper script to get Augustus species.
 
     ```bash
-    python /workspace/FunGAP/get_augustus_species.py \
+    $FUNGAP_DIR/get_augustus_species.py \
       --genus_name "Saccharomyces" \
       --email_address byoungnammin@lbl.gov
     ```
@@ -49,22 +49,23 @@ docker build -t fungap .
 1. Make protein database
 
     ```bash
-    python /workspace/FunGAP/download_sister_orgs.py \
-      --taxon "Saccharomyces" \
-      --email_address byoungnammin@lbl.gov
+    $FUNGAP_DIR/download_sister_orgs.py \
+      --taxon "Saccharomyces cerevisiae" \
+      --email_address <YOUR_EMAIL_ADDRESS> \
+      --num_sisters 1
     zcat sister_orgs/*faa.gz > prot_db.faa
     ```
 
 1. Run FunGAP
 
     ```bash
-    python /workspace/FunGAP/fungap.py \
-      --output_dir fungap_out \
+    $FUNGAP_DIR/fungap.py \
+      --genome_assembly GCF_000146045.2_R64_genomic.fna \
       --trans_read_1 SRR1198667_1.fastq \
       --trans_read_2 SRR1198667_2.fastq \
-      --genome_assembly GCF_000146045.2_R64_genomic.fna  \
-      --augustus_species saccharomyces_cerevisiae_S288C  \
-      --sister_proteome prot_db.faa  \
+      --augustus_species saccharomyces_cerevisiae_S288C \
+      --busco_dataset ascomycota_odb10 \
+      --sister_proteome prot_db.faa \
       --num_cores 8
     ```
 

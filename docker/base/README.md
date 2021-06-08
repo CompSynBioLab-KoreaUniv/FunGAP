@@ -1,3 +1,3 @@
-This dockerfile is just to keep the instructions public. This image already is available:
+This dockerfile is just to keep the instructions public. The image already is available at Dockerhub:
 
-`docker pull taniguti/fungap-base:v1.1.0`
+`docker pull taniguti/fungap-base:v1.1.1`

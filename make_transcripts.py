@@ -3,7 +3,7 @@
 '''
 Make transcripts file from genome FASTA and GFF3
 
-Last updated: May 18, 2021
+Last updated: Jun 24, 2021
 '''
 
 import os
@@ -80,7 +80,7 @@ def parse_gff3(input_fasta, input_gff3):
     d_fasta = defaultdict(str)
     for line in fasta:
         if re.search(r'^>', line):
-            scaffold_id = line.split(' ')[0].replace('>', '')
+            scaffold_id = line.split()[0].replace('>', '')
             continue
         d_fasta[scaffold_id] += line
 

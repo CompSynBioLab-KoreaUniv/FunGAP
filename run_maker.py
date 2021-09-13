@@ -332,7 +332,7 @@ def run_gmes(
     if not glob(output_gmes):
         os.chdir(gmes_dir)
         command = (
-            '{} --ES {} --cores {} --sequence {} --soft_mask 1 > '
+            '{} --ES {} --cores {} --sequence {} --soft_mask auto > '
             '{} 2>&1'.format(
                 genemark_bin, gmes_fungus, num_cores, masked_assembly,
                 log_file

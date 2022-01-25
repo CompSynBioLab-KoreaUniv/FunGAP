@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: taniguti/fungap-base:v1.1.0
+From: taniguti/fungap-base:v1.1.1
 
 %environment
 	export FUNGAP_DIR=/workspace/FunGAP	
@@ -7,8 +7,7 @@ From: taniguti/fungap-base:v1.1.0
 %files
 	gmes_linux_64.tar.gz /workspace/FunGAP/external/
 	gm_key_64.gz /workspace/FunGAP/external/
-        patch_braker.pl /opt/conda/bin/filterGenesIn_mRNAname.pl
-        fungap.conf $FUNGAP_DIR/
+        fungap.conf /workspace/FunGAP/
 
 %post
 	cd /workspace/FunGAP/external/

@@ -6,7 +6,7 @@ Requirements:
 
 - Docker
 - 16Gb of available disk space
-- [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) release and it's key (`gmes_linux_64.tar.gz` and `gm_key_64.gz`)
+- [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) release and it's key (`gmes_linux_64_4.tar.gz` and `gm_key_64.gz`)
 
 
 ## Steps
@@ -15,7 +15,7 @@ Requirements:
 
 Be sure you have the following files in the working directory:
 
-`Dockerfile  fungap.conf  gmes_linux_64.tar.gz  gm_key_64.gz`
+`Dockerfile  fungap.conf  gmes_linux_64_4.tar.gz  gm_key_64.gz`
 
 > GeneMark is not free for everybody, so you need to register in order to have gm_* files. If was not for that I could have push FunGAP docker image ready for use in DockerHub. The Docker image will have about 13Gb.
 
@@ -24,7 +24,7 @@ Be sure you have the following files in the working directory:
 git clone https://github.com/CompSynBioLab-KoreaUniv/FunGAP.git
 # 2. Go to docker directory
 cd FunGAP/docker
-# 3. Download gmes_linux_64.tar.gz and gm_key_64.gz and put it in same directory
+# 3. Download gmes_linux_64_4.tar.gz and gm_key_64.gz and put it in same directory
 # 4. Build the image
 docker build -t fungap .
 ```
@@ -82,7 +82,7 @@ Requirements to build the container (Singularity image file, or `.sif`):
 - Singularity definition file (`fungap.def`)
 - Root priviledges
 - ~ 5Gb of available disk space
-- [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) release and it's key (`gmes_linux_64.tar.gz` and `gm_key_64.gz`)
+- [GeneMark-ES/ET](http://topaz.gatech.edu/GeneMark/license_download.cgi) release and it's key (`gmes_linux_64_4.tar.gz` and `gm_key_64.gz`)
 
 In order to build the container from the def file, you need a machine in which you have root priviledges:
 
@@ -91,7 +91,7 @@ In order to build the container from the def file, you need a machine in which y
 git clone https://github.com/CompSynBioLab-KoreaUniv/FunGAP.git
 # 2. Go to docker directory
 cd FunGAP/docker
-# 3. Download gmes_linux_64.tar.gz and gm_key_64.gz and put it in same directory
+# 3. Download gmes_linux_64_4.tar.gz and gm_key_64.gz and put it in same directory
 # 4. Build the Singularity image
 sudo singularity build fungap.sif fungap.def
 ```
@@ -115,7 +115,7 @@ If you don't have the necessary disk space nor have root priviledges, another op
     ```bash
     python /workspace/FunGAP/get_augustus_species.py \
       --genus_name "Saccharomyces" \
-      --email_address byoungnammin@lbl.gov
+      --email_address your-email-address
     ```
 
 1. Make protein database
@@ -138,7 +138,8 @@ If you don't have the necessary disk space nor have root priviledges, another op
       --genome_assembly GCF_000146045.2_R64_genomic.fna  \
       --augustus_species saccharomyces_cerevisiae_S288C  \
       --sister_proteome prot_db.faa  \
-      --num_cores 8
+      --num_cores 8 \
+      --busco_dataset saccharomycetes_odb10
     ```
 
 1. Exit the image:

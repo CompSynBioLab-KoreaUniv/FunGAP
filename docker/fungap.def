@@ -5,17 +5,17 @@ From: taniguti/fungap-base:v1.1.1
 	export FUNGAP_DIR=/workspace/FunGAP	
 
 %files
-	gmes_linux_64.tar.gz /workspace/FunGAP/external/
+	gmes_linux_64_4.tar.gz /workspace/FunGAP/external/
 	gm_key_64.gz /workspace/FunGAP/external/
         fungap.conf /workspace/FunGAP/
 
 %post
 	cd /workspace/FunGAP/external/
-	tar -zxvf gmes_linux_64.tar.gz
+	tar -zxvf gmes_linux_64_4.tar.gz
 	gunzip gm_key_64.gz
 	cp gm_key_64 ~/.gm_key 
 	
-	cd gmes_linux_64/ 
+	cd gmes_linux_64_4/ 
 	cp other/reformat_fasta.pl .
 	perl change_path_in_perl_scripts.pl "/usr/bin/env perl"
 

@@ -8,10 +8,10 @@ COPY gm_key_64.gz /workspace/FunGAP/external/
 
 
 WORKDIR /workspace/FunGAP/external/
-RUN tar -zxvf gmes_linux_64.tar.gz \
+RUN tar -zxvf gmes_linux_64_4.tar.gz \
     && gunzip gm_key_64.gz \
     && cp gm_key_64 ~/.gm_key \
-    && cd $FUNGAP_DIR/external/gmes_linux_64/ \
+    && cd $FUNGAP_DIR/external/gmes_linux_64_4/ \
     && cp other/reformat_fasta.pl . \
     && perl change_path_in_perl_scripts.pl "/usr/bin/env perl"
 

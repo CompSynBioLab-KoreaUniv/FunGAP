@@ -2,7 +2,9 @@ Bootstrap: docker
 From: taniguti/fungap-base:v1.1.1
 
 %environment
-	export FUNGAP_DIR=/workspace/FunGAP	
+	export FUNGAP_DIR=/workspace/FunGAP
+	export AUGUSTUS_CONFIG_PATH=/opt/conda/config
+	export AUGUSTUS_SCRIPTS_PATH=/opt/conda/bin
 
 %files
 	gmes_linux_64_4.tar.gz /workspace/FunGAP/external/

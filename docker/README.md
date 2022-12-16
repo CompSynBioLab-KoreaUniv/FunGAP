@@ -88,7 +88,7 @@ In order to build the container from the def file, you need a machine in which y
 
 ## Steps (tested on Ubuntu 22.04.1 LTS)
 
-### 1. Install Singularity
+### Step 1: Install Singularity
 
 1. Install required libraries
 
@@ -117,7 +117,7 @@ echo "export PATH=$PATH:${HOME}/go/bin" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-1. Install Singularity
+2. Install Singularity
 
 ```bash
 cd ${HOME}  # or wherever you want to install
@@ -129,7 +129,7 @@ make -C builddir
 sudo make -C builddir install
 ```
 
-### Build the FunGAP Singularity image
+### Step 2: Build the FunGAP Singularity image
 
 ```bash
 # 1. Clone FunGAP repository
@@ -146,7 +146,7 @@ This step will create the image directory `sandbox`, which is about ~ 16GB.
 
 If you don't have the necessary disk space nor have root priviledges, another option is to use the [Remote Builder](https://cloud.sylabs.io/builder).
 
-### Test the Singularity image
+### Step 3: Test the Singularity image
 
 1. Download a test dataset (_Saccharomyces cerevisiae_ S288C)
 
@@ -162,7 +162,7 @@ wget ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/146/045/GCF_000146045.2_R64/
 gunzip GCF_000146045.2_R64_genomic.fna.gz
 ```
 
-1. Download protein database
+2. Download protein database
 
 ```bash
 export FUNGAP_DIR=/home/ubuntu/FunGAP  # Where you downloaded FunGAP
@@ -177,10 +177,10 @@ ${FUNGAP_DIR}/download_sister_orgs.py \
 zcat sister_orgs/*faa.gz > prot_db.faa
 ```
 
-1. Run FunGAP
+3. Run FunGAP
 
 ```
-screen
+screen  # I recommend it because FunGAP can take long time
 singularity exec --writable ${FUNGAP_DIR}/docker/sandbox /workspace/FunGAP/fungap.py \
   --output_dir fungap_out \
   --trans_read_1 SRR1198667_1.fastq \
@@ -190,4 +190,7 @@ singularity exec --writable ${FUNGAP_DIR}/docker/sandbox /workspace/FunGAP/funga
   --sister_proteome prot_db.faa  \
   --num_cores 8 \
   --busco_dataset saccharomycetes_odb10
+# You can escape the screen by "ctrl + a + d"
+# You can check the list of screens by a command "screen -ls"
+# You can re-enter a certain screen by a command "screen -r <screen_id>"
 ```

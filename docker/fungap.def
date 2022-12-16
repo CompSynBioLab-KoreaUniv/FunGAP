@@ -21,4 +21,4 @@ From: taniguti/fungap-base:v1.1.1
 	cp other/reformat_fasta.pl .
 	perl change_path_in_perl_scripts.pl "/usr/bin/env perl"
 
-	
+	chmod -R o+rwX /opt/conda/config	

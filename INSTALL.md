@@ -234,7 +234,7 @@ zcat sister_orgs/*faa.gz > prot_db.faa
 conda activate fungap  # if you didn't do it already
 $FUNGAP_DIR/get_augustus_species.py \
   --genus_name "Saccharomyces" \
-  --email_address byoungnammin@lbl.gov
+  --email_address <YOUR_EMAIL_ADDRESS>
 ```
 
  - saccharomyces_cerevisiae_S288C

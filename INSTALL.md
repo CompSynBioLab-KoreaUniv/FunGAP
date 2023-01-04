@@ -141,7 +141,7 @@ Don't forget to download the key, too.
 mkdir $FUNGAP_DIR/external/
 mv gmes_linux_64_4.tar.gz gm_key_64.gz $FUNGAP_DIR/external/  # Move your downloaded files to this directory
 cd $FUNGAP_DIR/external/
-tar -zxvf gmes_linux_64.tar.gz
+tar -zxvf gmes_linux_64_4.tar.gz
 gunzip gm_key_64.gz
 cp gm_key_64 ${HOME}/.gm_key
 ```

@@ -52,7 +52,7 @@ Although we recommend using Docker, some workspaces are not available for Docker
 
 Download and install Anaconda3 (We assume that you install it in `$HOME/anaconda3`)
 
-```
+```bash
 # Download and install conda
 cd $HOME
 wget https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh
@@ -69,7 +69,7 @@ conda update conda
 
 ### 1.2. Install dependencies
 
-```
+```bash
 # Install Mamba package manager (faster!)
 conda install mamba -n base -c conda-forge
 
@@ -99,7 +99,7 @@ mamba install maker=3.01.03 -c bioconda -c conda-forge
 
 Download FunGAP using GitHub clone. Suppose we are installing FunGAP in your `$HOME` directory, but you are free to change the location. `$FUNGAP_DIR` is going to be your FunGAP installation directory.
 
-```
+```bash
 cd $HOME  # or wherever you want
 git clone https://github.com/CompSynBioLab-KoreaUniv/FunGAP.git
 export FUNGAP_DIR=$(realpath FunGAP/)
@@ -117,7 +117,7 @@ Download Pfam databases in your `$FUNGAP_DIR/db` directory.
 
 ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release
 
-```
+```bash
 mkdir -p $FUNGAP_DIR/db/pfam
 cd $FUNGAP_DIR/db/pfam
 wget ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
@@ -137,7 +137,7 @@ Don't forget to download the key, too.
 
 ### 4.1. Uncompress downloaded files
 
-```
+```bash
 mkdir $FUNGAP_DIR/external/
 mv gmes_linux_64.tar.gz gm_key_64.gz $FUNGAP_DIR/external/  # Move your downloaded files to this directory
 cd $FUNGAP_DIR/external/
@@ -150,14 +150,14 @@ cp gm_key_64 ~/.gm_key
 
 GeneMark forces to use `/usr/bin/perl` instead of conda-installed perl. You can change this by running `change_path_in_perl_scripts.pl` script.
 
-```
+```bash
 cd $FUNGAP_DIR/external/gmes_linux_64_4/
 perl change_path_in_perl_scripts.pl "/usr/bin/env perl"
 ```
 
 ### 4.3 Check GeneMark and its dependencies are correctly installed.
 
-```
+```bash
 cd $FUNGAP_DIR/external/gmes_linux_64_4/
 ./gmes_petap.pl
 ```
@@ -166,7 +166,7 @@ cd $FUNGAP_DIR/external/gmes_linux_64_4/
 
 ## 5. Download RepeatMasker databases
 
-```
+```bash
 conda activate fungap
 cd $(dirname $(which RepeatMasker))/../share/RepeatMasker
 # ./configure command will download required databases
@@ -185,7 +185,7 @@ ls $(dirname $(which RepeatMasker))/../share/RepeatMasker/Libraries
 
 This script allows users to set and test (by --help command) all the dependencies. If this script runs without any issue, you are ready to run FunGAP!
 
-```
+```bash
 cd $FUNGAP_DIR
 conda activate maker
 export MAKER_DIR=$(dirname $(which maker))
@@ -207,7 +207,7 @@ conda activate fungap
 
 You can download yeast (*Saccharomyces cerevisiae*) genome assembly (FASTA) and RNA-seq reads (two FASTQs) from NCBI for testing FunGAP.
 
-```
+```bash
 # Download RNA-seq reads using SRA toolkit (https://github.com/ncbi/sra-tools/wiki/01.-Downloading-SRA-Toolkit)
 # Parameter -X indicates the number of read pairs you want to download
 fastq-dump -X 1000000 -I --split-files SRR1198667
@@ -219,7 +219,7 @@ gunzip GCF_000146045.2_R64_genomic.fna.gz
 
 ### 2. Download protein sequences of related species
 
-```
+```bash
 conda activate fungap  # if you didn't do it already
 $FUNGAP_DIR/download_sister_orgs.py \
   --taxon "Saccharomyces cerevisiae" \
@@ -230,7 +230,7 @@ zcat sister_orgs/*faa.gz > prot_db.faa
 
 ### 3. Get Augustus species
 
-```
+```bash
 conda activate fungap  # if you didn't do it already
 $FUNGAP_DIR/get_augustus_species.py \
   --genus_name "Saccharomyces" \
@@ -241,7 +241,7 @@ $FUNGAP_DIR/get_augustus_species.py \
  
 ### 4. Run FunGAP
 
-```
+```bash
 conda activate fungap  # if you didn't do it already
 $FUNGAP_DIR/fungap.py \
   --genome_assembly GCF_000146045.2_R64_genomic.fna \

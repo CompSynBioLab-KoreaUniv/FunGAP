@@ -139,11 +139,11 @@ Don't forget to download the key, too.
 
 ```bash
 mkdir $FUNGAP_DIR/external/
-mv gmes_linux_64.tar.gz gm_key_64.gz $FUNGAP_DIR/external/  # Move your downloaded files to this directory
+mv gmes_linux_64_4.tar.gz gm_key_64.gz $FUNGAP_DIR/external/  # Move your downloaded files to this directory
 cd $FUNGAP_DIR/external/
 tar -zxvf gmes_linux_64.tar.gz
 gunzip gm_key_64.gz
-cp gm_key_64 ~/.gm_key
+cp gm_key_64 ${HOME}/.gm_key
 ```
 
 ### 4.2. Change the perl path

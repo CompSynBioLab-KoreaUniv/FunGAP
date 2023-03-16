@@ -468,7 +468,7 @@ def run_maker_trained(
             'makeblastdb', 'blastn', 'blastx', 'tblastx', 'RepeatMasker',
             'exonerate', 'snap', 'augustus', 'tRNAscan-SE', 'snoscan']:
         replace('maker_exe.ctl', '{}='.format(program), '{}={}'.format(
-            program, D_CONF[program.upper()+"_PATH"]
+            program, os.path.join(os.path.dirname(maker_bin), program)
         ))
 
     # Last run, keep_preds=1

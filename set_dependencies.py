@@ -44,6 +44,10 @@ def main():
         help='Maker bin path'
     )
     parser.add_argument(
+        '-s', '--snap_path', nargs=1, required=True,
+        help='SNAP-HMM bin path'
+    )
+    parser.add_argument(
         '-r', '--with_repeat_modeler', nargs='?', default='',
         help='User-defined RepeatModeler bin path'
     )
@@ -76,6 +80,7 @@ def main():
     pfam_db_path = os.path.abspath(args.pfam_db_path[0])
     i_genemark_path = os.path.abspath(args.genemark_path[0])
     i_maker_path = os.path.abspath(args.maker_path[0])
+    i_snap_path = os.path.abspath(args.snap_path[0])
     if args.with_repeat_modeler:
         with_repeat_modeler = os.path.abspath(args.with_repeat_modeler)
     else:
@@ -104,8 +109,9 @@ def main():
         pfam_scan_path, blastp_path, blastn_path, blastx_path,
         makeblastdb_path, samtools_path, bamtools_path, augustus_path
     ) = get_path(
-        i_genemark_path, i_maker_path, with_repeat_modeler, with_augustus,
-        with_hisat2, with_trinity, with_braker, with_busco, with_pfam_scan
+        i_genemark_path, i_maker_path, i_snap_path, with_repeat_modeler,
+        with_augustus, with_hisat2, with_trinity, with_braker, with_busco,
+        with_pfam_scan
     )
     check_working(
         genemark_path, gmhmme3_path, probuild_path, build_database_path,
@@ -159,8 +165,9 @@ def check_db(pfam_db_path):
 
 
 def get_path(
-        i_genemark_path, i_maker_path, with_repeat_modeler, with_augustus,
-        with_hisat2, with_trinity, with_braker, with_busco, with_pfam_scan):
+        i_genemark_path, i_maker_path, i_snap_path, with_repeat_modeler,
+        with_augustus, with_hisat2, with_trinity, with_braker, with_busco,
+        with_pfam_scan):
     '''Get path'''
     print('\n** Checking the installed locations of dependencies **\n')
 
@@ -198,9 +205,9 @@ def get_path(
     gff3_merge_path = check_binary('Maker', i_maker_path, 'gff3_merge')
     fasta_merge_path = check_binary('Maker', i_maker_path, 'fasta_merge')
     maker2zff_path = check_binary('Maker', i_maker_path, 'maker2zff')
-    fathom_path = check_binary('Snap', i_maker_path, 'fathom')
-    forge_path = check_binary('Snap', i_maker_path, 'forge')
-    hmm_assembler_path = check_binary('Snap', i_maker_path, 'hmm-assembler.pl')
+    fathom_path = check_binary('Snap', i_snap_path, 'fathom')
+    forge_path = check_binary('Snap', i_snap_path, 'forge')
+    hmm_assembler_path = check_binary('Snap', i_snap_path, 'hmm-assembler.pl')
     build_database_path = check_binary(
         'RepeatModeler (BuildDatabase)', with_repeat_modeler, 'BuildDatabase',
     )

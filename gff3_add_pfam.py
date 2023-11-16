@@ -81,7 +81,12 @@ def add_pfam_to_gff3(input_gff3, d_pfam):
             prot_id = cds_id.replace('.c1', '')
             prot_id = prot_id.replace('.cds', '')
             if d_pfam[prot_id] != []:
-                line = '{};product={}'.format(line, '|'.join(d_pfam[prot_id]))
+                pfam_text = '|'.join(d_pfam[prot_id])
+                pfam_text = (
+                    pfam_text
+                    .replace(';', '%3B')
+                    .replace('=', '%3D'))
+                line = f'{line};product={pfam_text}'
         output_handle.write('{}\n'.format(line))
     output_handle.close()
 

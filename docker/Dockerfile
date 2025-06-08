@@ -3,7 +3,7 @@ FROM taniguti/fungap-base:v1.1.1
 ENV FUNGAP_DIR=/workspace/FunGAP
 
 # Install GeneMark
-COPY gmes_linux_64.tar.gz /workspace/FunGAP/external/
+COPY gmes_linux_64_4.tar.gz /workspace/FunGAP/external/
 COPY gm_key_64.gz /workspace/FunGAP/external/
 
 
